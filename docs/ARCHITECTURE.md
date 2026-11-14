@@ -41,6 +41,7 @@ pebble/
 │   ├── context/                # FamilyProfilesContext (validated localStorage state)
 │   ├── games/
 │   │   ├── registry.ts         # Hub game catalog
+│   │   ├── letter-river/       # riverData.ts, riverSounds.ts, LetterRiverSetup.tsx, LetterRiverBoard.tsx
 │   │   ├── letter-train/       # letterData.ts, WordIllustration.tsx, trainSounds.ts, LetterTrainSetup.tsx, LetterTrainBoard.tsx
 │   │   └── memory-match/       # themes.ts, memoryStats.ts, soundEffects.ts, MemorySetup.tsx, MemoryBoard.tsx, MemoryRecordsModal.tsx
 │   ├── pages/                  # GameHubPage.tsx, FamilyProfilesPage.tsx
@@ -86,3 +87,11 @@ This allows tall playing cards for `4 × 4`, `4 × 5` (default), and `5 × 6` gr
 
 - `scripts/visual-verify-helper.mjs` wraps Playwright (`playwright` + Playwright `ffmpeg` driving local Google Chrome when present) with a strict `http://127.0.0.1:<PORT>` guard, `768 × 1024` portrait viewport (`deviceScaleFactor: 2`), `waitForFontsAndImages()`, `assertZeroVerticalScroll()`, `captureScreenshot()`, and `finishAndSaveVideo()`.
 - Verification runs output step-by-step `.png` screenshots and a `.webm` walkthrough video directly into the active conversation's artifact directory so every change is reviewed visually before release.
+
+## Letter River Module (`src/games/letter-river/`)
+
+- **Learning Hypothesis:** Connecting spoken word recognition (`Sound First` by default) to active multi-bucket phonics sorting helps early readers (ages 4–7) discriminate competing initial phonemes (such as `B / D / P` or `M / N`) rather than passively tapping the only letter on screen.
+- **Playfulness Asymmetry (`LetterRiverBoard.tsx`, `riverSounds.ts`):**
+  - Correct bucket drops drive high-reward celebration: SVG splash crown + droplets, bucket squash-and-bounce, rising water level (`1/3 -> 2/3 -> 3/3`), floating uppercase-highlighted word reveal badge, ascending marimba splash audio, spoken cheer, 4-catch streak Golden River Fish (`2×` catch, `+3 PTS`), and full `ConfettiBurst` when a bucket reaches `3/3` and slides in the next letter.
+  - Wrong bucket drops stay intentionally calm (`180ms` `3px` nudge, soft single low tap at low gain, gentle phonics redirect hint, fish returns smoothly to stream).
+- **Architecture:** `60fps` `requestAnimationFrame` horizontal river loop updating fish DOM transforms directly via refs (`fishElsRef`) with dual pointer-drag and tap-to-hook + tap-bucket accessibility, plus bounded `sessionStorage` resume (`pebble.letter-river.active.v1`) and `localStorage` mastery persistence (`pebble.letter-river.mastery.v1`).

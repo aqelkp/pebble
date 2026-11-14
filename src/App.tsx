@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FamilyProfilesProvider, useFamilyProfiles } from './context/FamilyProfilesContext';
 import {
+  clearSavedLetterRiverGame,
+  LetterRiverBoard,
+} from './games/letter-river/LetterRiverBoard';
+import {
+  getDefaultLetterRiverConfig,
+  isValidLetterRiverConfig,
+  LetterRiverSetup,
+  type LetterRiverConfig,
+} from './games/letter-river/LetterRiverSetup';
+import {
   clearSavedLetterTrainGame,
   LetterTrainBoard,
 } from './games/letter-train/LetterTrainBoard';
@@ -18,11 +28,16 @@ import { GameHubPage } from './pages/GameHubPage';
 
 type Screen =
   | { view: 'hub' }
-  | { view: 'profiles'; returnTo: 'hub' | 'memory-setup' | 'letter-train-setup' }
+  | {
+      view: 'profiles';
+      returnTo: 'hub' | 'memory-setup' | 'letter-train-setup' | 'letter-river-setup';
+    }
   | { view: 'memory-setup' }
   | { view: 'memory-play'; gameKey: number }
   | { view: 'letter-train-setup' }
-  | { view: 'letter-train-play'; gameKey: number };
+  | { view: 'letter-train-play'; gameKey: number }
+  | { view: 'letter-river-setup' }
+  | { view: 'letter-river-play'; gameKey: number };
 
 const NAV_STORAGE_KEY = 'pebble.nav.v1';
 
@@ -30,10 +45,15 @@ interface SavedNavState {
   screen: Screen;
   lastMemoryConfig: MemoryGameConfig | null;
   lastLetterTrainConfig: LetterTrainConfig | null;
+  lastLetterRiverConfig: LetterRiverConfig | null;
 }
 
 function isPlayScreen(screen: Screen): boolean {
-  return screen.view === 'memory-play' || screen.view === 'letter-train-play';
+  return (
+    screen.view === 'memory-play' ||
+    screen.view === 'letter-train-play' ||
+    screen.view === 'letter-river-play'
+  );
 }
 
 function isValidScreen(value: unknown): value is Screen {
@@ -42,7 +62,8 @@ function isValidScreen(value: unknown): value is Screen {
   if (
     candidate.view === 'hub' ||
     candidate.view === 'memory-setup' ||
-    candidate.view === 'letter-train-setup'
+    candidate.view === 'letter-train-setup' ||
+    candidate.view === 'letter-river-setup'
   ) {
     return true;
   }
@@ -50,12 +71,15 @@ function isValidScreen(value: unknown): value is Screen {
     candidate.view === 'profiles' &&
     (candidate.returnTo === 'hub' ||
       candidate.returnTo === 'memory-setup' ||
-      candidate.returnTo === 'letter-train-setup')
+      candidate.returnTo === 'letter-train-setup' ||
+      candidate.returnTo === 'letter-river-setup')
   ) {
     return true;
   }
   if (
-    (candidate.view === 'memory-play' || candidate.view === 'letter-train-play') &&
+    (candidate.view === 'memory-play' ||
+      candidate.view === 'letter-train-play' ||
+      candidate.view === 'letter-river-play') &&
     typeof candidate.gameKey === 'number'
   ) {
     return true;
@@ -75,33 +99,35 @@ function isValidMemoryConfig(value: unknown): value is MemoryGameConfig {
 }
 
 function loadSavedNavState(): SavedNavState {
+  const emptyState: SavedNavState = {
+    screen: { view: 'hub' },
+    lastMemoryConfig: null,
+    lastLetterTrainConfig: null,
+    lastLetterRiverConfig: null,
+  };
   try {
     const raw = window.sessionStorage.getItem(NAV_STORAGE_KEY);
     if (!raw) {
-      return {
-        screen: { view: 'hub' },
-        lastMemoryConfig: null,
-        lastLetterTrainConfig: null,
-      };
+      return emptyState;
     }
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== 'object' || parsed === null) {
-      return {
-        screen: { view: 'hub' },
-        lastMemoryConfig: null,
-        lastLetterTrainConfig: null,
-      };
+      return emptyState;
     }
     const candidate = parsed as {
       screen?: unknown;
       lastMemoryConfig?: unknown;
       lastLetterTrainConfig?: unknown;
+      lastLetterRiverConfig?: unknown;
     };
     const lastMemoryConfig = isValidMemoryConfig(candidate.lastMemoryConfig)
       ? candidate.lastMemoryConfig
       : null;
     const lastLetterTrainConfig = isValidLetterTrainConfig(candidate.lastLetterTrainConfig)
       ? candidate.lastLetterTrainConfig
+      : null;
+    const lastLetterRiverConfig = isValidLetterRiverConfig(candidate.lastLetterRiverConfig)
+      ? candidate.lastLetterRiverConfig
       : null;
     let screen: Screen = isValidScreen(candidate.screen) ? candidate.screen : { view: 'hub' };
     if (screen.view === 'memory-play' && !lastMemoryConfig) {
@@ -110,13 +136,12 @@ function loadSavedNavState(): SavedNavState {
     if (screen.view === 'letter-train-play' && !lastLetterTrainConfig) {
       screen = { view: 'hub' };
     }
-    return { screen, lastMemoryConfig, lastLetterTrainConfig };
+    if (screen.view === 'letter-river-play' && !lastLetterRiverConfig) {
+      screen = { view: 'hub' };
+    }
+    return { screen, lastMemoryConfig, lastLetterTrainConfig, lastLetterRiverConfig };
   } catch {
-    return {
-      screen: { view: 'hub' },
-      lastMemoryConfig: null,
-      lastLetterTrainConfig: null,
-    };
+    return emptyState;
   }
 }
 
@@ -130,6 +155,9 @@ function PebbleRouter() {
   const [lastLetterTrainConfig, setLastLetterTrainConfig] = useState<LetterTrainConfig | null>(
     initialNav.lastLetterTrainConfig,
   );
+  const [lastLetterRiverConfig, setLastLetterRiverConfig] = useState<LetterRiverConfig | null>(
+    initialNav.lastLetterRiverConfig,
+  );
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   const screenRef = useRef<Screen>(screen);
@@ -141,12 +169,17 @@ function PebbleRouter() {
   // Persist current screen & config in sessionStorage so PWA reloads restore mid-session state
   useEffect(() => {
     try {
-      const payload: SavedNavState = { screen, lastMemoryConfig, lastLetterTrainConfig };
+      const payload: SavedNavState = {
+        screen,
+        lastMemoryConfig,
+        lastLetterTrainConfig,
+        lastLetterRiverConfig,
+      };
       window.sessionStorage.setItem(NAV_STORAGE_KEY, JSON.stringify(payload));
     } catch {
       // Ignore storage errors in restricted environments
     }
-  }, [lastLetterTrainConfig, lastMemoryConfig, screen]);
+  }, [lastLetterRiverConfig, lastLetterTrainConfig, lastMemoryConfig, screen]);
 
   // Sync in-app navigation with browser history so Android Back navigates within Pebble
   // instead of exiting the installed PWA, and guards active games from accidental exits.
@@ -188,6 +221,13 @@ function PebbleRouter() {
         clearSavedLetterTrainGame();
         isGameActiveRef.current = false;
       }
+      if (
+        screenRef.current.view === 'letter-river-play' &&
+        targetScreen.view !== 'letter-river-play'
+      ) {
+        clearSavedLetterRiverGame();
+        isGameActiveRef.current = false;
+      }
       setScreen(targetScreen);
     };
 
@@ -207,6 +247,9 @@ function PebbleRouter() {
     }
     if (fallbackScreen.view !== 'letter-train-play') {
       clearSavedLetterTrainGame();
+    }
+    if (fallbackScreen.view !== 'letter-river-play') {
+      clearSavedLetterRiverGame();
     }
     if (!isPlayScreen(fallbackScreen)) {
       isGameActiveRef.current = false;
@@ -229,6 +272,7 @@ function PebbleRouter() {
     }
     clearSavedMemoryGame();
     clearSavedLetterTrainGame();
+    clearSavedLetterRiverGame();
     isGameActiveRef.current = false;
     setShowLeaveConfirm(false);
     if (historyDepthRef.current > 0) {
@@ -245,6 +289,7 @@ function PebbleRouter() {
   const forceLeaveToHub = useCallback(() => {
     clearSavedMemoryGame();
     clearSavedLetterTrainGame();
+    clearSavedLetterRiverGame();
     isGameActiveRef.current = false;
     setShowLeaveConfirm(false);
     if (historyDepthRef.current > 0) {
@@ -267,6 +312,8 @@ function PebbleRouter() {
       navigateTo({ view: 'memory-setup' });
     } else if (gameId === 'letter-train') {
       navigateTo({ view: 'letter-train-setup' });
+    } else if (gameId === 'letter-river') {
+      navigateTo({ view: 'letter-river-setup' });
     }
   };
 
@@ -276,7 +323,9 @@ function PebbleRouter() {
         ? { view: 'memory-setup' }
         : screen.returnTo === 'letter-train-setup'
           ? { view: 'letter-train-setup' }
-          : { view: 'hub' };
+          : screen.returnTo === 'letter-river-setup'
+            ? { view: 'letter-river-setup' }
+            : { view: 'hub' };
     return <FamilyProfilesPage onBack={() => navigateBack(fallback)} />;
   }
 
@@ -308,6 +357,23 @@ function PebbleRouter() {
           clearSavedLetterTrainGame();
           setLastLetterTrainConfig(config);
           navigateTo({ view: 'letter-train-play', gameKey: Date.now() });
+        }}
+      />
+    );
+  }
+
+  if (screen.view === 'letter-river-setup') {
+    const childProfile = profiles[0];
+    return (
+      <LetterRiverSetup
+        childProfile={childProfile}
+        initialConfig={lastLetterRiverConfig ?? getDefaultLetterRiverConfig()}
+        onBackToHub={() => navigateBack({ view: 'hub' })}
+        onEditProfiles={() => navigateTo({ view: 'profiles', returnTo: 'letter-river-setup' })}
+        onStartGame={(config) => {
+          clearSavedLetterRiverGame();
+          setLastLetterRiverConfig(config);
+          navigateTo({ view: 'letter-river-play', gameKey: Date.now() });
         }}
       />
     );
@@ -401,6 +467,59 @@ function PebbleRouter() {
                   onClick={() => setShowLeaveConfirm(false)}
                 >
                   Keep Riding
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ width: '100%' }}
+                  onClick={forceLeaveToHub}
+                >
+                  Back to Games
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  if (screen.view === 'letter-river-play') {
+    const activeRiverConfig = lastLetterRiverConfig ?? getDefaultLetterRiverConfig();
+    return (
+      <>
+        <LetterRiverBoard
+          key={screen.gameKey}
+          gameKey={screen.gameKey}
+          config={activeRiverConfig}
+          childProfile={profiles[0]}
+          soundEnabled={soundEnabled}
+          onToggleSound={toggleSound}
+          onChangeSetup={() => navigateBack({ view: 'letter-river-setup' }, true)}
+          onBackToHub={navigateToHub}
+          onGameActiveChange={handleGameActiveChange}
+        />
+
+        {showLeaveConfirm && (
+          <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leave-river-headline"
+          >
+            <div className="winner-modal">
+              <h2 id="leave-river-headline">Leave Letter River?</h2>
+              <p className="winner-subtitle">
+                Earned A–Z river badges are saved, but your current catch score will reset.
+              </p>
+              <div className="winner-actions">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ width: '100%' }}
+                  onClick={() => setShowLeaveConfirm(false)}
+                >
+                  Keep Fishing
                 </button>
                 <button
                   type="button"

@@ -60,3 +60,8 @@ Defined in `src/styles/tokens.css`:
 
 ### 5. Winner Announcement (`WinnerModal.tsx`)
 - Appears once all pairs are matched, showing a golden crown, glowing winner avatar halo(s), confetti burst, `"<Name> Wins!"` / `"It's a Tie!"` / `"Great Job, <Name>!"`, ranked `PTS` breakdown, and **Play Again** / **Change Setup** / **Back to Games** controls.
+
+### 6. Letter River (`LetterRiverSetup.tsx` & `LetterRiverBoard.tsx`)
+- **Portrait `100dvh` River Stage:** Gentle sunlit teal-mint river lanes at center with river-pebble shore trim above a warm sand-oak wooden dock holding 3 competing letter buckets (`--bucket-cols: 3`, fixed `214px` bucket height at tablet widths to guarantee zero vertical scrolling).
+- **Sound-First Fish Cards:** Swimming illustration fish carry circular pure-white picture medallions (`Sound First` default, optional word pills) without mirroring the object art when swimming left.
+- **Playful Success vs Calm Redirect:** Matching a bucket triggers buoyant water splash droplets, bucket squash-and-bounce, word reveal pop pills, Golden Fish `2×` bonuses on 4-streaks, and `3/3` bucket-pop confetti; wrong bucket drops softly nudge `3px` and return the fish calmly without slapstick distraction.

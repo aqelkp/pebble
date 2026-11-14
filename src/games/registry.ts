@@ -1,5 +1,5 @@
 export interface GameRegistryEntry {
-  id: 'memory-match' | 'letter-train' | 'number-safari' | 'word-fun';
+  id: 'memory-match' | 'letter-train' | 'letter-river' | 'number-safari' | 'word-fun';
   title: string;
   description: string;
   badgeText: string;
@@ -29,6 +29,17 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     badgeText: 'New Game',
     ageHint: 'K1 / LKG • A–Z Phonics',
     artPath: 'hub/letter-train.png',
+    status: 'available',
+    featured: true,
+  },
+  {
+    id: 'letter-river',
+    title: 'Letter River',
+    description:
+      'Scoop swimming picture fish into 3 matching letter buckets on the dock—fill 3 catches to pop a bucket with a splash and welcome the next letter!',
+    badgeText: 'New Game',
+    ageHint: 'Ages 4–7 • Phonics Sorting',
+    artPath: 'hub/letter-river.png',
     status: 'available',
     featured: true,
   },
