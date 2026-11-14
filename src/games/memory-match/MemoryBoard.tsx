@@ -3,6 +3,13 @@ import { BrandLogo, PawPipIcon, PebbleMark } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import {
+  getThemeBoardSummary,
+  loadMemoryStatsRuns,
+  recordCompletedMemoryGame,
+  type MemoryGameRun,
+  type RecordCompletionOutcome,
+} from './memoryStats';
 import type { MemoryGameConfig } from './MemorySetup';
 import { playFlipSound, playMatchSound, playMismatchSound, playWinSound } from './soundEffects';
 import { buildDeck, getBoardSizeSpec, getThemeSpec, type DeckCard } from './themes';
@@ -24,9 +31,12 @@ const ACTIVE_GAME_STORAGE_KEY = 'pebble.memory.active.v1';
 
 interface SavedMemoryGameState {
   gameKey: number;
+  roundNumber: number;
   deck: DeckCard[];
   matchedPairIds: Record<string, true>;
   scores: Record<string, number>;
+  playerAttempts: Record<string, number>;
+  totalAttempts: number;
   currentPlayerIdx: number;
   phase: TurnPhase;
 }
@@ -51,11 +61,27 @@ function loadSavedGameState(gameKey: number): SavedMemoryGameState | null {
       return null;
     }
     const restoredPhase: TurnPhase = candidate.phase === 'finished' ? 'finished' : 'idle';
+    const roundNumber =
+      typeof candidate.roundNumber === 'number' && Number.isFinite(candidate.roundNumber)
+        ? Math.max(1, Math.floor(candidate.roundNumber))
+        : 1;
+    const totalAttempts =
+      typeof candidate.totalAttempts === 'number' && Number.isFinite(candidate.totalAttempts)
+        ? Math.max(0, Math.floor(candidate.totalAttempts))
+        : 0;
+    const playerAttempts =
+      typeof candidate.playerAttempts === 'object' && candidate.playerAttempts !== null
+        ? candidate.playerAttempts
+        : {};
+
     return {
       gameKey,
+      roundNumber,
       deck: candidate.deck,
       matchedPairIds: candidate.matchedPairIds,
       scores: candidate.scores,
+      playerAttempts,
+      totalAttempts,
       currentPlayerIdx: candidate.currentPlayerIdx,
       phase: restoredPhase,
     };
@@ -78,12 +104,12 @@ interface CardDimensions {
   gap: number;
 }
 
-function buildInitialScores(players: FamilyProfile[]): Record<string, number> {
-  const scores: Record<string, number> = {};
+function buildInitialZeroMap(players: FamilyProfile[]): Record<string, number> {
+  const map: Record<string, number> = {};
   for (const player of players) {
-    scores[player.id] = 0;
+    map[player.id] = 0;
   }
-  return scores;
+  return map;
 }
 
 export function MemoryBoard({
@@ -108,6 +134,7 @@ export function MemoryBoard({
 
   const [savedState] = useState<SavedMemoryGameState | null>(() => loadSavedGameState(gameKey));
 
+  const [roundNumber, setRoundNumber] = useState<number>(() => savedState?.roundNumber ?? 1);
   const [deck, setDeck] = useState<DeckCard[]>(
     () => savedState?.deck ?? buildDeck(config.themeId, config.boardSizeId),
   );
@@ -117,12 +144,38 @@ export function MemoryBoard({
   );
   const [justMatchedPairId, setJustMatchedPairId] = useState<string | null>(null);
   const [scores, setScores] = useState<Record<string, number>>(
-    () => savedState?.scores ?? buildInitialScores(players),
+    () => savedState?.scores ?? buildInitialZeroMap(players),
   );
+  const [playerAttempts, setPlayerAttempts] = useState<Record<string, number>>(
+    () => savedState?.playerAttempts ?? buildInitialZeroMap(players),
+  );
+  const [totalAttempts, setTotalAttempts] = useState<number>(() => savedState?.totalAttempts ?? 0);
   const [currentPlayerIdx, setCurrentPlayerIdx] = useState(() => savedState?.currentPlayerIdx ?? 0);
   const [phase, setPhase] = useState<TurnPhase>(() => savedState?.phase ?? 'idle');
   const [matchBurstCount, setMatchBurstCount] = useState(0);
   const [nextPlayerName, setNextPlayerName] = useState<string | null>(null);
+
+  const [statsRuns, setStatsRuns] = useState<MemoryGameRun[]>(() => loadMemoryStatsRuns());
+  const [completionOutcome, setCompletionOutcome] = useState<RecordCompletionOutcome | null>(() => {
+    if (savedState?.phase !== 'finished') return null;
+    return recordCompletedMemoryGame({
+      roundKey: `${gameKey}-${savedState.roundNumber}`,
+      themeId: config.themeId,
+      boardSizeId: config.boardSizeId,
+      pairs: boardSize.pairs,
+      totalAttempts: Math.max(boardSize.pairs, savedState.totalAttempts),
+      playerStats: players.map((p) => ({
+        playerId: p.id,
+        attempts: savedState.playerAttempts[p.id] ?? 0,
+        matches: savedState.scores[p.id] ?? 0,
+      })),
+    });
+  });
+
+  const currentThemeSummary = useMemo(
+    () => getThemeBoardSummary(statsRuns, config.themeId, config.boardSizeId),
+    [config.boardSizeId, config.themeId, statsRuns],
+  );
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
@@ -152,9 +205,12 @@ export function MemoryBoard({
     try {
       const snapshot: SavedMemoryGameState = {
         gameKey,
+        roundNumber,
         deck,
         matchedPairIds,
         scores,
+        playerAttempts,
+        totalAttempts,
         currentPlayerIdx,
         phase: phase === 'finished' ? 'finished' : 'idle',
       };
@@ -162,7 +218,17 @@ export function MemoryBoard({
     } catch {
       // Ignore storage errors in restricted environments
     }
-  }, [currentPlayerIdx, deck, gameKey, matchedPairIds, phase, scores]);
+  }, [
+    currentPlayerIdx,
+    deck,
+    gameKey,
+    matchedPairIds,
+    phase,
+    playerAttempts,
+    roundNumber,
+    scores,
+    totalAttempts,
+  ]);
 
   // Measure the card grid container dynamically so every tall 2.5:3.5 card fits cleanly inside 100dvh
   useEffect(() => {
@@ -193,14 +259,19 @@ export function MemoryBoard({
 
   const restartGame = useCallback(() => {
     clearPendingTimer();
+    setRoundNumber((r) => r + 1);
     setDeck(buildDeck(config.themeId, config.boardSizeId));
     setFlippedIds([]);
     setMatchedPairIds({});
     setJustMatchedPairId(null);
-    setScores(buildInitialScores(players));
+    setScores(buildInitialZeroMap(players));
+    setPlayerAttempts(buildInitialZeroMap(players));
+    setTotalAttempts(0);
     setCurrentPlayerIdx(0);
     setPhase('idle');
     setNextPlayerName(null);
+    setCompletionOutcome(null);
+    setStatsRuns(loadMemoryStatsRuns());
   }, [clearPendingTimer, config.boardSizeId, config.themeId, players]);
 
   const activePlayer = players[currentPlayerIdx % players.length] ?? players[0];
@@ -223,25 +294,49 @@ export function MemoryBoard({
     if (!firstCard) return;
 
     const pairFlipped = [firstCard.uid, clickedCard.uid];
+    const nextTotalAttempts = totalAttempts + 1;
+    const nextPlayerAttempts = {
+      ...playerAttempts,
+      [activePlayer.id]: (playerAttempts[activePlayer.id] ?? 0) + 1,
+    };
+
     setFlippedIds(pairFlipped);
+    setTotalAttempts(nextTotalAttempts);
+    setPlayerAttempts(nextPlayerAttempts);
 
     if (firstCard.pairId === clickedCard.pairId) {
       // Match found: +1 point and active player gets another turn!
       const nextMatched = { ...matchedPairIds, [clickedCard.pairId]: true as const };
       const totalMatchedNow = Object.keys(nextMatched).length;
+      const nextScores = {
+        ...scores,
+        [activePlayer.id]: (scores[activePlayer.id] ?? 0) + 1,
+      };
 
       setMatchedPairIds(nextMatched);
       setJustMatchedPairId(clickedCard.pairId);
-      setScores((prev) => ({
-        ...prev,
-        [activePlayer.id]: (prev[activePlayer.id] ?? 0) + 1,
-      }));
+      setScores(nextScores);
       setMatchBurstCount((c) => c + 1);
       setPhase('resolving-match');
       playMatchSound(soundEnabled);
 
       clearPendingTimer();
       if (totalMatchedNow >= boardSize.pairs) {
+        const outcome = recordCompletedMemoryGame({
+          roundKey: `${gameKey}-${roundNumber}`,
+          themeId: config.themeId,
+          boardSizeId: config.boardSizeId,
+          pairs: boardSize.pairs,
+          totalAttempts: nextTotalAttempts,
+          playerStats: players.map((p) => ({
+            playerId: p.id,
+            attempts: nextPlayerAttempts[p.id] ?? 0,
+            matches: nextScores[p.id] ?? 0,
+          })),
+        });
+        setCompletionOutcome(outcome);
+        setStatsRuns(loadMemoryStatsRuns());
+
         timeoutRef.current = window.setTimeout(() => {
           setFlippedIds([]);
           setJustMatchedPairId(null);
@@ -276,6 +371,7 @@ export function MemoryBoard({
   const standings: PlayerStanding[] = players.map((player) => ({
     profile: player,
     score: scores[player.id] ?? 0,
+    attempts: playerAttempts[player.id] ?? 0,
   }));
 
   let bannerClass = 'status-banner';
@@ -288,7 +384,7 @@ export function MemoryBoard({
     bannerClass = 'status-banner status-banner--match';
     bannerText =
       matchedPairsCount >= boardSize.pairs
-        ? `MATCH! +1 POINT — All ${boardSize.pairs} pairs found!`
+        ? `MATCH! +1 POINT — Finished in ${totalAttempts} attempts!`
         : `MATCH! +1 POINT — ${activePlayer.name} goes again!`;
   } else if (phase === 'resolving-mismatch') {
     bannerClass = 'status-banner status-banner--mismatch';
@@ -325,6 +421,19 @@ export function MemoryBoard({
           <span className="section-pill" aria-label={`Pairs matched ${matchedPairsCount} of ${boardSize.pairs}`}>
             Pairs: <strong>{matchedPairsCount}</strong>/{boardSize.pairs}
           </span>
+          <span
+            className="section-pill section-pill--attempts"
+            aria-label={
+              currentThemeSummary.bestAttempts !== null
+                ? `Attempts ${totalAttempts}, best record ${currentThemeSummary.bestAttempts}`
+                : `Attempts ${totalAttempts}`
+            }
+          >
+            Attempts: <strong>{totalAttempts}</strong>
+            {currentThemeSummary.bestAttempts !== null && (
+              <span className="section-pill__best"> • Best {currentThemeSummary.bestAttempts}</span>
+            )}
+          </span>
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--compact"
@@ -359,6 +468,7 @@ export function MemoryBoard({
           const isTurn = index === currentPlayerIdx % players.length && phase !== 'finished';
           const isCelebrating = isTurn && phase === 'resolving-match';
           const score = scores[player.id] ?? 0;
+          const tries = playerAttempts[player.id] ?? 0;
 
           return (
             <div
@@ -375,13 +485,20 @@ export function MemoryBoard({
                 />
                 <div className="player-score-card__meta">
                   <span className="player-score-card__name">{player.name}</span>
-                  {isCelebrating ? (
-                    <span className="turn-badge turn-badge--match">+1 Point!</span>
-                  ) : isTurn ? (
-                    <span className="turn-badge">Your Turn</span>
-                  ) : (
-                    <span className="turn-badge turn-badge--idle">Waiting</span>
-                  )}
+                  <div className="player-score-card__badge-row">
+                    {isCelebrating ? (
+                      <span className="turn-badge turn-badge--match">+1 Point!</span>
+                    ) : isTurn ? (
+                      <span className="turn-badge">Your Turn</span>
+                    ) : (
+                      <span className="turn-badge turn-badge--idle">Waiting</span>
+                    )}
+                    {players.length <= 3 && (
+                      <span className="player-tries-meta">
+                        {tries} {tries === 1 ? 'attempt' : 'attempts'}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -464,6 +581,8 @@ export function MemoryBoard({
           standings={standings}
           totalPairs={boardSize.pairs}
           themeTitle={theme.title}
+          boardSizeLabel={boardSize.label}
+          completionOutcome={completionOutcome}
           onPlayAgain={restartGame}
           onChangeSetup={onChangeSetup}
           onBackToHub={onBackToHub}
