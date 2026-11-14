@@ -20,7 +20,7 @@ pebble/
 │   └── BRAND_AND_DESIGN.md
 ├── public/
 │   ├── avatars/                # 6 family avatar 512x512 PNGs
-│   ├── hub/                    # 3 hub illustration 512x512 PNGs
+│   ├── hub/                    # 4 hub illustration 512x512 PNGs (memory-match, letter-train, number-safari, word-fun)
 │   ├── themes/
 │   │   ├── lion-king/          # 16 character 512x512 PNGs
 │   │   ├── kung-fu-panda/      # 16 character 512x512 PNGs
@@ -40,6 +40,7 @@ pebble/
 │   ├── context/                # FamilyProfilesContext (validated localStorage state)
 │   ├── games/
 │   │   ├── registry.ts         # Hub game catalog
+│   │   ├── letter-train/       # letterData.ts, WordIllustration.tsx, trainSounds.ts, LetterTrainSetup.tsx, LetterTrainBoard.tsx
 │   │   └── memory-match/       # themes.ts, soundEffects.ts, MemorySetup.tsx, MemoryBoard.tsx
 │   ├── pages/                  # GameHubPage.tsx, FamilyProfilesPage.tsx
 │   ├── styles/tokens.css

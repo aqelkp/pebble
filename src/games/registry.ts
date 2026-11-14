@@ -1,5 +1,5 @@
 export interface GameRegistryEntry {
-  id: 'memory-match' | 'number-safari' | 'word-fun';
+  id: 'memory-match' | 'letter-train' | 'number-safari' | 'word-fun';
   title: string;
   description: string;
   badgeText: string;
@@ -18,6 +18,17 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     badgeText: 'Ready to Play',
     ageHint: 'Ages 3–7 • 1–4 Players',
     artPath: 'hub/memory-match.png',
+    status: 'available',
+    featured: true,
+  },
+  {
+    id: 'letter-train',
+    title: 'Letter Train',
+    description:
+      'Load all 3 matching picture cards onto each A–Z steam train to hear the whistle blow—watch out or wrong picks will overheat the boiler!',
+    badgeText: 'New Game',
+    ageHint: 'K1 / LKG • A–Z Phonics',
+    artPath: 'hub/letter-train.png',
     status: 'available',
     featured: true,
   },
