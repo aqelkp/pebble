@@ -5324,7 +5324,7 @@ h3,
 
 .ps-banner--warn {
   background: var(--coral-tint);
-  border: 1.5px solid var(--coral-500);
+  border: 1.5px solid var(--coral-accent);
   color: #9c341d;
 }
 
@@ -5403,11 +5403,99 @@ h3,
   box-shadow: 0 0 0 4px rgba(91, 91, 214, 0.18);
 }
 
-.ps-cell--conflict {
+.ps-cell--conflict-band {
+  background: #fdece8 !important;
+  border-color: #f3b5a7 !important;
+}
+
+.ps-cell--conflict-focus {
   border-style: solid !important;
-  border-color: var(--coral-500) !important;
-  background: var(--coral-tint) !important;
-  animation: ps-wobble 0.36s ease;
+  border-width: 3px !important;
+  border-color: var(--coral-accent) !important;
+  background: #fad8d0 !important;
+  box-shadow: 0 0 0 4px rgba(242, 122, 94, 0.22);
+  animation: ps-wobble 0.28s ease;
+}
+
+.ps-cell__img--wrong-preview {
+  opacity: 0.72;
+}
+
+.ps-banner__pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ps-mistake-pill {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.ps-mistake-pill--clean {
+  background: var(--mint-tint);
+  color: #1c6b62;
+}
+
+.ps-mistake-pill--warn {
+  background: var(--coral-tint);
+  color: #9c341d;
+}
+
+.ps-tray-dock--paused {
+  border-color: var(--coral-accent);
+  background: #fff8f6;
+}
+
+.ps-try-again-panel {
+  min-height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 4px 6px;
+}
+
+.ps-try-again-panel__img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 14px;
+  background: var(--surface-white);
+  border: 2px solid #f3b5a7;
+  padding: 6px;
+  flex-shrink: 0;
+}
+
+.ps-try-again-panel__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ps-try-again-panel__title {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: #9c341d;
+  margin-bottom: 2px;
+}
+
+.ps-try-again-panel__msg {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.ps-try-again-panel__btn {
+  flex-shrink: 0;
+  min-width: 118px;
 }
 
 .ps-cell--just-placed {

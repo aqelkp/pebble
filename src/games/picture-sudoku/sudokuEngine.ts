@@ -50,7 +50,23 @@ export interface SudokuPuzzle {
 export interface ConflictInfo {
   reason: 'row' | 'col' | 'box';
   conflictCells: Array<{ row: number; col: number }>;
+  bandCells: Array<{ row: number; col: number }>;
   message: string;
+}
+
+export function getRowColBandCells(
+  row: number,
+  col: number,
+  size: SudokuSize,
+): Array<{ row: number; col: number }> {
+  const cells: Array<{ row: number; col: number }> = [];
+  for (let i = 0; i < size; i += 1) {
+    cells.push({ row, col: i });
+    if (i !== row) {
+      cells.push({ row: i, col });
+    }
+  }
+  return cells;
 }
 
 export function getSudokuSizeSpec(size: SudokuSize): SudokuSizeSpec {
@@ -226,9 +242,11 @@ export function findPlacementConflict(
     }
   }
   if (rowConflicts.length > 0) {
+    const bandCells = Array.from({ length: size }, (_, c) => ({ row, col: c }));
     return {
       reason: 'row',
       conflictCells: [...rowConflicts, { row, col }],
+      bandCells,
       message: `${label} is already in this row!`,
     };
   }
@@ -240,9 +258,11 @@ export function findPlacementConflict(
     }
   }
   if (colConflicts.length > 0) {
+    const bandCells = Array.from({ length: size }, (_, r) => ({ row: r, col }));
     return {
       reason: 'col',
       conflictCells: [...colConflicts, { row, col }],
+      bandCells,
       message: `${label} is already in this column!`,
     };
   }
@@ -251,8 +271,10 @@ export function findPlacementConflict(
     const boxRowStart = Math.floor(row / 2) * 2;
     const boxColStart = Math.floor(col / 2) * 2;
     const boxConflicts: Array<{ row: number; col: number }> = [];
+    const bandCells: Array<{ row: number; col: number }> = [];
     for (let r = boxRowStart; r < boxRowStart + 2; r += 1) {
       for (let c = boxColStart; c < boxColStart + 2; c += 1) {
+        bandCells.push({ row: r, col: c });
         if ((r !== row || c !== col) && board[r][c] === symbolIndex) {
           boxConflicts.push({ row: r, col: c });
         }
@@ -262,6 +284,7 @@ export function findPlacementConflict(
       return {
         reason: 'box',
         conflictCells: [...boxConflicts, { row, col }],
+        bandCells,
         message: `${label} is already in this 2×2 box!`,
       };
     }

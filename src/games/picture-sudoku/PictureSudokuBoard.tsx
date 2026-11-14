@@ -3,11 +3,12 @@ import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { assetUrl } from '../../utils/assets';
-import { getThemeSpec } from '../memory-match/themes';
+import { getThemeSpec, type CharacterCardSpec } from '../memory-match/themes';
 import type { PictureSudokuConfig } from './PictureSudokuSetup';
 import {
   findPlacementConflict,
   generateSudokuPuzzle,
+  getRowColBandCells,
   getSudokuSizeSpec,
   isBoardSolved,
   type SudokuPuzzle,
@@ -17,11 +18,11 @@ import {
   playConflictSound,
   playPickupSound,
   playPlaceSuccessSound,
-  playReturnSound,
   playSolvedFanfare,
 } from './sudokuSounds';
 
 const SUDOKU_STORAGE_KEY = 'pebble.sudoku.v1';
+const TRY_AGAIN_COOLDOWN_SEC = 3;
 
 export function clearSavedSudokuGame(): void {
   try {
@@ -63,6 +64,13 @@ interface BannerFeedback {
   text: string;
 }
 
+interface TryAgainPauseState {
+  symbol: CharacterCardSpec;
+  message: string;
+  attemptedKey: string;
+  secondsLeft: number;
+}
+
 function cellKey(row: number, col: number): string {
   return `${row}-${col}`;
 }
@@ -88,8 +96,11 @@ export function PictureSudokuBoard({
   const [selectedTrayUid, setSelectedTrayUid] = useState<string | null>(null);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [conflictKeys, setConflictKeys] = useState<Set<string>>(() => new Set());
+  const [bandKeys, setBandKeys] = useState<Set<string>>(() => new Set());
+  const [tryAgainPause, setTryAgainPause] = useState<TryAgainPauseState | null>(null);
   const [justPlacedKey, setJustPlacedKey] = useState<string | null>(null);
   const [movesCount, setMovesCount] = useState(0);
+  const [mistakesCount, setMistakesCount] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [solved, setSolved] = useState(false);
   const [confettiSeed, setConfettiSeed] = useState(0);
@@ -100,7 +111,6 @@ export function PictureSudokuBoard({
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const [boardPx, setBoardPx] = useState(380);
-  const conflictTimerRef = useRef<number | null>(null);
   const placedAnimTimerRef = useRef<number | null>(null);
 
   // Build combined board view: givens + player placements
@@ -112,7 +122,6 @@ export function PictureSudokuBoard({
     }),
   );
 
-  // Reset puzzle when gameKey or config changes
   const startNewPuzzle = useCallback(() => {
     const nextPuzzle = generateSudokuPuzzle(config.size, theme.characters);
     setPuzzle(nextPuzzle);
@@ -121,8 +130,11 @@ export function PictureSudokuBoard({
     setSelectedTrayUid(null);
     setDragState(null);
     setConflictKeys(new Set());
+    setBandKeys(new Set());
+    setTryAgainPause(null);
     setJustPlacedKey(null);
     setMovesCount(0);
+    setMistakesCount(0);
     setHintsUsed(0);
     setSolved(false);
     setBanner({
@@ -139,15 +151,24 @@ export function PictureSudokuBoard({
   useEffect(() => {
     return () => {
       onGameActiveChange(false);
-      if (conflictTimerRef.current) window.clearTimeout(conflictTimerRef.current);
       if (placedAnimTimerRef.current) window.clearTimeout(placedAnimTimerRef.current);
     };
   }, [onGameActiveChange]);
 
-  // Keep gameKey dependency explicit for fresh mounts
   useEffect(() => {
     void gameKey;
   }, [gameKey]);
+
+  // Countdown timer for the "Oh no, try again!" pause overlay
+  useEffect(() => {
+    if (!tryAgainPause || tryAgainPause.secondsLeft <= 0) return;
+    const timer = window.setTimeout(() => {
+      setTryAgainPause((prev) =>
+        prev ? { ...prev, secondsLeft: Math.max(0, prev.secondsLeft - 1) } : null,
+      );
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [tryAgainPause]);
 
   // Measure stage with ResizeObserver so the grid fits inside 100dvh with zero scroll
   useEffect(() => {
@@ -166,20 +187,49 @@ export function PictureSudokuBoard({
     return () => observer.disconnect();
   }, []);
 
-  const flashConflicts = useCallback((cells: Array<{ row: number; col: number }>) => {
-    if (conflictTimerRef.current) window.clearTimeout(conflictTimerRef.current);
-    setConflictKeys(new Set(cells.map((cell) => cellKey(cell.row, cell.col))));
-    conflictTimerRef.current = window.setTimeout(() => {
-      setConflictKeys(new Set());
-    }, 1150);
-  }, []);
+  const dismissTryAgain = useCallback(() => {
+    if (tryAgainPause && tryAgainPause.secondsLeft > 0) return;
+    setTryAgainPause(null);
+    setConflictKeys(new Set());
+    setBandKeys(new Set());
+    setBanner({
+      tone: 'neutral',
+      text: `Look closely at each row and column—pick the right spot!`,
+    });
+  }, [tryAgainPause]);
+
+  const triggerWrongFeedback = useCallback(
+    (
+      symbol: CharacterCardSpec,
+      attemptedRow: number,
+      attemptedCol: number,
+      focusCells: Array<{ row: number; col: number }>,
+      highlightBand: Array<{ row: number; col: number }>,
+      message: string,
+    ) => {
+      playConflictSound(soundEnabled);
+      setMistakesCount((m) => m + 1);
+      setSelectedTrayUid(null);
+      setConflictKeys(new Set(focusCells.map((cell) => cellKey(cell.row, cell.col))));
+      setBandKeys(new Set(highlightBand.map((cell) => cellKey(cell.row, cell.col))));
+      setBanner({ tone: 'warn', text: `Oh no, try again! ${message}` });
+      setTryAgainPause({
+        symbol,
+        message,
+        attemptedKey: cellKey(attemptedRow, attemptedCol),
+        secondsLeft: TRY_AGAIN_COOLDOWN_SEC,
+      });
+    },
+    [soundEnabled],
+  );
 
   const attemptPlaceCard = useCallback(
     (card: TrayCard, row: number, col: number) => {
-      if (solved) return;
+      if (solved || tryAgainPause) return;
       if (puzzle.givens[row][col] !== null) return;
       if (placedMap[cellKey(row, col)]) return;
 
+      const symbol = puzzle.symbols[card.symbolIndex];
       const conflict = findPlacementConflict(
         board,
         row,
@@ -190,9 +240,27 @@ export function PictureSudokuBoard({
       );
 
       if (conflict) {
-        playConflictSound(soundEnabled);
-        flashConflicts(conflict.conflictCells);
-        setBanner({ tone: 'warn', text: conflict.message });
+        triggerWrongFeedback(
+          symbol,
+          row,
+          col,
+          conflict.conflictCells,
+          conflict.bandCells,
+          conflict.message,
+        );
+        return;
+      }
+
+      // Check against the unique solution so two blanks in one row cannot be brute-forced
+      if (puzzle.solution[row][col] !== card.symbolIndex) {
+        triggerWrongFeedback(
+          symbol,
+          row,
+          col,
+          [{ row, col }],
+          getRowColBandCells(row, col, puzzle.size),
+          `${symbol.label} belongs in a different spot—check the other rows and columns!`,
+        );
         return;
       }
 
@@ -211,6 +279,7 @@ export function PictureSudokuBoard({
       setSelectedTrayUid(null);
       setMovesCount((m) => m + 1);
       setConflictKeys(new Set());
+      setBandKeys(new Set());
 
       if (placedAnimTimerRef.current) window.clearTimeout(placedAnimTimerRef.current);
       setJustPlacedKey(key);
@@ -241,93 +310,37 @@ export function PictureSudokuBoard({
     },
     [
       board,
-      flashConflicts,
       onGameActiveChange,
       placedMap,
       puzzle.givens,
       puzzle.size,
+      puzzle.solution,
       puzzle.symbols,
       solved,
       soundEnabled,
       tray,
+      triggerWrongFeedback,
+      tryAgainPause,
     ],
   );
 
-  const handleReturnPlacedCell = useCallback(
-    (row: number, col: number) => {
-      if (solved) return;
-      const key = cellKey(row, col);
-      const placed = placedMap[key];
-      if (!placed) return;
-
-      playReturnSound(soundEnabled);
-      const nextPlaced = { ...placedMap };
-      delete nextPlaced[key];
-      setPlacedMap(nextPlaced);
-      setTray((prev) => [...prev, { uid: placed.uid, symbolIndex: placed.symbolIndex }]);
-      setBanner({
-        tone: 'neutral',
-        text: 'Card returned to tray. Pick another spot!',
-      });
-    },
-    [placedMap, solved, soundEnabled],
-  );
-
   const handleHint = useCallback(() => {
-    if (solved || tray.length === 0) return;
+    if (solved || tryAgainPause || tray.length === 0) return;
 
-    // Find an empty cell whose solution symbol is still in the tray
     for (let r = 0; r < puzzle.size; r += 1) {
       for (let c = 0; c < puzzle.size; c += 1) {
         if (board[r][c] === null) {
           const targetSymbol = puzzle.solution[r][c];
           const matchingCard = tray.find((t) => t.symbolIndex === targetSymbol);
           if (matchingCard) {
-            // Only place if it doesn't conflict with a misplaced user card
-            const conflict = findPlacementConflict(
-              board,
-              r,
-              c,
-              targetSymbol,
-              puzzle.size,
-              puzzle.symbols,
-            );
-            if (!conflict) {
-              setHintsUsed((h) => h + 1);
-              attemptPlaceCard(matchingCard, r, c);
-              return;
-            }
+            setHintsUsed((h) => h + 1);
+            attemptPlaceCard(matchingCard, r, c);
+            return;
           }
         }
       }
     }
-
-    // If a user-placed card blocks the hint, return one misplaced card to tray
-    for (const [key, placed] of Object.entries(placedMap)) {
-      const [rStr, cStr] = key.split('-');
-      const r = Number(rStr);
-      const c = Number(cStr);
-      if (puzzle.solution[r][c] !== placed.symbolIndex) {
-        handleReturnPlacedCell(r, c);
-        setHintsUsed((h) => h + 1);
-        setBanner({
-          tone: 'neutral',
-          text: 'Hint: Moved a tricky card back to the tray so you can try again!',
-        });
-        return;
-      }
-    }
-  }, [
-    attemptPlaceCard,
-    board,
-    handleReturnPlacedCell,
-    placedMap,
-    puzzle.size,
-    puzzle.solution,
-    puzzle.symbols,
-    solved,
-    tray,
-  ]);
+  }, [attemptPlaceCard, board, puzzle.size, puzzle.solution, solved, tray, tryAgainPause]);
 
   const hitTestCell = useCallback(
     (clientX: number, clientY: number): { row: number; col: number } | null => {
@@ -354,7 +367,7 @@ export function PictureSudokuBoard({
   );
 
   const handleTrayPointerDown = (e: ReactPointerEvent<HTMLButtonElement>, card: TrayCard) => {
-    if (solved) return;
+    if (solved || tryAgainPause) return;
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     e.currentTarget.setPointerCapture(e.pointerId);
     playPickupSound(soundEnabled);
@@ -402,7 +415,6 @@ export function PictureSudokuBoard({
         attemptPlaceCard(active.card, target.row, target.col);
       }
     } else {
-      // Tap to select/deselect for tap-to-place mode
       setSelectedTrayUid((prev) => (prev === active.card.uid ? null : active.card.uid));
     }
   };
@@ -412,14 +424,9 @@ export function PictureSudokuBoard({
   };
 
   const handleCellClick = (row: number, col: number) => {
-    if (solved) return;
+    if (solved || tryAgainPause) return;
     if (puzzle.givens[row][col] !== null) return;
-
-    const key = cellKey(row, col);
-    if (placedMap[key]) {
-      handleReturnPlacedCell(row, col);
-      return;
-    }
+    if (placedMap[cellKey(row, col)]) return;
 
     if (selectedTrayUid) {
       const card = tray.find((item) => item.uid === selectedTrayUid);
@@ -464,7 +471,7 @@ export function PictureSudokuBoard({
             type="button"
             className="icon-pill-btn"
             onClick={handleHint}
-            disabled={solved || tray.length === 0}
+            disabled={solved || Boolean(tryAgainPause) || tray.length === 0}
             aria-label="Get a hint"
           >
             <span>Hint</span>
@@ -490,9 +497,18 @@ export function PictureSudokuBoard({
 
       <div className={`ps-banner ps-banner--${banner.tone}`} role="status" aria-live="polite">
         <span>{banner.text}</span>
-        <span className="ps-banner__counter">
-          {tray.length === 0 ? 'Complete!' : `${tray.length} left`}
-        </span>
+        <div className="ps-banner__pills">
+          <span
+            className={`ps-mistake-pill ${
+              mistakesCount === 0 ? 'ps-mistake-pill--clean' : 'ps-mistake-pill--warn'
+            }`}
+          >
+            {mistakesCount === 0 ? 'No Mistakes' : `Mistakes: ${mistakesCount}`}
+          </span>
+          <span className="ps-banner__counter">
+            {tray.length === 0 ? 'Complete!' : `${tray.length} left`}
+          </span>
+        </div>
       </div>
 
       <main className="ps-stage" ref={stageRef}>
@@ -516,7 +532,9 @@ export function PictureSudokuBoard({
                 dragState?.isDragging &&
                 dragState.hoverCell?.row === r &&
                 dragState.hoverCell?.col === c;
-              const isConflict = conflictKeys.has(key);
+              const isConflictFocus = conflictKeys.has(key);
+              const isConflictBand = bandKeys.has(key);
+              const isAttemptedCell = tryAgainPause?.attemptedKey === key;
               const isJustPlaced = justPlacedKey === key;
               const symbol = val !== null ? puzzle.symbols[val] : null;
 
@@ -538,30 +556,32 @@ export function PictureSudokuBoard({
                         ? 'ps-cell--placed'
                         : 'ps-cell--empty'
                   } ${isHovered ? 'ps-cell--drop-hover' : ''} ${
-                    isConflict ? 'ps-cell--conflict' : ''
-                  } ${isJustPlaced ? 'ps-cell--just-placed' : ''} ${boxClasses}`}
+                    isConflictBand ? 'ps-cell--conflict-band' : ''
+                  } ${isConflictFocus ? 'ps-cell--conflict-focus' : ''} ${
+                    isJustPlaced ? 'ps-cell--just-placed' : ''
+                  } ${boxClasses}`}
                   aria-label={
                     symbol
                       ? `Row ${r + 1} Column ${c + 1}: ${symbol.label}${
-                          isGiven ? ' (fixed clue)' : ' (tap to remove)'
+                          isGiven ? ' (fixed clue)' : ' (placed)'
                         }`
                       : `Row ${r + 1} Column ${c + 1}: empty`
                   }
                 >
                   {symbol ? (
-                    <>
-                      <img
-                        src={assetUrl(symbol.imagePath)}
-                        alt={symbol.label}
-                        className="ps-cell__img"
-                        draggable={false}
-                      />
-                      {isPlaced && !solved && (
-                        <span className="ps-cell__remove-hint" aria-hidden="true">
-                          ×
-                        </span>
-                      )}
-                    </>
+                    <img
+                      src={assetUrl(symbol.imagePath)}
+                      alt={symbol.label}
+                      className="ps-cell__img"
+                      draggable={false}
+                    />
+                  ) : isAttemptedCell && tryAgainPause ? (
+                    <img
+                      src={assetUrl(tryAgainPause.symbol.imagePath)}
+                      alt={tryAgainPause.symbol.label}
+                      className="ps-cell__img ps-cell__img--wrong-preview"
+                      draggable={false}
+                    />
                   ) : (
                     <span className="ps-cell__placeholder" aria-hidden="true">
                       ?
@@ -574,47 +594,76 @@ export function PictureSudokuBoard({
         </div>
       </main>
 
-      <section className="ps-tray-dock" aria-label="Missing picture cards">
-        <div className="ps-tray-dock__head">
-          <span className="ps-tray-dock__title">Missing Cards ({tray.length})</span>
-          <span className="ps-tray-dock__hint">
-            Drag onto the grid, or tap a card then tap a spot
-          </span>
-        </div>
+      <section
+        className={`ps-tray-dock ${tryAgainPause ? 'ps-tray-dock--paused' : ''}`}
+        aria-label={tryAgainPause ? 'Try again pause' : 'Missing picture cards'}
+      >
+        {tryAgainPause ? (
+          <div className="ps-try-again-panel" role="alert">
+            <img
+              src={assetUrl(tryAgainPause.symbol.imagePath)}
+              alt={tryAgainPause.symbol.label}
+              className="ps-try-again-panel__img"
+            />
+            <div className="ps-try-again-panel__body">
+              <div className="ps-try-again-panel__title">Oh no, try again!</div>
+              <div className="ps-try-again-panel__msg">{tryAgainPause.message}</div>
+            </div>
+            <button
+              type="button"
+              className="btn-primary ps-try-again-panel__btn"
+              disabled={tryAgainPause.secondsLeft > 0}
+              onClick={dismissTryAgain}
+            >
+              {tryAgainPause.secondsLeft > 0
+                ? `Look (${tryAgainPause.secondsLeft}s)`
+                : 'Try Again'}
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="ps-tray-dock__head">
+              <span className="ps-tray-dock__title">Missing Cards ({tray.length})</span>
+              <span className="ps-tray-dock__hint">
+                Drag onto the grid, or tap a card then tap a spot
+              </span>
+            </div>
 
-        <div className="ps-tray-cards">
-          {tray.length === 0 ? (
-            <div className="ps-tray-empty">All cards placed!</div>
-          ) : (
-            tray.map((card) => {
-              const symbol = puzzle.symbols[card.symbolIndex];
-              const isDraggingThis = dragState?.isDragging && dragState.card.uid === card.uid;
-              const isSelected = selectedTrayUid === card.uid;
+            <div className="ps-tray-cards">
+              {tray.length === 0 ? (
+                <div className="ps-tray-empty">All cards placed!</div>
+              ) : (
+                tray.map((card) => {
+                  const symbol = puzzle.symbols[card.symbolIndex];
+                  const isDraggingThis = dragState?.isDragging && dragState.card.uid === card.uid;
+                  const isSelected = selectedTrayUid === card.uid;
 
-              return (
-                <button
-                  key={card.uid}
-                  type="button"
-                  className={`ps-tray-card ${isSelected ? 'ps-tray-card--selected' : ''} ${
-                    isDraggingThis ? 'ps-tray-card--ghosted' : ''
-                  }`}
-                  onPointerDown={(e) => handleTrayPointerDown(e, card)}
-                  onPointerMove={handleTrayPointerMove}
-                  onPointerUp={handleTrayPointerUp}
-                  onPointerCancel={handleTrayPointerCancel}
-                  aria-label={`Drag or select ${symbol.label}`}
-                >
-                  <img
-                    src={assetUrl(symbol.imagePath)}
-                    alt={symbol.label}
-                    draggable={false}
-                  />
-                  <span className="ps-tray-card__label">{symbol.label}</span>
-                </button>
-              );
-            })
-          )}
-        </div>
+                  return (
+                    <button
+                      key={card.uid}
+                      type="button"
+                      className={`ps-tray-card ${isSelected ? 'ps-tray-card--selected' : ''} ${
+                        isDraggingThis ? 'ps-tray-card--ghosted' : ''
+                      }`}
+                      onPointerDown={(e) => handleTrayPointerDown(e, card)}
+                      onPointerMove={handleTrayPointerMove}
+                      onPointerUp={handleTrayPointerUp}
+                      onPointerCancel={handleTrayPointerCancel}
+                      aria-label={`Drag or select ${symbol.label}`}
+                    >
+                      <img
+                        src={assetUrl(symbol.imagePath)}
+                        alt={symbol.label}
+                        draggable={false}
+                      />
+                      <span className="ps-tray-card__label">{symbol.label}</span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </>
+        )}
       </section>
 
       {dragState?.isDragging && draggedSymbol && (
@@ -658,7 +707,10 @@ export function PictureSudokuBoard({
             <p className="winner-subtitle">
               You solved the {sizeSpec.label} {theme.title} Picture Sudoku in {movesCount}{' '}
               {movesCount === 1 ? 'move' : 'moves'}
-              {hintsUsed > 0 ? ` (${hintsUsed} hint${hintsUsed === 1 ? '' : 's'})` : ''}!
+              {mistakesCount === 0
+                ? ' with zero mistakes!'
+                : ` (${mistakesCount} mistake${mistakesCount === 1 ? '' : 's'})!`}
+              {hintsUsed > 0 ? ` • ${hintsUsed} hint${hintsUsed === 1 ? '' : 's'}` : ''}
             </p>
             <div className="winner-actions">
               <button
