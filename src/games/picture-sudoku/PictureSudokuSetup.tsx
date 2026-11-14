@@ -94,52 +94,50 @@ export function PictureSudokuSetup({
         </div>
       </header>
 
-      <div className="setup-page">
-        <section className="setup-section">
-          <div className="setup-section__head">
-            <div>
-              <h2>1. Choose Grid Size</h2>
-              <p>Every row and column has each picture once—no repeats!</p>
-            </div>
-            <span className="section-pill">{selectedSize.label}</span>
-          </div>
+      <div className="page-title-block" style={{ marginTop: 4, marginBottom: 10 }}>
+        <h1>Picture Sudoku Setup</h1>
+        <p>Pick a grid size and picture theme—every row and column has each picture once!</p>
+      </div>
 
-          <div className="size-grid">
-            {SUDOKU_SIZES.map((spec) => {
-              const selected = spec.size === size;
-              return (
-                <button
-                  key={spec.size}
-                  type="button"
-                  className={`size-option ${selected ? 'size-option--selected' : ''}`}
-                  onClick={() => setSize(spec.size)}
-                  aria-pressed={selected}
-                >
-                  <div className="size-option__title">
-                    {spec.label}
-                    {spec.isDefault && <span className="size-option__badge">Default</span>}
-                  </div>
-                  <div className="size-option__desc">{spec.description}</div>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+      {/* 1. Grid Size Selector */}
+      <section className="setup-card-section" aria-labelledby="sudoku-size-heading">
+        <div className="setup-section-header">
+          <h2 id="sudoku-size-heading">1. Choose Grid Size</h2>
+          <span className="section-pill">{selectedSize.label}</span>
+        </div>
 
-        <section className="setup-section">
-          <div className="setup-section__head">
-            <div>
-              <h2>2. Choose Picture Theme</h2>
-              <p>Pick a favorite group of related pictures for the puzzle.</p>
-            </div>
-            <span className="section-pill">{selectedTheme.title}</span>
-          </div>
+        <div className="board-size-grid">
+          {SUDOKU_SIZES.map((spec) => {
+            const selected = spec.size === size;
+            return (
+              <button
+                key={spec.size}
+                type="button"
+                className={`size-option-btn ${selected ? 'size-option-btn--selected' : ''}`}
+                onClick={() => setSize(spec.size)}
+                aria-pressed={selected}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span className="size-option-btn__dims">{spec.label}</span>
+                  {spec.isDefault && (
+                    <span className="badge-pill badge-pill--indigo">Default</span>
+                  )}
+                </div>
+                <span className="size-option-btn__meta">{spec.description}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
-          <div className="category-filter-row" role="tablist" aria-label="Theme categories">
+      {/* 2. Theme Selector */}
+      <section className="setup-card-section" aria-labelledby="sudoku-theme-heading">
+        <div className="setup-section-header">
+          <h2 id="sudoku-theme-heading">2. Choose Picture Theme</h2>
+          <div className="category-filter-pills" role="group" aria-label="Theme categories">
             <button
               type="button"
-              role="tab"
-              aria-selected={categoryFilter === 'all'}
+              aria-pressed={categoryFilter === 'all'}
               className={`category-pill-btn ${
                 categoryFilter === 'all' ? 'category-pill-btn--active' : ''
               }`}
@@ -149,8 +147,7 @@ export function PictureSudokuSetup({
             </button>
             <button
               type="button"
-              role="tab"
-              aria-selected={categoryFilter === 'stories'}
+              aria-pressed={categoryFilter === 'stories'}
               className={`category-pill-btn ${
                 categoryFilter === 'stories' ? 'category-pill-btn--active' : ''
               }`}
@@ -160,8 +157,7 @@ export function PictureSudokuSetup({
             </button>
             <button
               type="button"
-              role="tab"
-              aria-selected={categoryFilter === 'world'}
+              aria-pressed={categoryFilter === 'world'}
               className={`category-pill-btn ${
                 categoryFilter === 'world' ? 'category-pill-btn--active' : ''
               }`}
@@ -170,47 +166,40 @@ export function PictureSudokuSetup({
               World &amp; Sports ({worldCount})
             </button>
           </div>
-
-          <div className="theme-grid">
-            {visibleThemes.map((theme) => {
-              const selected = theme.id === themeId;
-              return (
-                <button
-                  key={theme.id}
-                  type="button"
-                  className={`theme-option ${selected ? 'theme-option--selected' : ''}`}
-                  onClick={() => setThemeId(theme.id)}
-                  aria-pressed={selected}
-                >
-                  <div className="theme-option__preview">
-                    {theme.previewPaths.map((path) => (
-                      <img key={path} src={assetUrl(path)} alt="" />
-                    ))}
-                  </div>
-                  <div className="theme-option__meta">
-                    <div className="theme-option__title">{theme.title}</div>
-                    <div className="theme-option__sub">{theme.subtitle}</div>
-                  </div>
-                  {selected && (
-                    <span className="theme-option__check" aria-hidden="true">
-                      ✓
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        <div className="setup-footer">
-          <button
-            type="button"
-            className="btn-primary setup-footer__cta"
-            onClick={() => onStartGame({ themeId, size })}
-          >
-            Start {selectedSize.label} {selectedTheme.title} Sudoku
-          </button>
         </div>
+
+        <div className="theme-selector-grid">
+          {visibleThemes.map((theme) => {
+            const selected = theme.id === themeId;
+            return (
+              <button
+                key={theme.id}
+                type="button"
+                className={`theme-option-card ${selected ? 'theme-option-card--selected' : ''}`}
+                onClick={() => setThemeId(theme.id)}
+                aria-pressed={selected}
+              >
+                <div className="theme-preview-pair">
+                  <img src={assetUrl(theme.previewPaths[0])} alt="" />
+                  <img src={assetUrl(theme.previewPaths[1])} alt="" />
+                </div>
+                <span className="theme-option-card__title">{theme.title}</span>
+                <span className="theme-option-card__sub">{theme.subtitle}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="setup-cta-bar">
+        <button
+          type="button"
+          className="btn-primary"
+          style={{ width: '100%' }}
+          onClick={() => onStartGame({ themeId, size })}
+        >
+          Start {selectedSize.label} {selectedTheme.title} Sudoku
+        </button>
       </div>
     </div>
   );
