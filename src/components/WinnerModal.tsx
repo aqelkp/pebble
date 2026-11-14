@@ -91,13 +91,17 @@ export function WinnerModal({
   let subtitle =
     unitLabel === 'pairs'
       ? `All ${totalPairs} ${themeTitle} pairs matched!`
-      : `All ${totalPairs} ${themeTitle} ${unitLabel} completed!`;
+      : unitLabel === 'words'
+        ? `All ${totalPairs} ${themeTitle} words spelled!`
+        : `All ${totalPairs} ${themeTitle} ${unitLabel} completed!`;
 
   if (isSolo && winners[0]) {
     headline = `Great Job, ${winners[0].profile.name}!`;
+    const effectiveSoloVerb =
+      unitLabel === 'words' && soloVerb === 'found' ? 'spelled' : soloVerb;
     subtitle = completionOutcome
-      ? `Finished all ${totalPairs} ${themeTitle} pairs in ${completionOutcome.run.totalAttempts} attempts!`
-      : `You ${soloVerb} all ${totalPairs} ${themeTitle} ${unitLabel}!`;
+      ? `Finished all ${totalPairs} ${themeTitle} ${unitLabel} in ${completionOutcome.run.totalAttempts} attempts!`
+      : `You ${effectiveSoloVerb} all ${totalPairs} ${themeTitle} ${unitLabel}!`;
   } else if (isTie) {
     headline = "It's a Tie!";
     const names = winners.map((w) => w.profile.name).join(' & ');

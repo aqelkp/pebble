@@ -395,6 +395,8 @@ h3,
 .game-card__body {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .game-card__badge-row {
@@ -455,7 +457,8 @@ h3,
 }
 
 .game-card__cta {
-  margin-top: 14px;
+  margin-top: auto;
+  padding-top: 14px;
 }
 
 /* Family Profiles Page */
@@ -3819,4 +3822,307 @@ h3,
   .safari-num-block__digit {
     font-size: 1.45rem;
   }
+}
+
+/* =========================================================================
+   Word Fun — Setup & Full-Height Portrait Phonics Stage
+   ========================================================================= */
+
+.wf-pack-preview-badge {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1.5px solid var(--border-subtle);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.wf-pack-preview-badge:first-child {
+  transform: rotate(-5deg);
+  z-index: 1;
+}
+
+.wf-pack-preview-badge:last-child {
+  margin-left: -10px;
+  transform: rotate(5deg);
+}
+
+.wf-helper-caption {
+  margin: 10px 0 0;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.wf-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+.wf-stage__inner {
+  width: 100%;
+  max-width: 580px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 12px;
+}
+
+.wf-stage__inner--compact {
+  gap: 8px;
+}
+
+.wf-clue-card {
+  width: 100%;
+  max-width: 500px;
+  background: var(--surface-card);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 12px 16px 14px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.wf-stage__inner--compact .wf-clue-card {
+  padding: 8px 14px 10px;
+  gap: 4px;
+}
+
+.wf-clue-card--celebrating {
+  border-color: var(--mint-match);
+  background: linear-gradient(180deg, #ffffff 0%, var(--mint-tint) 100%);
+  box-shadow: var(--shadow-mint);
+}
+
+.wf-clue-card__top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wf-clue-card__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wf-helper-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--indigo-tint);
+  border: 1.5px solid var(--indigo-border);
+  color: var(--indigo-primary);
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 600;
+  transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.wf-helper-btn:hover:not(:disabled) {
+  background: #e1dfff;
+  border-color: var(--indigo-primary);
+}
+
+.wf-helper-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.wf-helper-btn--mint {
+  background: var(--mint-tint);
+  border-color: #9ed9d1;
+  color: var(--mint-deep);
+}
+
+.wf-helper-btn--mint:hover:not(:disabled) {
+  background: #d2f0eb;
+  border-color: var(--mint-match);
+}
+
+.wf-helper-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.wf-clue-card__art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wf-clue-card__caption {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.wf-slots-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.wf-slot {
+  border-radius: 20px;
+  background: var(--surface-soft);
+  border: 2.5px dashed var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 6px rgba(30, 36, 51, 0.04);
+  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.wf-slot--active {
+  border-color: var(--indigo-primary);
+  border-style: solid;
+  background: var(--indigo-tint);
+  box-shadow: 0 0 0 4px rgba(91, 91, 214, 0.16);
+}
+
+.wf-slot--filled {
+  border-style: solid;
+  border-color: var(--indigo-primary);
+  background: #ffffff;
+  box-shadow: var(--shadow-card);
+  animation: wfSlotPop 0.24s cubic-bezier(0.22, 1.35, 0.36, 1);
+}
+
+.wf-slot--celebrating {
+  border-color: var(--mint-match);
+  background: var(--mint-tint);
+  box-shadow: var(--shadow-mint);
+}
+
+.wf-slot__letter {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.wf-slot--celebrating .wf-slot__letter {
+  color: var(--mint-deep);
+}
+
+.wf-slot__ghost {
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: var(--indigo-primary);
+  opacity: 0.28;
+  line-height: 1;
+}
+
+.wf-slot__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--indigo-border);
+}
+
+.wf-tiles-tray {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: center;
+  gap: 12px;
+}
+
+.wf-letter-btn {
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #faf6ee 100%);
+  border: 2.5px solid #dfd6c6;
+  box-shadow: 0 5px 0 #d5cbb8, 0 8px 18px -4px rgba(30, 36, 51, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease, background-color 0.12s ease, opacity 0.15s ease;
+}
+
+.wf-letter-btn:hover:not(:disabled) {
+  border-color: var(--indigo-primary);
+  transform: translateY(-2px);
+}
+
+.wf-letter-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #d5cbb8, 0 4px 10px -2px rgba(30, 36, 51, 0.1);
+}
+
+.wf-letter-btn__char {
+  font-family: var(--font-display);
+  font-size: 2.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.wf-letter-btn--used {
+  opacity: 0.28;
+  background: var(--surface-muted);
+  box-shadow: none;
+  transform: scale(0.95);
+  cursor: default;
+}
+
+.wf-letter-btn--wrong {
+  border-color: var(--coral-accent);
+  background: var(--coral-tint);
+  box-shadow: 0 4px 0 #e69e8c;
+  animation: wfWrongShake 0.34s ease;
+}
+
+.wf-letter-btn--hint {
+  border-color: var(--mint-match);
+  background: var(--mint-tint);
+  box-shadow: 0 5px 0 #7ec9c0, 0 0 0 4px rgba(59, 169, 156, 0.24);
+  animation: wfHintPulse 1.1s ease-in-out infinite;
+}
+
+@keyframes wfSlotPop {
+  0% {
+    transform: scale(0.84);
+  }
+  65% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes wfWrongShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  50% { transform: translateX(6px); }
+  75% { transform: translateX(-4px); }
+}
+
+@keyframes wfHintPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
 }

@@ -5,8 +5,8 @@
 - **Framework:** React 19 + TypeScript (`strict` mode, `noUnusedLocals`, `noUnusedParameters`)
 - **Bundler:** Vite 6 with `base: './'` (`vite.config.ts`) so static builds work cleanly at root (`/`) and subpaths (`/pebble/` on GitHub Pages)
 - **Styling:** Plain modular CSS variables and utility classes (`src/styles/tokens.css`), zero runtime CSS-in-JS dependencies
-- **Storage:** Client-only `localStorage` under `pebble.family.v1` with schema sanitization (`src/context/FamilyProfilesContext.tsx`), plus `sessionStorage` active-game recovery (`pebble.nav.v1`, `pebble.memory.active.v1`, `pebble.letter-train.active.v1`, `pebble.safari.active.v1`)
-- **Audio:** Zero-asset synthesized chimes via the Web Audio API (`src/games/memory-match/soundEffects.ts`, `src/games/letter-train/trainSounds.ts`, `src/games/number-safari/safariSounds.ts`)
+- **Storage:** Client-only `localStorage` under `pebble.family.v1` with schema sanitization (`src/context/FamilyProfilesContext.tsx`), plus `sessionStorage` active-game recovery (`pebble.nav.v1`, `pebble.memory.active.v1`, `pebble.letter-train.active.v1`, `pebble.safari.active.v1`, `pebble.wordfun.active.v1`)
+- **Audio:** Zero-asset synthesized chimes via the Web Audio API (`src/games/memory-match/soundEffects.ts`, `src/games/letter-train/trainSounds.ts`, `src/games/number-safari/safariSounds.ts`, `src/games/word-fun/wordSounds.ts`)
 
 ## Directory Layout
 
@@ -43,7 +43,8 @@ pebble/
 │   │   ├── registry.ts         # Hub game catalog
 │   │   ├── letter-train/       # letterData.ts, WordIllustration.tsx, trainSounds.ts, LetterTrainSetup.tsx, LetterTrainBoard.tsx
 │   │   ├── memory-match/       # themes.ts, memoryStats.ts, soundEffects.ts, MemorySetup.tsx, MemoryBoard.tsx, MemoryRecordsModal.tsx
-│   │   └── number-safari/      # safariData.ts, safariSounds.ts, SafariSetup.tsx, SafariBoard.tsx
+│   │   ├── number-safari/      # safariData.ts, safariSounds.ts, SafariSetup.tsx, SafariBoard.tsx
+│   │   └── word-fun/           # wordBank.ts, WordFunArt.tsx, wordSounds.ts, WordFunSetup.tsx, WordFunBoard.tsx
 │   ├── pages/                  # GameHubPage.tsx, FamilyProfilesPage.tsx
 │   ├── styles/tokens.css
 │   └── utils/assets.ts         # BASE_URL-aware assetUrl helper
