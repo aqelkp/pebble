@@ -59,4 +59,8 @@ Defined in `src/styles/tokens.css`:
 - **Tall `2.5 : 3.5` Card Grid:** Face-down Lavender-Indigo cards with Pebble medallion; face-up crisp white cards with corner paw pips (`PawPipIcon`), 512×512 character PNG, and Sage Mint match check badge.
 
 ### 5. Winner Announcement (`WinnerModal.tsx`)
-- Appears once all pairs are matched, showing a golden crown, glowing winner avatar halo(s), confetti burst, `"<Name> Wins!"` / `"It's a Tie!"` / `"Great Job, <Name>!"`, ranked `PTS` breakdown, and **Play Again** / **Change Setup** / **Back to Games** controls.
+- Appears once all pairs (or words) are completed, showing a golden crown, glowing winner avatar halo(s), confetti burst, `"<Name> Wins!"` / `"It's a Tie!"` / `"Great Job, <Name>!"`, ranked `PTS` breakdown, and **Play Again** / **Change Setup** / **Back to Games** controls.
+
+### 6. Word Fun Setup & Gameplay (`WordFunSetup.tsx`, `WordFunBoard.tsx`)
+- **Setup:** 5 illustrated word packs (`All Cozy Words` default, `Animal Pals`, `Cozy Home`, `On the Go`, `Sunny Nature`), round length (`8 Words` default, `6 Words`, `12 Words`), helper mode toggle (`Sound It Out` default or `Letter Trace` ghost guides for ages 3–4), and `1–4` family players.
+- **Full-Height Phonics Stage (`100dvh`):** Dynamically scaled picture clue card with `Hear Word` audio & `Hint` button, 3 rounded letter slots, and a `3 × 2` tray of 6 tactile wooden letter blocks (`+1 POINT` per spelled word, confetti burst, and WinnerModal standings).

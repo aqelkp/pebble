@@ -11,6 +11,7 @@ interface WinnerModalProps {
   standings: PlayerStanding[];
   totalPairs: number;
   themeTitle: string;
+  unitLabel?: 'pairs' | 'words';
   onPlayAgain: () => void;
   onChangeSetup: () => void;
   onBackToHub: () => void;
@@ -22,6 +23,7 @@ export function WinnerModal({
   standings,
   totalPairs,
   themeTitle,
+  unitLabel = 'pairs',
   onPlayAgain,
   onChangeSetup,
   onBackToHub,
@@ -33,11 +35,17 @@ export function WinnerModal({
   const isTie = !isSolo && winners.length > 1;
 
   let headline = 'Game Complete!';
-  let subtitle = `All ${totalPairs} ${themeTitle} pairs matched!`;
+  let subtitle =
+    unitLabel === 'words'
+      ? `All ${totalPairs} ${themeTitle} words spelled!`
+      : `All ${totalPairs} ${themeTitle} pairs matched!`;
 
   if (isSolo && winners[0]) {
     headline = `Great Job, ${winners[0].profile.name}!`;
-    subtitle = `You found all ${totalPairs} ${themeTitle} pairs!`;
+    subtitle =
+      unitLabel === 'words'
+        ? `You spelled all ${totalPairs} ${themeTitle} words!`
+        : `You found all ${totalPairs} ${themeTitle} pairs!`;
   } else if (isTie) {
     headline = "It's a Tie!";
     const names = winners.map((w) => w.profile.name).join(' & ');

@@ -41,7 +41,8 @@ pebble/
 │   ├── games/
 │   │   ├── registry.ts         # Hub game catalog
 │   │   ├── letter-train/       # letterData.ts, WordIllustration.tsx, trainSounds.ts, LetterTrainSetup.tsx, LetterTrainBoard.tsx
-│   │   └── memory-match/       # themes.ts, soundEffects.ts, MemorySetup.tsx, MemoryBoard.tsx
+│   │   ├── memory-match/       # themes.ts, soundEffects.ts, MemorySetup.tsx, MemoryBoard.tsx
+│   │   └── word-fun/           # wordBank.ts, WordFunArt.tsx, wordSounds.ts, WordFunSetup.tsx, WordFunBoard.tsx
 │   ├── pages/                  # GameHubPage.tsx, FamilyProfilesPage.tsx
 │   ├── styles/tokens.css
 │   └── utils/assets.ts         # BASE_URL-aware assetUrl helper

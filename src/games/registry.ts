@@ -33,21 +33,22 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     featured: true,
   },
   {
+    id: 'word-fun',
+    title: 'Word Fun',
+    description:
+      'Spell cozy three-letter first words with storybook picture clues and tactile wooden letter blocks.',
+    badgeText: 'Ready to Play',
+    ageHint: 'Ages 3–7 • 1–4 Players',
+    artPath: 'hub/word-fun.png',
+    status: 'available',
+  },
+  {
     id: 'number-safari',
     title: 'Number Safari',
     description: 'Count friendly animals along the savanna trail with tactile number blocks.',
     badgeText: 'Coming Soon',
     ageHint: 'Counting & Early Math',
     artPath: 'hub/number-safari.png',
-    status: 'coming-soon',
-  },
-  {
-    id: 'word-fun',
-    title: 'Word Fun',
-    description: 'Build cozy three-letter words by matching rounded picture tiles.',
-    badgeText: 'Coming Soon',
-    ageHint: 'Phonics & First Words',
-    artPath: 'hub/word-fun.png',
     status: 'coming-soon',
   },
 ];

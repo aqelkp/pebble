@@ -13,16 +13,24 @@ import {
 import { clearSavedMemoryGame, MemoryBoard } from './games/memory-match/MemoryBoard';
 import { MemorySetup, type MemoryGameConfig } from './games/memory-match/MemorySetup';
 import type { GameRegistryEntry } from './games/registry';
+import { clearSavedWordGame, WordFunBoard } from './games/word-fun/WordFunBoard';
+import {
+  isValidWordGameConfig,
+  WordFunSetup,
+  type WordGameConfig,
+} from './games/word-fun/WordFunSetup';
 import { FamilyProfilesPage } from './pages/FamilyProfilesPage';
 import { GameHubPage } from './pages/GameHubPage';
 
 type Screen =
   | { view: 'hub' }
-  | { view: 'profiles'; returnTo: 'hub' | 'memory-setup' | 'letter-train-setup' }
+  | { view: 'profiles'; returnTo: 'hub' | 'memory-setup' | 'letter-train-setup' | 'word-setup' }
   | { view: 'memory-setup' }
   | { view: 'memory-play'; gameKey: number }
   | { view: 'letter-train-setup' }
-  | { view: 'letter-train-play'; gameKey: number };
+  | { view: 'letter-train-play'; gameKey: number }
+  | { view: 'word-setup' }
+  | { view: 'word-play'; gameKey: number };
 
 const NAV_STORAGE_KEY = 'pebble.nav.v1';
 
@@ -30,10 +38,15 @@ interface SavedNavState {
   screen: Screen;
   lastMemoryConfig: MemoryGameConfig | null;
   lastLetterTrainConfig: LetterTrainConfig | null;
+  lastWordConfig: WordGameConfig | null;
 }
 
 function isPlayScreen(screen: Screen): boolean {
-  return screen.view === 'memory-play' || screen.view === 'letter-train-play';
+  return (
+    screen.view === 'memory-play' ||
+    screen.view === 'letter-train-play' ||
+    screen.view === 'word-play'
+  );
 }
 
 function isValidScreen(value: unknown): value is Screen {
@@ -42,7 +55,8 @@ function isValidScreen(value: unknown): value is Screen {
   if (
     candidate.view === 'hub' ||
     candidate.view === 'memory-setup' ||
-    candidate.view === 'letter-train-setup'
+    candidate.view === 'letter-train-setup' ||
+    candidate.view === 'word-setup'
   ) {
     return true;
   }
@@ -50,12 +64,15 @@ function isValidScreen(value: unknown): value is Screen {
     candidate.view === 'profiles' &&
     (candidate.returnTo === 'hub' ||
       candidate.returnTo === 'memory-setup' ||
-      candidate.returnTo === 'letter-train-setup')
+      candidate.returnTo === 'letter-train-setup' ||
+      candidate.returnTo === 'word-setup')
   ) {
     return true;
   }
   if (
-    (candidate.view === 'memory-play' || candidate.view === 'letter-train-play') &&
+    (candidate.view === 'memory-play' ||
+      candidate.view === 'letter-train-play' ||
+      candidate.view === 'word-play') &&
     typeof candidate.gameKey === 'number'
   ) {
     return true;
@@ -82,6 +99,7 @@ function loadSavedNavState(): SavedNavState {
         screen: { view: 'hub' },
         lastMemoryConfig: null,
         lastLetterTrainConfig: null,
+        lastWordConfig: null,
       };
     }
     const parsed: unknown = JSON.parse(raw);
@@ -90,18 +108,23 @@ function loadSavedNavState(): SavedNavState {
         screen: { view: 'hub' },
         lastMemoryConfig: null,
         lastLetterTrainConfig: null,
+        lastWordConfig: null,
       };
     }
     const candidate = parsed as {
       screen?: unknown;
       lastMemoryConfig?: unknown;
       lastLetterTrainConfig?: unknown;
+      lastWordConfig?: unknown;
     };
     const lastMemoryConfig = isValidMemoryConfig(candidate.lastMemoryConfig)
       ? candidate.lastMemoryConfig
       : null;
     const lastLetterTrainConfig = isValidLetterTrainConfig(candidate.lastLetterTrainConfig)
       ? candidate.lastLetterTrainConfig
+      : null;
+    const lastWordConfig = isValidWordGameConfig(candidate.lastWordConfig)
+      ? candidate.lastWordConfig
       : null;
     let screen: Screen = isValidScreen(candidate.screen) ? candidate.screen : { view: 'hub' };
     if (screen.view === 'memory-play' && !lastMemoryConfig) {
@@ -110,12 +133,16 @@ function loadSavedNavState(): SavedNavState {
     if (screen.view === 'letter-train-play' && !lastLetterTrainConfig) {
       screen = { view: 'hub' };
     }
-    return { screen, lastMemoryConfig, lastLetterTrainConfig };
+    if (screen.view === 'word-play' && !lastWordConfig) {
+      screen = { view: 'hub' };
+    }
+    return { screen, lastMemoryConfig, lastLetterTrainConfig, lastWordConfig };
   } catch {
     return {
       screen: { view: 'hub' },
       lastMemoryConfig: null,
       lastLetterTrainConfig: null,
+      lastWordConfig: null,
     };
   }
 }
@@ -130,6 +157,9 @@ function PebbleRouter() {
   const [lastLetterTrainConfig, setLastLetterTrainConfig] = useState<LetterTrainConfig | null>(
     initialNav.lastLetterTrainConfig,
   );
+  const [lastWordConfig, setLastWordConfig] = useState<WordGameConfig | null>(
+    initialNav.lastWordConfig,
+  );
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   const screenRef = useRef<Screen>(screen);
@@ -141,12 +171,17 @@ function PebbleRouter() {
   // Persist current screen & config in sessionStorage so PWA reloads restore mid-session state
   useEffect(() => {
     try {
-      const payload: SavedNavState = { screen, lastMemoryConfig, lastLetterTrainConfig };
+      const payload: SavedNavState = {
+        screen,
+        lastMemoryConfig,
+        lastLetterTrainConfig,
+        lastWordConfig,
+      };
       window.sessionStorage.setItem(NAV_STORAGE_KEY, JSON.stringify(payload));
     } catch {
       // Ignore storage errors in restricted environments
     }
-  }, [lastLetterTrainConfig, lastMemoryConfig, screen]);
+  }, [lastLetterTrainConfig, lastMemoryConfig, lastWordConfig, screen]);
 
   // Sync in-app navigation with browser history so Android Back navigates within Pebble
   // instead of exiting the installed PWA, and guards active games from accidental exits.
@@ -188,6 +223,10 @@ function PebbleRouter() {
         clearSavedLetterTrainGame();
         isGameActiveRef.current = false;
       }
+      if (screenRef.current.view === 'word-play' && targetScreen.view !== 'word-play') {
+        clearSavedWordGame();
+        isGameActiveRef.current = false;
+      }
       setScreen(targetScreen);
     };
 
@@ -207,6 +246,9 @@ function PebbleRouter() {
     }
     if (fallbackScreen.view !== 'letter-train-play') {
       clearSavedLetterTrainGame();
+    }
+    if (fallbackScreen.view !== 'word-play') {
+      clearSavedWordGame();
     }
     if (!isPlayScreen(fallbackScreen)) {
       isGameActiveRef.current = false;
@@ -229,6 +271,7 @@ function PebbleRouter() {
     }
     clearSavedMemoryGame();
     clearSavedLetterTrainGame();
+    clearSavedWordGame();
     isGameActiveRef.current = false;
     setShowLeaveConfirm(false);
     if (historyDepthRef.current > 0) {
@@ -245,6 +288,7 @@ function PebbleRouter() {
   const forceLeaveToHub = useCallback(() => {
     clearSavedMemoryGame();
     clearSavedLetterTrainGame();
+    clearSavedWordGame();
     isGameActiveRef.current = false;
     setShowLeaveConfirm(false);
     if (historyDepthRef.current > 0) {
@@ -267,6 +311,8 @@ function PebbleRouter() {
       navigateTo({ view: 'memory-setup' });
     } else if (gameId === 'letter-train') {
       navigateTo({ view: 'letter-train-setup' });
+    } else if (gameId === 'word-fun') {
+      navigateTo({ view: 'word-setup' });
     }
   };
 
@@ -276,7 +322,9 @@ function PebbleRouter() {
         ? { view: 'memory-setup' }
         : screen.returnTo === 'letter-train-setup'
           ? { view: 'letter-train-setup' }
-          : { view: 'hub' };
+          : screen.returnTo === 'word-setup'
+            ? { view: 'word-setup' }
+            : { view: 'hub' };
     return <FamilyProfilesPage onBack={() => navigateBack(fallback)} />;
   }
 
@@ -308,6 +356,22 @@ function PebbleRouter() {
           clearSavedLetterTrainGame();
           setLastLetterTrainConfig(config);
           navigateTo({ view: 'letter-train-play', gameKey: Date.now() });
+        }}
+      />
+    );
+  }
+
+  if (screen.view === 'word-setup') {
+    return (
+      <WordFunSetup
+        profiles={profiles}
+        initialConfig={lastWordConfig}
+        onBackToHub={() => navigateBack({ view: 'hub' })}
+        onEditProfiles={() => navigateTo({ view: 'profiles', returnTo: 'word-setup' })}
+        onStartGame={(config) => {
+          clearSavedWordGame();
+          setLastWordConfig(config);
+          navigateTo({ view: 'word-play', gameKey: Date.now() });
         }}
       />
     );
@@ -401,6 +465,58 @@ function PebbleRouter() {
                   onClick={() => setShowLeaveConfirm(false)}
                 >
                   Keep Riding
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ width: '100%' }}
+                  onClick={forceLeaveToHub}
+                >
+                  Back to Games
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  if (screen.view === 'word-play' && lastWordConfig) {
+    return (
+      <>
+        <WordFunBoard
+          key={screen.gameKey}
+          gameKey={screen.gameKey}
+          config={lastWordConfig}
+          profiles={profiles}
+          soundEnabled={soundEnabled}
+          onToggleSound={toggleSound}
+          onChangeSetup={() => navigateBack({ view: 'word-setup' }, true)}
+          onBackToHub={navigateToHub}
+          onGameActiveChange={handleGameActiveChange}
+        />
+
+        {showLeaveConfirm && (
+          <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leave-word-headline"
+          >
+            <div className="winner-modal">
+              <h2 id="leave-word-headline">Leave Word Fun?</h2>
+              <p className="winner-subtitle">
+                Your current word progress and scores will be lost.
+              </p>
+              <div className="winner-actions">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ width: '100%' }}
+                  onClick={() => setShowLeaveConfirm(false)}
+                >
+                  Keep Playing
                 </button>
                 <button
                   type="button"
