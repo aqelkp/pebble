@@ -51,8 +51,12 @@ Pebble is a calm, tactile, screen-safe family learning web app designed primaril
 - **Node Toolchain on macOS:** Use the signed Node 22 binary (`export PATH="/Users/aqel/.nvm/versions/node/v22.12.0/bin:$PATH"`) if `v24.16.0` lacks macOS code signing on this machine.
 - **Parallel Branch & Worktree Workflow (`.agents/rules/parallel-worktree-workflow.md`):**
   1. Start new features/fixes in a dedicated branch and gitignored worktree inside `.worktrees/<slug>` (`git worktree add .worktrees/<slug> -b feat/<slug>`) so parallel sessions don't collide and all edits stay inside the workspace root.
-  2. Run `npm run build` (`tsc --noEmit && vite build`) in `.worktrees/<slug>`, serve with `npx vite preview --host 127.0.0.1 --port <PORT>` on an unused port (`4173` if free, otherwise `4174`, `4175`, …), and test interactively at **`768 × 1024`** portrait viewport using `/browser`.
+  2. Run `npm run build` (`tsc --noEmit && vite build`) in `.worktrees/<slug>`, serve with `npx vite preview --host 127.0.0.1 --port <PORT>` on an unused port (`4173` if free, otherwise `4174`, `4175`, …), and verify interactively at **`768 × 1024`** portrait viewport using `scripts/visual-verify-helper.mjs` (and/or `/browser`).
   3. Merge the verified branch into `main` and clean up the worktree (`rm -f .worktrees/<slug>/node_modules && git worktree remove .worktrees/<slug>`) before deploying.
+- **End-to-End Visual Evidence (`walkthrough.md` with Screenshots & Video):**
+  1. Every feature, content update, UI refinement, or bugfix verification must drive the real built app end-to-end at **`768 × 1024`** portrait viewport against `http://127.0.0.1:<PORT>/` using `scripts/visual-verify-helper.mjs`.
+  2. Assert zero vertical scrolling (`scrollHeight <= 1024`) on full-height gameplay boards (`MemoryBoard`, etc.) and verify images/fonts load cleanly.
+  3. Save step-by-step `.png` screenshots and an end-to-end `.webm` video recording into `<appDataDir>/brain/<conversation-id>/`, inspect the screenshots, and present the video and screenshots in a user-facing `walkthrough.md` artifact at the end of verification.
 - **Mandatory Auto-Deploy Once Done (`.agents/rules/deploy-when-done.md`):**
   1. Bump `"version"` in `package.json` appropriately for the change on `main`.
   2. Always run `./scripts/release.sh vX.Y.Z-<slug> "<release summary>"` automatically as soon as work is done, verified locally, and merged to `main` (never wait for the user to ask). This builds, commits, creates an annotated tag, and pushes `main --follow-tags` to `origin`, triggering both GitHub Pages deployment (`.github/workflows/deploy.yml`) and GitHub Releases (`.github/workflows/release.yml`).

@@ -34,14 +34,15 @@ pebble/
 │   │   └── car-logos/          # 16 automotive emblem 512x512 PNGs
 │   └── manifest.webmanifest
 ├── scripts/
-│   └── release.sh              # Build, commit, annotated tag, push main --follow-tags
+│   ├── release.sh              # Build, commit, annotated tag, push main --follow-tags
+│   └── visual-verify-helper.mjs # Playwright 768x1024 screenshot & WebM video helper
 ├── src/
 │   ├── components/             # BrandLogo, ConfettiBurst, WinnerModal
 │   ├── context/                # FamilyProfilesContext (validated localStorage state)
 │   ├── games/
 │   │   ├── registry.ts         # Hub game catalog
 │   │   ├── letter-train/       # letterData.ts, WordIllustration.tsx, trainSounds.ts, LetterTrainSetup.tsx, LetterTrainBoard.tsx
-│   │   └── memory-match/       # themes.ts, soundEffects.ts, MemorySetup.tsx, MemoryBoard.tsx
+│   │   └── memory-match/       # themes.ts, memoryStats.ts, soundEffects.ts, MemorySetup.tsx, MemoryBoard.tsx, MemoryRecordsModal.tsx
 │   ├── pages/                  # GameHubPage.tsx, FamilyProfilesPage.tsx
 │   ├── styles/tokens.css
 │   └── utils/assets.ts         # BASE_URL-aware assetUrl helper
@@ -80,3 +81,8 @@ This allows tall playing cards for `4 × 4`, `4 × 5` (default), and `5 × 6` gr
 - **XSS-Safe Rendering:** Pure JSX text interpolation; no `innerHTML` or `dangerouslySetInnerHTML`.
 - **Storage Validation (`FamilyProfilesContext.tsx`):** Reads from `localStorage` validate array bounds, profile ID format, avatar allow-list, accent color allow-list, and strip control characters (`<= 24` chars).
 - **Local Binding:** `vite` and `vite preview` bind strictly to `127.0.0.1`.
+
+## End-to-End Visual Verification (`768 × 1024`)
+
+- `scripts/visual-verify-helper.mjs` wraps Playwright (`playwright` + Playwright `ffmpeg` driving local Google Chrome when present) with a strict `http://127.0.0.1:<PORT>` guard, `768 × 1024` portrait viewport (`deviceScaleFactor: 2`), `waitForFontsAndImages()`, `assertZeroVerticalScroll()`, `captureScreenshot()`, and `finishAndSaveVideo()`.
+- Verification runs output step-by-step `.png` screenshots and a `.webm` walkthrough video directly into the active conversation's artifact directory so every change is reviewed visually before release.

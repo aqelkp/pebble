@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5173",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort"
+    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
+    "verify:helper-check": "node --check scripts/visual-verify-helper.mjs"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -16,6 +17,7 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "playwright": "^1.65.1",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"
   }
