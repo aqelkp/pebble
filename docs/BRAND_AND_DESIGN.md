@@ -41,7 +41,7 @@ Defined in `src/styles/tokens.css`:
 ### 1. Game Hub (`GameHubPage.tsx`)
 - Header with `BrandLogo` and clickable stacked-avatar **Family** chip.
 - Personalizable welcome card showing `"Welcome to Pebble!"` (default `'Child'`) or `"Welcome, <Name>!"`.
-- 2-column grid led by a full-width featured **Memory Match** card (`Play Memory Match`) alongside upcoming learning games (`Number Safari`, `Word Fun`).
+- 2-column grid led by featured **Memory Match** (`Play Memory Match`) and **Letter Train**, alongside **Number Safari** (`Play Number Safari`) and upcoming **Word Fun**.
 
 ### 2. Family Profiles (`FamilyProfilesPage.tsx`)
 - Editable profile cards (`2–6` players) allowing name edits (up to 24 chars), avatar selection from 6 custom portraits (`boy`, `girl`, `dad`, `mom`, `uncle`, `grandparent`), and ring accent colors.
@@ -58,5 +58,9 @@ Defined in `src/styles/tokens.css`:
 - **Fixed-Height Banner (40px):** Reserved space between HUD and cards so grid layout never shifts during `MATCH! +1 POINT` celebrations.
 - **Tall `2.5 : 3.5` Card Grid:** Face-down Lavender-Indigo cards with Pebble medallion; face-up crisp white cards with corner paw pips (`PawPipIcon`), 512×512 character PNG, and Sage Mint match check badge.
 
-### 5. Winner Announcement (`WinnerModal.tsx`)
+### 5. Number Safari (`SafariSetup.tsx` & `SafariBoard.tsx`)
+- **Setup:** 3 counting trails (`Meadow Count 1–5`, `Savanna Trail 1–10` Default, `Safari Sums Add to 10`), 3 safari lengths (`8 Stops` Default, `6 Stops`, `12 Stops`), and `1–4` family explorers.
+- **Gameplay:** Full-height `100dvh` portrait board with Multi-Player `PTS` HUD, sunlit Savanna Clearing featuring structured 5-frame animal rows (or dual addition pods), interactive tap-to-count sequential Sage Mint badges (`1..N`) with ascending marimba notes, and chunky tactile Number Blocks (`1–5` or `1–10`) with circular river-pebble dot pips.
+
+### 6. Winner Announcement (`WinnerModal.tsx`)
 - Appears once all pairs are matched, showing a golden crown, glowing winner avatar halo(s), confetti burst, `"<Name> Wins!"` / `"It's a Tie!"` / `"Great Job, <Name>!"`, ranked `PTS` breakdown, and **Play Again** / **Change Setup** / **Back to Games** controls.
