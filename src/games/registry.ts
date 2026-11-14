@@ -25,7 +25,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     id: 'letter-train',
     title: 'Letter Train',
     description:
-      'Load all 3 matching picture cards onto each A–Z steam train to hear the whistle blow—watch out or wrong picks will overheat the boiler!',
+      'Load 3 matching picture words from a rotating 156-word A–Z bank—pick all 3 with zero mistakes to unlock a Golden Crown and cheering applause!',
     badgeText: 'New Game',
     ageHint: 'K1 / LKG • A–Z Phonics',
     artPath: 'hub/letter-train.png',

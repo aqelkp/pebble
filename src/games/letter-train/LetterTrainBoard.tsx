@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
@@ -8,20 +15,22 @@ import {
   getStationSpec,
   isValidLetterId,
   loadMasteredLetters,
+  loadPerfectLetters,
   saveMasteredLetter,
+  savePerfectLetter,
   shuffleArray,
   type LetterId,
   type PlatformCardItem,
 } from './letterData';
 import type { LetterTrainConfig } from './LetterTrainSetup';
 import {
-  playBoilerBlowoutSound,
+  playCalmWrongHintSound,
   playCardPickupSound,
   playCorrectSeatSound,
+  playPerfectApplauseAndTrainSound,
   playTrainArrivalSound,
   playTrainDepartureSound,
   playTripCompleteSound,
-  playWrongStrikeSound,
   speakPhrase,
   stopTrainSpeech,
 } from './trainSounds';
@@ -38,9 +47,9 @@ interface LetterTrainBoardProps {
   onGameActiveChange?: (active: boolean) => void;
 }
 
-type CarPhase = 'arriving' | 'idle' | 'strike-anim' | 'blowout' | 'departing' | 'finished';
+type CarPhase = 'arriving' | 'idle' | 'departing-normal' | 'departing-perfect' | 'finished';
 
-type BannerTone = 'neutral' | 'mint' | 'coral' | 'blowout';
+type BannerTone = 'neutral' | 'mint' | 'gold' | 'muted';
 
 function AudioSpeakerIcon({ muted = false, size = 16 }: { muted?: boolean; size?: number }) {
   return (
@@ -72,7 +81,64 @@ function AudioSpeakerIcon({ muted = false, size = 16 }: { muted?: boolean; size?
   );
 }
 
-const ACTIVE_TRAIN_STORAGE_KEY = 'pebble.letter-train.active.v1';
+/**
+ * Playful animated clapping hands illustration (strictly circular clap waves, zero 4-point stars).
+ */
+function ClappingHandsBadge() {
+  return (
+    <span className="lt-clap-icon" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+        {/* Circular sound-wave arcs */}
+        <path
+          d="M11 8 Q20 3 29 8"
+          stroke="#F2B84B"
+          strokeWidth="3"
+          strokeLinecap="round"
+          className="lt-clap-wave"
+        />
+        <circle cx="8" cy="14" r="2.2" fill="#3BA99C" />
+        <circle cx="32" cy="14" r="2.2" fill="#F27A5E" />
+        {/* Left clapping palm */}
+        <g className="lt-clap-hand-left">
+          <rect
+            x="9"
+            y="15"
+            width="12"
+            height="18"
+            rx="6"
+            transform="rotate(-16 15 24)"
+            fill="#F5B982"
+            stroke="#8C4A27"
+            strokeWidth="2"
+          />
+        </g>
+        {/* Right clapping palm */}
+        <g className="lt-clap-hand-right">
+          <rect
+            x="19"
+            y="15"
+            width="12"
+            height="18"
+            rx="6"
+            transform="rotate(16 25 24)"
+            fill="#FAD0A6"
+            stroke="#8C4A27"
+            strokeWidth="2"
+          />
+        </g>
+      </svg>
+    </span>
+  );
+}
+
+const ACTIVE_TRAIN_STORAGE_KEY = 'pebble.letter-train.active.v2';
+
+const PERFECT_CHEERS = [
+  'CLAP! CLAP! ZERO MISTAKES! +2 BONUS PTS!',
+  'BRAVO, SUPER CONDUCTOR! +2 GOLDEN BONUS!',
+  'WOOHOO! 3 IN A ROW! EVERYBODY CLAP!',
+  'GOLDEN EXPRESS UNLOCKED! +2 BONUS PTS!',
+] as const;
 
 interface SavedTrainState {
   gameKey: number;
@@ -80,18 +146,20 @@ interface SavedTrainState {
   stationIdx: number;
   platformCards: PlatformCardItem[];
   loadedUids: string[];
-  bouncedUids: Record<string, true>;
-  strikes: number;
+  triedWrongUids: Record<string, true>;
+  mistakes: number;
   totalScore: number;
-  carScore: number;
   carsCleared: number;
+  perfectCarsCount: number;
+  perfectStreak: number;
+  perfectStationIndices: Record<number, true>;
   finished: boolean;
 }
 
 function isValidPlatformCard(value: unknown): value is PlatformCardItem {
   if (typeof value !== 'object' || value === null) return false;
   const c = value as Partial<PlatformCardItem>;
-  if (typeof c.uid !== 'string' || c.uid.length > 64 || typeof c.isTarget !== 'boolean') {
+  if (typeof c.uid !== 'string' || c.uid.length > 80 || typeof c.isTarget !== 'boolean') {
     return false;
   }
   if (typeof c.spec !== 'object' || c.spec === null) return false;
@@ -129,18 +197,21 @@ function loadSavedTrainState(gameKey: number): SavedTrainState | null {
       !s.platformCards.every((c) => isValidPlatformCard(c)) ||
       !Array.isArray(s.loadedUids) ||
       s.loadedUids.length > 3 ||
-      !s.loadedUids.every((u) => typeof u === 'string' && u.length <= 64) ||
-      typeof s.bouncedUids !== 'object' ||
-      s.bouncedUids === null ||
-      typeof s.strikes !== 'number' ||
-      s.strikes < 0 ||
-      s.strikes > 3 ||
+      !s.loadedUids.every((u) => typeof u === 'string' && u.length <= 80) ||
+      typeof s.triedWrongUids !== 'object' ||
+      s.triedWrongUids === null ||
+      typeof s.mistakes !== 'number' ||
+      s.mistakes < 0 ||
       typeof s.totalScore !== 'number' ||
       s.totalScore < 0 ||
-      typeof s.carScore !== 'number' ||
-      s.carScore < 0 ||
       typeof s.carsCleared !== 'number' ||
       s.carsCleared < 0 ||
+      typeof s.perfectCarsCount !== 'number' ||
+      s.perfectCarsCount < 0 ||
+      typeof s.perfectStreak !== 'number' ||
+      s.perfectStreak < 0 ||
+      typeof s.perfectStationIndices !== 'object' ||
+      s.perfectStationIndices === null ||
       typeof s.finished !== 'boolean'
     ) {
       return null;
@@ -151,11 +222,13 @@ function loadSavedTrainState(gameKey: number): SavedTrainState | null {
       stationIdx: s.stationIdx,
       platformCards: s.platformCards,
       loadedUids: s.loadedUids,
-      bouncedUids: s.bouncedUids,
-      strikes: s.strikes,
+      triedWrongUids: s.triedWrongUids,
+      mistakes: s.mistakes,
       totalScore: s.totalScore,
-      carScore: s.carScore,
       carsCleared: s.carsCleared,
+      perfectCarsCount: s.perfectCarsCount,
+      perfectStreak: s.perfectStreak,
+      perfectStationIndices: s.perfectStationIndices,
       finished: s.finished,
     };
   } catch {
@@ -214,25 +287,33 @@ export function LetterTrainBoard({
     () => saved?.platformCards ?? buildPlatformCards(currentLetter),
   );
   const [loadedUids, setLoadedUids] = useState<string[]>(() => saved?.loadedUids ?? []);
-  const [bouncedUids, setBouncedUids] = useState<Record<string, true>>(
-    () => saved?.bouncedUids ?? {},
+  const [triedWrongUids, setTriedWrongUids] = useState<Record<string, true>>(
+    () => saved?.triedWrongUids ?? {},
   );
-  const [justEjectedUid, setJustEjectedUid] = useState<string | null>(null);
-  const [strikes, setStrikes] = useState<number>(() => saved?.strikes ?? 0);
+  const [mistakes, setMistakes] = useState<number>(() => saved?.mistakes ?? 0);
   const [totalScore, setTotalScore] = useState<number>(() => saved?.totalScore ?? 0);
-  const [carScore, setCarScore] = useState<number>(() => saved?.carScore ?? 0);
   const [carsCleared, setCarsCleared] = useState<number>(() => saved?.carsCleared ?? 0);
-  const [blownStationMap, setBlownStationMap] = useState<Record<number, true>>({});
+  const [perfectCarsCount, setPerfectCarsCount] = useState<number>(
+    () => saved?.perfectCarsCount ?? 0,
+  );
+  const [perfectStreak, setPerfectStreak] = useState<number>(
+    () => saved?.perfectStreak ?? 0,
+  );
+  const [perfectStationIndices, setPerfectStationIndices] = useState<Record<number, true>>(
+    () => saved?.perfectStationIndices ?? {},
+  );
   const [masteredLetters, setMasteredLetters] = useState<LetterId[]>(() => loadMasteredLetters());
+  const [perfectLetters, setPerfectLetters] = useState<LetterId[]>(() => loadPerfectLetters());
 
   const [phase, setPhase] = useState<CarPhase>(() =>
     saved?.finished ? 'finished' : 'arriving',
   );
   const [bannerTone, setBannerTone] = useState<BannerTone>('neutral');
   const [bannerText, setBannerText] = useState<string>(
-    `Load the 3 pictures that start with ${currentLetter}!`,
+    `Pick all 3 ${currentLetter} words with zero mistakes for a Clapping Party!`,
   );
   const [confettiKey, setConfettiKey] = useState<number>(0);
+  const [confettiMode, setConfettiMode] = useState<'match' | 'win'>('match');
   const [showDepartureConfetti, setShowDepartureConfetti] = useState<boolean>(false);
   const [dragState, setDragState] = useState<DragState | null>(null);
 
@@ -294,11 +375,13 @@ export function LetterTrainBoard({
         stationIdx,
         platformCards,
         loadedUids,
-        bouncedUids,
-        strikes,
+        triedWrongUids,
+        mistakes,
         totalScore,
-        carScore,
         carsCleared,
+        perfectCarsCount,
+        perfectStreak,
+        perfectStationIndices,
         finished: phase === 'finished',
       };
       window.sessionStorage.setItem(ACTIVE_TRAIN_STORAGE_KEY, JSON.stringify(payload));
@@ -306,17 +389,19 @@ export function LetterTrainBoard({
       // Ignore storage quota errors
     }
   }, [
-    bouncedUids,
-    carScore,
     carsCleared,
     gameKey,
     loadedUids,
+    mistakes,
+    perfectCarsCount,
+    perfectStationIndices,
+    perfectStreak,
     phase,
     platformCards,
     stationIdx,
     stationQueue,
-    strikes,
     totalScore,
+    triedWrongUids,
   ]);
 
   const advanceToNextStation = useCallback(
@@ -324,20 +409,20 @@ export function LetterTrainBoard({
       if (nextIdx >= queue.length) {
         setPhase('finished');
         playTripCompleteSound(soundEnabled);
-        speakPhrase(`Amazing job, ${childProfile.name}! Train trip complete!`, soundEnabled);
+        speakPhrase(`Hooray, ${childProfile.name}! All stations complete!`, soundEnabled);
         return;
       }
       const nextLetter = queue[nextIdx];
       setStationIdx(nextIdx);
       setPlatformCards(buildPlatformCards(nextLetter));
       setLoadedUids([]);
-      setBouncedUids({});
-      setJustEjectedUid(null);
-      setStrikes(0);
-      setCarScore(0);
+      setTriedWrongUids({});
+      setMistakes(0);
       setShowDepartureConfetti(false);
       setBannerTone('neutral');
-      setBannerText(`All aboard for ${nextLetter}! Pick 3 ${nextLetter} words!`);
+      setBannerText(
+        `Pick all 3 ${nextLetter} words with zero mistakes for a Golden Clapping Party!`,
+      );
       setPhase('arriving');
       playTrainArrivalSound(nextLetter, soundEnabled);
 
@@ -357,103 +442,119 @@ export function LetterTrainBoard({
         const nextLoaded = [...loadedUids, card.uid];
         const seatCount = nextLoaded.length;
         setLoadedUids(nextLoaded);
-        setJustEjectedUid(null);
-        setTotalScore((prev) => prev + 1);
-        setCarScore((prev) => prev + 1);
 
         playCorrectSeatSound(seatCount, soundEnabled);
 
         if (seatCount >= 3) {
-          // All 3 correct cards are aboard -> Mastered + Train Whistle Departure!
           const updatedMastered = saveMasteredLetter(currentLetter);
           setMasteredLetters(updatedMastered);
           setCarsCleared((prev) => prev + 1);
-          setBannerTone('mint');
-          const nextLetter = stationQueue[stationIdx + 1];
-          setBannerText(
-            nextLetter
-              ? `CHOO-CHOO! All 3 ${currentLetter} words aboard! Next stop: ${nextLetter}!`
-              : `CHOO-CHOO! All 3 ${currentLetter} words aboard! Final station complete!`,
-          );
-          setConfettiKey((prev) => prev + 1);
-          setShowDepartureConfetti(true);
-          setPhase('departing');
 
-          speakPhrase(`${currentLetter}! ${card.spec.word}! All aboard!`, soundEnabled);
-          scheduleTimer(() => {
-            playTrainDepartureSound(soundEnabled);
-          }, 260);
+          const isFlawless = mistakes === 0;
 
-          scheduleTimer(() => {
-            advanceToNextStation(stationIdx + 1, stationQueue);
-          }, 2050);
+          if (isFlawless) {
+            // PERFECT 3-FOR-3 WITH ZERO MISTAKES!
+            // Big Clapping Crowd + Cheering + Golden Crown + +2 Bonus Points!
+            const updatedPerfect = savePerfectLetter(currentLetter);
+            setPerfectLetters(updatedPerfect);
+            const nextStreak = perfectStreak + 1;
+            const nextPerfectTotal = perfectCarsCount + 1;
+            setPerfectCarsCount(nextPerfectTotal);
+            setPerfectStreak(nextStreak);
+            setPerfectStationIndices((prev) => ({ ...prev, [stationIdx]: true }));
+            // +1 for the 3rd card + 2 bonus points = +3 on this final step (5 PTS total for the car!)
+            setTotalScore((prev) => prev + 3);
+
+            const cheerBanner =
+              PERFECT_CHEERS[(stationIdx + nextPerfectTotal) % PERFECT_CHEERS.length];
+            setBannerTone('gold');
+            setBannerText(cheerBanner);
+            setConfettiMode('win');
+            setConfettiKey((prev) => prev + 1);
+            setShowDepartureConfetti(true);
+            setPhase('departing-perfect');
+
+            const spokenCheers = [
+              `Bravo, ${childProfile.name}! Zero mistakes! Everybody clap!`,
+              `Woohoo! Three out of three! Clap clap clap for ${childProfile.name}!`,
+              `Golden Crown on ${currentLetter}! Amazing ears, ${childProfile.name}!`,
+            ];
+            speakPhrase(
+              spokenCheers[(stationIdx + nextStreak) % spokenCheers.length],
+              soundEnabled,
+            );
+
+            scheduleTimer(() => {
+              playPerfectApplauseAndTrainSound(soundEnabled);
+            }, 140);
+
+            scheduleTimer(() => {
+              advanceToNextStation(stationIdx + 1, stationQueue);
+            }, 2650);
+          } else {
+            // Completed after >= 1 mistake: polite regular departure (+1 PT, no clapping party)
+            setTotalScore((prev) => prev + 1);
+            setBannerTone('mint');
+            const nextLetter = stationQueue[stationIdx + 1];
+            setBannerText(
+              nextLetter
+                ? `All 3 ${currentLetter} words aboard! Try for Zero Mistakes on ${nextLetter}!`
+                : `All 3 ${currentLetter} words aboard! Trip complete!`,
+            );
+            setConfettiMode('match');
+            setConfettiKey((prev) => prev + 1);
+            setShowDepartureConfetti(true);
+            setPhase('departing-normal');
+
+            speakPhrase(`${currentLetter}! ${card.spec.word}! All aboard!`, soundEnabled);
+            scheduleTimer(() => {
+              playTrainDepartureSound(soundEnabled);
+            }, 260);
+
+            scheduleTimer(() => {
+              advanceToNextStation(stationIdx + 1, stationQueue);
+            }, 1850);
+          }
         } else {
+          setTotalScore((prev) => prev + 1);
           setBannerTone('mint');
           setBannerText(
-            `${currentLetter} — ${card.spec.word}! +1 POINT (${seatCount} of 3 aboard)`,
+            mistakes === 0
+              ? `${currentLetter} — ${card.spec.word}! +1 PT (${3 - seatCount} more for Clapping Party!)`
+              : `${currentLetter} — ${card.spec.word}! +1 PT (${seatCount} of 3 aboard)`,
           );
           speakPhrase(`${currentLetter}! ${card.spec.word}!`, soundEnabled);
         }
       } else {
-        // Wrong word dropped onto the train -> Danger! Boiler clogs & launches card out!
-        const nextStrikes = strikes + 1;
-        setStrikes(nextStrikes);
-        setBouncedUids((prev) => ({ ...prev, [card.uid]: true }));
-        setJustEjectedUid(card.uid);
-
-        if (nextStrikes >= 3) {
-          // 3rd Strike = BOILER BLOWOUT! Seated cards pop off and runaway car leaves with 0 PTS
-          setTotalScore((prev) => Math.max(0, prev - carScore));
-          setCarScore(0);
-          setLoadedUids([]);
-          setBlownStationMap((prev) => ({ ...prev, [stationIdx]: true }));
-          setBannerTone('blowout');
-          setBannerText(
-            `KABOOM-CHOO! ${card.spec.word} starts with ${card.spec.letter}! Boiler blew!`,
-          );
-          setPhase('blowout');
-          playBoilerBlowoutSound(soundEnabled);
-          speakPhrase(
-            `Uh oh! ${card.spec.word} starts with ${card.spec.letter}! Boiler blew its lid!`,
-            soundEnabled,
-          );
-
-          scheduleTimer(() => {
-            setJustEjectedUid(null);
-            advanceToNextStation(stationIdx + 1, stationQueue);
-          }, 2200);
-        } else {
-          setBannerTone('coral');
-          setBannerText(
-            nextStrikes === 2
-              ? `DANGER (2/3)! ${card.spec.word} starts with ${card.spec.letter} — 1 strike left!`
-              : `CLANK-HISS! ${card.spec.word} starts with ${card.spec.letter}! (Boiler ${nextStrikes}/3)`,
-          );
-          setPhase('strike-anim');
-          playWrongStrikeSound(nextStrikes, soundEnabled);
-          speakPhrase(`Oops! ${card.spec.word} starts with ${card.spec.letter}!`, soundEnabled);
-
-          scheduleTimer(() => {
-            setPhase((prev) => (prev === 'strike-anim' ? 'idle' : prev));
-          }, 760);
-
-          scheduleTimer(() => {
-            setJustEjectedUid((prev) => (prev === card.uid ? null : prev));
-          }, 1150);
-        }
+        // Calm, intentionally un-dramatic wrong pick:
+        // No explosion, no boing, no shake — quietly shows starting letter and dims Golden Bonus.
+        setMistakes((prev) => prev + 1);
+        setPerfectStreak(0);
+        setTriedWrongUids((prev) => ({ ...prev, [card.uid]: true }));
+        setBannerTone('muted');
+        setBannerText(
+          `${card.spec.word} starts with ${card.spec.letter} — listen and pick a word starting with ${currentLetter}.`,
+        );
+        playCalmWrongHintSound(soundEnabled);
+        speakPhrase(
+          `${card.spec.word} starts with ${card.spec.letter}. Pick a word starting with ${currentLetter}.`,
+          soundEnabled,
+        );
       }
     },
     [
       advanceToNextStation,
-      carScore,
+      childProfile.name,
       currentLetter,
       loadedUids,
+      mistakes,
+      perfectCarsCount,
+      perfectStreak,
       phase,
       scheduleTimer,
       soundEnabled,
       stationIdx,
       stationQueue,
-      strikes,
     ],
   );
 
@@ -476,9 +577,9 @@ export function LetterTrainBoard({
   ) => {
     if (phase !== 'idle' && phase !== 'arriving') return;
     if (loadedUids.includes(card.uid)) return;
+    if (triedWrongUids[card.uid]) return;
     if (e.button !== 0 && e.pointerType === 'mouse') return;
 
-    // Ignore pointer down if user tapped the dedicated speaker button
     const targetEl = e.target as HTMLElement | null;
     if (targetEl?.closest('[data-listen-btn="true"]')) {
       return;
@@ -542,18 +643,21 @@ export function LetterTrainBoard({
     const firstLetter = freshQueue[0] ?? 'A';
     setStationQueue(freshQueue);
     setStationIdx(0);
+    // Deals a brand-new set of 3 target words + 3 distractors from the 156-word bank!
     setPlatformCards(buildPlatformCards(firstLetter));
     setLoadedUids([]);
-    setBouncedUids({});
-    setJustEjectedUid(null);
-    setStrikes(0);
+    setTriedWrongUids({});
+    setMistakes(0);
     setTotalScore(0);
-    setCarScore(0);
     setCarsCleared(0);
-    setBlownStationMap({});
+    setPerfectCarsCount(0);
+    setPerfectStreak(0);
+    setPerfectStationIndices({});
     setShowDepartureConfetti(false);
     setBannerTone('neutral');
-    setBannerText(`Load the 3 pictures that start with ${firstLetter}!`);
+    setBannerText(
+      `Pick all 3 ${firstLetter} words with zero mistakes for a Clapping Party!`,
+    );
     setPhase('arriving');
     playTrainArrivalSound(firstLetter, soundEnabled);
 
@@ -570,7 +674,6 @@ export function LetterTrainBoard({
     [loadedUids, platformCards],
   );
 
-  // Show a compact sliding window of 7 stations around stationIdx
   const visibleTrackWindow = useMemo(() => {
     const total = stationQueue.length;
     const windowSize = Math.min(7, total);
@@ -584,25 +687,27 @@ export function LetterTrainBoard({
     }));
   }, [stationIdx, stationQueue]);
 
-  const isDangerTremble = strikes === 2 && phase !== 'departing' && phase !== 'finished';
+  const isPerfectParty = phase === 'departing-perfect';
+  const isDeparting = phase === 'departing-normal' || phase === 'departing-perfect';
   const trainMotionClass =
     phase === 'arriving'
       ? 'lt-train--arriving'
-      : phase === 'departing'
-        ? 'lt-train--departing'
-        : phase === 'blowout'
-          ? 'lt-train--blowout'
-          : phase === 'strike-anim'
-            ? 'lt-train--clank'
-            : isDangerTremble
-              ? 'lt-train--tremble'
-              : '';
+      : isPerfectParty
+        ? 'lt-train--departing-perfect'
+        : phase === 'departing-normal'
+          ? 'lt-train--departing'
+          : '';
 
-  const wheelsSpinning = phase === 'arriving' || phase === 'departing' || phase === 'blowout';
+  const wheelsSpinning = phase === 'arriving' || isDeparting;
+  const goldenBonusActive = mistakes === 0;
 
   return (
     <div className="app-shell app-shell--board lt-board-shell">
-      <ConfettiBurst active={showDepartureConfetti} mode="match" burstKey={confettiKey} />
+      <ConfettiBurst
+        active={showDepartureConfetti}
+        mode={confettiMode}
+        burstKey={confettiKey}
+      />
 
       {/* 1. Top Utility Bar */}
       <header className="top-bar lt-top-bar">
@@ -656,7 +761,7 @@ export function LetterTrainBoard({
             className="icon-pill-btn icon-pill-btn--compact"
             onClick={handleRestartTrip}
           >
-            <span>Restart</span>
+            <span>New Words</span>
           </button>
         </div>
       </header>
@@ -665,10 +770,10 @@ export function LetterTrainBoard({
       <section className="lt-hud" aria-label="Conductor Score and Station Map">
         <div
           className={`lt-conductor-card ${
-            bannerTone === 'mint'
-              ? 'lt-conductor-card--mint'
-              : strikes >= 2
-                ? 'lt-conductor-card--danger'
+            isPerfectParty
+              ? 'lt-conductor-card--gold'
+              : bannerTone === 'mint'
+                ? 'lt-conductor-card--mint'
                 : ''
           }`}
         >
@@ -681,11 +786,11 @@ export function LetterTrainBoard({
             <div className="lt-conductor-card__meta">
               <span className="lt-conductor-card__name">{childProfile.name}</span>
               <span className="lt-conductor-card__role">
-                {strikes >= 2
-                  ? 'CAREFUL! 2/3 STEAM'
-                  : bannerTone === 'mint'
-                    ? 'GREAT EAR!'
-                    : `STICKERS: ${masteredLetters.length}/26`}
+                {perfectStreak >= 2
+                  ? `${perfectStreak} PERFECT IN A ROW!`
+                  : perfectStreak === 1
+                    ? '1 PERFECT CROWN!'
+                    : `CROWNS: ${perfectLetters.length}/26`}
               </span>
             </div>
           </div>
@@ -700,7 +805,7 @@ export function LetterTrainBoard({
           {visibleTrackWindow.map(({ letter, idx }) => {
             const isCurrent = idx === stationIdx;
             const isPast = idx < stationIdx;
-            const wasBlown = Boolean(blownStationMap[idx]);
+            const wasPerfect = Boolean(perfectStationIndices[idx]);
             return (
               <span
                 key={`${letter}-${idx}`}
@@ -708,8 +813,8 @@ export function LetterTrainBoard({
                   isCurrent
                     ? 'lt-track-node--current'
                     : isPast
-                      ? wasBlown
-                        ? 'lt-track-node--blown'
+                      ? wasPerfect
+                        ? 'lt-track-node--perfect'
                         : 'lt-track-node--done'
                       : ''
                 }`}
@@ -730,29 +835,31 @@ export function LetterTrainBoard({
         <span>{bannerText}</span>
       </div>
 
-      {/* 4. Wooden Steam Train & Boiler Stage (Drop Target) */}
+      {/* 4. Wooden Steam Train Stage & Perfect Clapping Celebration */}
       <section
         ref={dropZoneRef}
         className={`lt-stage ${
           dragState?.overDropZone ? 'lt-stage--drop-active' : ''
-        } ${strikes >= 2 ? 'lt-stage--danger' : ''}`}
+        } ${isPerfectParty ? 'lt-stage--party' : ''}`}
         aria-label={`Letter ${currentLetter} Train Car. ${loadedCards.length} of 3 seats filled.`}
       >
         {/* Soft Scenic Hills */}
         <div className="lt-stage__hills" aria-hidden="true" />
 
-        {/* Steam / Smoke / Whistle Effects Layer */}
+        {/* Sky / Celebration Layer: Animated Clapping Crowd on Perfect 3/3! */}
         <div className="lt-sky-fx" aria-hidden="true">
-          {phase === 'departing' && (
-            <div className="lt-whistle-badge">TOOT-TOOT!</div>
-          )}
-          {phase === 'blowout' && (
-            <div className="lt-blowout-cloud">POOF-KABOOM!</div>
-          )}
-          {phase === 'strike-anim' && (
-            <div className="lt-smoke-puff-dark">CLANK-HISS!</div>
-          )}
-          {phase === 'idle' && strikes === 0 && (
+          {isPerfectParty ? (
+            <div className="lt-clap-party-bar">
+              <ClappingHandsBadge />
+              <span className="lt-clap-party-bar__text">
+                <CrownIcon size={17} /> BRAVO, {childProfile.name.toUpperCase()}! CLAP! CLAP! +2
+                BONUS!
+              </span>
+              <ClappingHandsBadge />
+            </div>
+          ) : phase === 'departing-normal' ? (
+            <div className="lt-whistle-badge">TOOT-TOOT! ALL ABOARD!</div>
+          ) : (
             <div className="lt-idle-puffs">
               <span />
               <span />
@@ -762,54 +869,43 @@ export function LetterTrainBoard({
 
         {/* Locomotive + Passenger Car */}
         <div className={`lt-train-assembly ${trainMotionClass}`}>
-          {/* Steam Locomotive with 3-Step Boiler Pressure Gauge */}
+          {/* Steam Locomotive with Golden Crown Perfect Bonus Box */}
           <div
             className={`lt-locomotive ${
-              strikes === 2 ? 'lt-locomotive--danger' : ''
-            } ${phase === 'blowout' ? 'lt-locomotive--blown' : ''}`}
+              isPerfectParty
+                ? 'lt-locomotive--golden'
+                : goldenBonusActive
+                  ? 'lt-locomotive--bonus-ready'
+                  : ''
+            }`}
           >
             <div className="lt-chimney-wrap" aria-hidden="true">
-              <div
-                className={`lt-chimney-cap ${
-                  phase === 'blowout' ? 'lt-chimney-cap--popped' : ''
-                }`}
-              />
+              <div className="lt-chimney-cap" />
               <div className="lt-chimney-pipe" />
             </div>
 
-            <div className="lt-boiler-box">
-              <span className="lt-boiler-box__title">BOILER</span>
-              <div
-                className="lt-boiler-bulbs"
-                aria-label={`Boiler strikes: ${strikes} of 3`}
-              >
-                {[1, 2, 3].map((step) => {
-                  const lit = strikes >= step;
-                  const bulbClass = !lit
-                    ? ''
-                    : strikes === 1
-                      ? 'lt-boiler-bulb--warm'
-                      : 'lt-boiler-bulb--hot';
-                  return (
-                    <span
-                      key={step}
-                      className={`lt-boiler-bulb ${bulbClass}`}
-                    />
-                  );
-                })}
+            <div
+              className={`lt-bonus-box ${
+                goldenBonusActive ? 'lt-bonus-box--active' : 'lt-bonus-box--dim'
+              }`}
+              aria-label={
+                goldenBonusActive
+                  ? 'Golden Crown Bonus active: zero mistakes so far!'
+                  : 'Golden Crown Bonus missed on this car'
+              }
+            >
+              <span className="lt-bonus-box__title">
+                {goldenBonusActive ? 'NO MISTAKES' : 'KEEP GOING'}
+              </span>
+              <div className="lt-bonus-box__crown">
+                <CrownIcon size={24} />
               </div>
-              <span
-                className={`lt-boiler-box__status ${
-                  strikes >= 2 ? 'lt-boiler-box__status--hot' : ''
-                }`}
-              >
-                {strikes >= 3
-                  ? 'BLOWN!'
-                  : strikes === 2
-                    ? 'DANGER!'
-                    : strikes === 1
-                      ? '1 / 3 WARM'
-                      : 'CALM'}
+              <span className="lt-bonus-box__status">
+                {isPerfectParty
+                  ? 'WON +2 PTS!'
+                  : goldenBonusActive
+                    ? '+2 PARTY!'
+                    : 'NEXT CAR'}
               </span>
             </div>
 
@@ -822,7 +918,11 @@ export function LetterTrainBoard({
           {/* Letter Passenger Car (3 Seats) */}
           <div
             className={`lt-passenger-car ${
-              loadedCards.length === 3 ? 'lt-passenger-car--full' : ''
+              isPerfectParty
+                ? 'lt-passenger-car--golden'
+                : loadedCards.length === 3
+                  ? 'lt-passenger-car--full'
+                  : ''
             } ${dragState?.overDropZone ? 'lt-passenger-car--hover' : ''}`}
           >
             <div className="lt-car-header">
@@ -863,7 +963,9 @@ export function LetterTrainBoard({
                     <button
                       key={occupant.uid}
                       type="button"
-                      className="lt-seat lt-seat--filled"
+                      className={`lt-seat lt-seat--filled ${
+                        isPerfectParty ? 'lt-seat--dancing' : ''
+                      }`}
                       onClick={() =>
                         speakPhrase(
                           `${currentLetter}! ${occupant.spec.word}!`,
@@ -913,17 +1015,16 @@ export function LetterTrainBoard({
       {/* 5. Station Platform: 3 x 2 Picture Cards */}
       <section className="lt-platform" aria-label="Station Platform Word Cards">
         <div className="lt-platform__header">
-          <span>STATION PLATFORM — DRAG OR TAP TO BOARD</span>
+          <span>STATION PLATFORM — LISTEN CAREFULLY FOR ZERO MISTAKES!</span>
           <span className="lt-platform__listen-hint">
-            <AudioSpeakerIcon size={13} /> TAP SPEAKER TO LISTEN
+            <AudioSpeakerIcon size={13} /> TAP SPEAKER TO CHECK FIRST
           </span>
         </div>
 
         <div className="lt-platform-grid">
           {platformCards.map((card) => {
             const isLoaded = loadedUids.includes(card.uid);
-            const wasBounced = Boolean(bouncedUids[card.uid]);
-            const isEjecting = justEjectedUid === card.uid;
+            const wasTriedWrong = Boolean(triedWrongUids[card.uid]);
             const isBeingDragged =
               dragState?.isDragging && dragState.card.uid === card.uid;
 
@@ -940,7 +1041,7 @@ export function LetterTrainBoard({
               );
             }
 
-            const showWordLabel = config.wordLabelMode === 'always' || wasBounced;
+            const showWordLabel = config.wordLabelMode === 'always' || wasTriedWrong;
             const firstChar = card.spec.word.slice(0, 1);
             const restChars = card.spec.word.slice(1);
 
@@ -948,17 +1049,22 @@ export function LetterTrainBoard({
               <div
                 key={card.uid}
                 role="button"
-                tabIndex={0}
-                aria-label={`${card.spec.word}. Tap or drag onto the ${currentLetter} train`}
-                className={`lt-card ${wasBounced ? 'lt-card--bounced' : ''} ${
-                  isEjecting ? 'lt-card--ejecting' : ''
-                } ${isBeingDragged ? 'lt-card--dragging-origin' : ''}`}
+                tabIndex={wasTriedWrong ? -1 : 0}
+                aria-disabled={wasTriedWrong}
+                aria-label={`${card.spec.word}. ${
+                  wasTriedWrong
+                    ? `Starts with ${firstChar}`
+                    : `Tap or drag onto the ${currentLetter} train`
+                }`}
+                className={`lt-card ${wasTriedWrong ? 'lt-card--wrong-calm' : ''} ${
+                  isBeingDragged ? 'lt-card--dragging-origin' : ''
+                }`}
                 onPointerDown={(e) => handleCardPointerDown(e, card)}
                 onPointerMove={handleCardPointerMove}
                 onPointerUp={handleCardPointerUp}
                 onPointerCancel={handleCardPointerCancel}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
+                  if (!wasTriedWrong && (e.key === 'Enter' || e.key === ' ')) {
                     e.preventDefault();
                     attemptBoardCard(card);
                   }
@@ -979,9 +1085,9 @@ export function LetterTrainBoard({
                   <AudioSpeakerIcon size={15} />
                 </button>
 
-                {wasBounced && (
-                  <span className="lt-card__bounce-tag">
-                    Starts with {firstChar}!
+                {wasTriedWrong && (
+                  <span className="lt-card__calm-tag">
+                    Starts with {firstChar}
                   </span>
                 )}
 
@@ -995,7 +1101,7 @@ export function LetterTrainBoard({
                 {showWordLabel ? (
                   <span
                     className={`lt-card__label ${
-                      wasBounced ? 'lt-card__label--coral' : ''
+                      wasTriedWrong ? 'lt-card__label--muted' : ''
                     }`}
                   >
                     <strong>{firstChar}</strong>
@@ -1028,7 +1134,7 @@ export function LetterTrainBoard({
             className="lt-card__art-frame"
             style={{ backgroundColor: dragState.card.spec.tintBg }}
           >
-            <WordIllustration id={dragState.card.spec.id} size={68} />
+            <WordIllustration id={dragState.card.spec.id} size={74} />
           </div>
           {config.wordLabelMode === 'always' && (
             <span className="lt-card__label">{dragState.card.spec.word}</span>
@@ -1058,11 +1164,11 @@ export function LetterTrainBoard({
               </div>
             </div>
 
-            <h2 id="lt-complete-headline">All Stations Complete, {childProfile.name}!</h2>
+            <h2 id="lt-complete-headline">Bravo, {childProfile.name}!</h2>
             <p className="winner-subtitle">
-              You cleared {carsCleared} of {stationQueue.length}{' '}
-              {stationQueue.length === 1 ? 'letter train' : 'letter trains'} and now hold{' '}
-              {masteredLetters.length} of 26 A–Z badges!
+              You earned {perfectCarsCount} Perfect Golden{' '}
+              {perfectCarsCount === 1 ? 'Crown' : 'Crowns'} on this trip and now hold{' '}
+              {perfectLetters.length} of 26 Golden A–Z Crowns ({masteredLetters.length}/26 cleared)!
             </p>
 
             <div className="standings-list" aria-label="Trip Summary">
@@ -1090,7 +1196,7 @@ export function LetterTrainBoard({
                 style={{ width: '100%' }}
                 onClick={handleRestartTrip}
               >
-                Ride Again
+                Ride Again with New Words
               </button>
               <div className="winner-actions__row">
                 <button

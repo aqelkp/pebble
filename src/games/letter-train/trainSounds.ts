@@ -26,7 +26,7 @@ function getNoiseBuffer(ctx: AudioContext): AudioBuffer {
   if (cachedNoiseBuffer && cachedNoiseBuffer.sampleRate === ctx.sampleRate) {
     return cachedNoiseBuffer;
   }
-  const length = Math.floor(ctx.sampleRate * 1.2);
+  const length = Math.floor(ctx.sampleRate * 1.4);
   const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
   const data = buffer.getChannelData(0);
   for (let i = 0; i < length; i += 1) {
@@ -71,7 +71,7 @@ function playTone(
   }
 }
 
-function playSteamBurst(
+function playFilteredNoise(
   startSec: number,
   durationSec: number,
   centerFreq: number,
@@ -92,7 +92,7 @@ function playSteamBurst(
 
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.001, t0);
-    gain.gain.exponentialRampToValueAtTime(peakGain, t0 + Math.min(0.025, durationSec * 0.3));
+    gain.gain.exponentialRampToValueAtTime(peakGain, t0 + Math.min(0.015, durationSec * 0.25));
     gain.gain.exponentialRampToValueAtTime(0.001, t0 + durationSec);
 
     src.connect(filter);
@@ -100,18 +100,27 @@ function playSteamBurst(
     gain.connect(ctx.destination);
 
     src.start(t0);
-    src.stop(t0 + durationSec + 0.03);
+    src.stop(t0 + durationSec + 0.02);
   } catch {
     // Ignore audio errors
   }
 }
 
+/**
+ * Synthesizes a realistic crisp multi-palm acoustic handclap using triple micro-bursts
+ * around 1.2kHz - 2.1kHz so rhythmic clapping sounds warm, lively, and unmistakable!
+ */
+function playSingleHandclap(startSec: number, pitchHue = 1550, gainScale = 1): void {
+  playFilteredNoise(startSec, 0.026, pitchHue, 1.7, 0.09 * gainScale);
+  playFilteredNoise(startSec + 0.011, 0.028, pitchHue * 1.12, 1.9, 0.1 * gainScale);
+  playFilteredNoise(startSec + 0.022, 0.068, pitchHue * 0.94, 1.5, 0.115 * gainScale);
+}
+
 function playWhistleBlast(startSec: number, durationSec: number, peakGain = 0.075): void {
-  // Warm wooden-train two-harmony steam whistle (F4 + A4 + D5)
   playTone(349.23, startSec, durationSec, 'triangle', peakGain, 354);
   playTone(440.0, startSec, durationSec, 'triangle', peakGain * 0.85, 446);
   playTone(587.33, startSec, durationSec, 'sine', peakGain * 0.65, 594);
-  playSteamBurst(startSec, durationSec * 0.85, 1450, 2.2, peakGain * 0.35);
+  playFilteredNoise(startSec, durationSec * 0.85, 1450, 2.2, peakGain * 0.32);
 }
 
 export function speakPhrase(phrase: string, enabled: boolean): void {
@@ -121,7 +130,7 @@ export function speakPhrase(phrase: string, enabled: boolean): void {
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(phrase);
     utter.lang = 'en-US';
-    utter.rate = 0.92;
+    utter.rate = 0.93;
     utter.pitch = 1.08;
     utter.volume = 0.95;
     window.speechSynthesis.speak(utter);
@@ -142,7 +151,7 @@ export function stopTrainSpeech(): void {
 
 export function playCardPickupSound(enabled: boolean): void {
   if (!enabled) return;
-  playTone(415, 0, 0.065, 'sine', 0.06, 540);
+  playTone(415, 0, 0.06, 'sine', 0.055, 520);
 }
 
 export function playCorrectSeatSound(seatNumber: number, enabled: boolean): void {
@@ -161,82 +170,75 @@ export function playCorrectSeatSound(seatNumber: number, enabled: boolean): void
 }
 
 /**
- * Full wooden steam train departure celebration when all 3 correct cards are aboard:
- * "TOOT-TOOOOOT!" + rhythmic accelerating "CHUG-chug-CHUG-chug" + brass station bell!
+ * Calm, low-key, intentionally un-funny sound when a wrong card is picked,
+ * so there is zero slapstick incentive to tap wrong answers on purpose.
+ */
+export function playCalmWrongHintSound(enabled: boolean): void {
+  if (!enabled) return;
+  playTone(230, 0, 0.09, 'sine', 0.032, 210);
+}
+
+/**
+ * Normal polite train departure (when completed with >= 1 mistake):
+ * Simple whistle + steam chugs without the big applause party.
  */
 export function playTrainDepartureSound(enabled: boolean): void {
   if (!enabled) return;
-  // Two-blast classic train whistle
-  playWhistleBlast(0.05, 0.24, 0.085);
-  playWhistleBlast(0.35, 0.44, 0.095);
+  playWhistleBlast(0.05, 0.22, 0.075);
+  playWhistleBlast(0.33, 0.36, 0.08);
 
-  // Rhythmic steam chugs accelerating out of the station
-  const chugTimes = [0.12, 0.34, 0.54, 0.71, 0.86, 0.99, 1.11, 1.22];
+  const chugTimes = [0.12, 0.34, 0.54, 0.72, 0.88, 1.02];
   chugTimes.forEach((t, idx) => {
-    const accent = idx % 2 === 0 ? 0.09 : 0.055;
-    playSteamBurst(t, 0.11, idx % 2 === 0 ? 780 : 1050, 1.4, accent);
+    const accent = idx % 2 === 0 ? 0.075 : 0.045;
+    playFilteredNoise(t, 0.1, idx % 2 === 0 ? 780 : 1040, 1.4, accent);
+  });
+}
+
+/**
+ * BIG PERFECT 3-FOR-3 CELEBRATION (ZERO MISTAKES!):
+ * Lively rhythmic crowd clapping ("CLAP-CLAP-CLAP-CLAP-CLAP!") + joyful brass/bell
+ * victory melody + triumphant Golden Express steam train whistle!
+ */
+export function playPerfectApplauseAndTrainSound(enabled: boolean): void {
+  if (!enabled) return;
+
+  // 1. Multi-person rhythmic applause ("Clap! Clap! Clap-Clap-Clap! + Cheerful crowd claps!")
+  const clapBeats = [
+    0.02, 0.19, 0.36, 0.49, 0.62,
+    0.80, 0.94, 1.08, 1.22, 1.36, 1.50, 1.64,
+  ];
+  clapBeats.forEach((beat, idx) => {
+    // Layer 3 slightly offset "audience members" per beat so it sounds like a room clapping!
+    playSingleHandclap(beat, 1420 + (idx % 3) * 180, 1.0);
+    playSingleHandclap(beat + 0.024, 1780 - (idx % 2) * 160, 0.82);
+    playSingleHandclap(beat + 0.046, 1300 + (idx % 4) * 140, 0.68);
   });
 
-  // Cheerful station bell chime
-  playTone(1046.5, 0.85, 0.2, 'sine', 0.065);
-  playTone(1318.5, 1.02, 0.28, 'sine', 0.07);
+  // 2. Joyful celebratory melody ("Ta-da-da-DAAA!")
+  playTone(523.25, 0.04, 0.15, 'triangle', 0.11); // C5
+  playTone(659.25, 0.16, 0.15, 'triangle', 0.11); // E5
+  playTone(783.99, 0.28, 0.16, 'triangle', 0.12); // G5
+  playTone(1046.5, 0.42, 0.38, 'triangle', 0.13); // C6
+  playTone(1318.5, 0.62, 0.42, 'sine', 0.095);    // E6 sparkle harmonic
+
+  // 3. Golden Express two-tone whistle + fast happy chugs!
+  playWhistleBlast(0.88, 0.24, 0.09);
+  playWhistleBlast(1.18, 0.44, 0.1);
+  [1.0, 1.18, 1.34, 1.48, 1.61, 1.73].forEach((t, idx) => {
+    playFilteredNoise(t, 0.09, idx % 2 === 0 ? 820 : 1120, 1.5, 0.07);
+  });
 }
 
 export function playTrainArrivalSound(letter: LetterId, enabled: boolean): void {
   if (!enabled) return;
-  playSteamBurst(0.0, 0.1, 900, 1.5, 0.05);
-  playSteamBurst(0.14, 0.12, 720, 1.5, 0.06);
+  playFilteredNoise(0.0, 0.1, 900, 1.5, 0.05);
+  playFilteredNoise(0.14, 0.12, 720, 1.5, 0.06);
   playTone(523.25, 0.22, 0.16, 'triangle', 0.07);
   playTone(659.25, 0.32, 0.22, 'triangle', 0.075);
   speakPhrase(`Letter ${letter}!`, enabled);
 }
 
-/**
- * Strike 1 & 2 wrong-pick sound:
- * Metallic boiler clank + pressurized steam hiss + cartoon smokestack boing launch!
- */
-export function playWrongStrikeSound(strikeNumber: number, enabled: boolean): void {
-  if (!enabled) return;
-  // Metallic boiler clank
-  playTone(178, 0, 0.11, 'square', 0.045, 132);
-  playTone(263, 0.01, 0.12, 'triangle', 0.07, 196);
-  // Pressurized steam hiss out of chimney
-  playSteamBurst(0.04, 0.28, 2200, 1.1, 0.095);
-  // Playful rubbery smokestack launch BOING!
-  playTone(220, 0.14, 0.22, 'sine', 0.095, 520);
-  playTone(520, 0.34, 0.18, 'sine', 0.075, 290);
-
-  // Extra warning rattle on Strike 2 (Danger Zone!)
-  if (strikeNumber >= 2) {
-    playTone(155, 0.48, 0.09, 'sawtooth', 0.04, 140);
-    playTone(155, 0.59, 0.11, 'sawtooth', 0.045, 130);
-  }
-}
-
-/**
- * Strike 3 Boiler Blowout sound:
- * Big cartoon lid pop + steam cloud whoosh + playful descending slide!
- */
-export function playBoilerBlowoutSound(enabled: boolean): void {
-  if (!enabled) return;
-  // Boiler pop & low thump
-  playTone(140, 0, 0.32, 'triangle', 0.14, 48);
-  playTone(320, 0.02, 0.1, 'square', 0.055, 620);
-  // Giant steam cloud whoosh
-  playSteamBurst(0.03, 0.65, 1100, 0.75, 0.13);
-  // Playful descending cartoon whistle slide
-  playTone(622.25, 0.18, 0.52, 'triangle', 0.09, 174.61);
-  // Runaway wheels clatter
-  [0.55, 0.67, 0.78, 0.88].forEach((t) => {
-    playSteamBurst(t, 0.08, 950, 1.8, 0.06);
-  });
-}
-
 export function playTripCompleteSound(enabled: boolean): void {
   if (!enabled) return;
-  playWhistleBlast(0.0, 0.22, 0.08);
-  playTone(523.25, 0.24, 0.16, 'triangle', 0.1);
-  playTone(659.25, 0.36, 0.16, 'triangle', 0.1);
-  playTone(783.99, 0.48, 0.18, 'triangle', 0.11);
-  playTone(1046.5, 0.62, 0.42, 'triangle', 0.12);
+  playPerfectApplauseAndTrainSound(enabled);
 }
