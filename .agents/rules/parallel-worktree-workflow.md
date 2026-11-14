@@ -12,15 +12,16 @@ To allow multiple conversations and experiments to run in parallel without file 
      git worktree add .worktrees/<slug> -b feat/<slug>
      ```
    - Make all edits inside `.worktrees/<slug>` (do not edit `main` directly in `/Users/aqel/Documents/dev/pebble` while parallel work is active).
-   - Reuse dependencies quickly in the worktree via `ln -s /Users/aqel/Documents/dev/pebble/node_modules .worktrees/<slug>/node_modules` (or `npm ci` inside `.worktrees/<slug>` if `package-lock.json` changes).
+   - Reuse dependencies quickly in the worktree via `ln -s /Users/aqel/Documents/dev/pebble/node_modules .worktrees/<slug>/node_modules` (or run `npm ci` inside `.worktrees/<slug>` if `package-lock.json` changes). `.gitignore` ignores `node_modules` for both directories and worktree symlinks, including `playwright`.
 
-2. **Build & Preview on a Dedicated Port:**
+2. **Build, Preview & Capture End-to-End Visual Evidence on a Dedicated Port:**
    - Run `npm run build` (`tsc --noEmit && vite build`) inside `.worktrees/<slug>`.
    - Start preview on an unused port (check `4173` first, or use `4174`, `4175`, … if another session is using `4173`):
      ```bash
      npx vite preview --host 127.0.0.1 --port <PORT>
      ```
-   - Verify interactively at **`768 × 1024`** portrait viewport using `/browser` against `http://127.0.0.1:<PORT>/`.
+   - Run an end-to-end **`768 × 1024`** portrait tablet walkthrough against `http://127.0.0.1:<PORT>/` using `scripts/visual-verify-helper.mjs` (or `/browser`) to record a smooth `.webm` video and key `.png` screenshots into `<appDataDir>/brain/<conversation-id>/`.
+   - Visually inspect captured screenshots and embed the `.webm` video + screenshot carousel in a user-facing `walkthrough.md` artifact.
 
 3. **Merge to `main` Before Deploying:**
    - Commit the verified changes on `feat/<slug>`.

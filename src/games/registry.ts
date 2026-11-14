@@ -25,7 +25,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     id: 'letter-train',
     title: 'Letter Train',
     description:
-      'Load all 3 matching picture cards onto each A–Z steam train to hear the whistle blow—watch out or wrong picks will overheat the boiler!',
+      'Load 3 matching picture words from a rotating 156-word A–Z bank—pick all 3 with zero mistakes to unlock a Golden Crown and cheering applause!',
     badgeText: 'New Game',
     ageHint: 'K1 / LKG • A–Z Phonics',
     artPath: 'hub/letter-train.png',
@@ -45,10 +45,11 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
   {
     id: 'number-safari',
     title: 'Number Safari',
-    description: 'Count friendly animals along the savanna trail with tactile number blocks.',
-    badgeText: 'Coming Soon',
-    ageHint: 'Counting & Early Math',
+    description:
+      'Tap friendly savanna animals to count 1–10 or join groups together with tactile number blocks.',
+    badgeText: 'Ready to Play',
+    ageHint: 'Ages 3–7 • 1–4 Players',
     artPath: 'hub/number-safari.png',
-    status: 'coming-soon',
+    status: 'available',
   },
 ];

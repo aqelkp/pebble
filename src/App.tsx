@@ -12,6 +12,12 @@ import {
 } from './games/letter-train/LetterTrainSetup';
 import { clearSavedMemoryGame, MemoryBoard } from './games/memory-match/MemoryBoard';
 import { MemorySetup, type MemoryGameConfig } from './games/memory-match/MemorySetup';
+import { clearSavedSafariGame, SafariBoard } from './games/number-safari/SafariBoard';
+import {
+  isValidSafariLengthId,
+  isValidSafariModeId,
+} from './games/number-safari/safariData';
+import { SafariSetup, type SafariGameConfig } from './games/number-safari/SafariSetup';
 import type { GameRegistryEntry } from './games/registry';
 import { clearSavedWordGame, WordFunBoard } from './games/word-fun/WordFunBoard';
 import {
@@ -24,11 +30,16 @@ import { GameHubPage } from './pages/GameHubPage';
 
 type Screen =
   | { view: 'hub' }
-  | { view: 'profiles'; returnTo: 'hub' | 'memory-setup' | 'letter-train-setup' | 'word-setup' }
+  | {
+      view: 'profiles';
+      returnTo: 'hub' | 'memory-setup' | 'letter-train-setup' | 'safari-setup' | 'word-setup';
+    }
   | { view: 'memory-setup' }
   | { view: 'memory-play'; gameKey: number }
   | { view: 'letter-train-setup' }
   | { view: 'letter-train-play'; gameKey: number }
+  | { view: 'safari-setup' }
+  | { view: 'safari-play'; gameKey: number }
   | { view: 'word-setup' }
   | { view: 'word-play'; gameKey: number };
 
@@ -38,6 +49,7 @@ interface SavedNavState {
   screen: Screen;
   lastMemoryConfig: MemoryGameConfig | null;
   lastLetterTrainConfig: LetterTrainConfig | null;
+  lastSafariConfig: SafariGameConfig | null;
   lastWordConfig: WordGameConfig | null;
 }
 
@@ -45,6 +57,7 @@ function isPlayScreen(screen: Screen): boolean {
   return (
     screen.view === 'memory-play' ||
     screen.view === 'letter-train-play' ||
+    screen.view === 'safari-play' ||
     screen.view === 'word-play'
   );
 }
@@ -56,6 +69,7 @@ function isValidScreen(value: unknown): value is Screen {
     candidate.view === 'hub' ||
     candidate.view === 'memory-setup' ||
     candidate.view === 'letter-train-setup' ||
+    candidate.view === 'safari-setup' ||
     candidate.view === 'word-setup'
   ) {
     return true;
@@ -65,6 +79,7 @@ function isValidScreen(value: unknown): value is Screen {
     (candidate.returnTo === 'hub' ||
       candidate.returnTo === 'memory-setup' ||
       candidate.returnTo === 'letter-train-setup' ||
+      candidate.returnTo === 'safari-setup' ||
       candidate.returnTo === 'word-setup')
   ) {
     return true;
@@ -72,6 +87,7 @@ function isValidScreen(value: unknown): value is Screen {
   if (
     (candidate.view === 'memory-play' ||
       candidate.view === 'letter-train-play' ||
+      candidate.view === 'safari-play' ||
       candidate.view === 'word-play') &&
     typeof candidate.gameKey === 'number'
   ) {
@@ -91,6 +107,18 @@ function isValidMemoryConfig(value: unknown): value is MemoryGameConfig {
   );
 }
 
+function isValidSafariConfig(value: unknown): value is SafariGameConfig {
+  if (typeof value !== 'object' || value === null) return false;
+  const c = value as Partial<SafariGameConfig>;
+  return (
+    isValidSafariModeId(c.modeId) &&
+    isValidSafariLengthId(c.lengthId) &&
+    Array.isArray(c.playerIds) &&
+    c.playerIds.length <= 6 &&
+    c.playerIds.every((id) => typeof id === 'string')
+  );
+}
+
 function loadSavedNavState(): SavedNavState {
   try {
     const raw = window.sessionStorage.getItem(NAV_STORAGE_KEY);
@@ -99,6 +127,7 @@ function loadSavedNavState(): SavedNavState {
         screen: { view: 'hub' },
         lastMemoryConfig: null,
         lastLetterTrainConfig: null,
+        lastSafariConfig: null,
         lastWordConfig: null,
       };
     }
@@ -108,6 +137,7 @@ function loadSavedNavState(): SavedNavState {
         screen: { view: 'hub' },
         lastMemoryConfig: null,
         lastLetterTrainConfig: null,
+        lastSafariConfig: null,
         lastWordConfig: null,
       };
     }
@@ -115,6 +145,7 @@ function loadSavedNavState(): SavedNavState {
       screen?: unknown;
       lastMemoryConfig?: unknown;
       lastLetterTrainConfig?: unknown;
+      lastSafariConfig?: unknown;
       lastWordConfig?: unknown;
     };
     const lastMemoryConfig = isValidMemoryConfig(candidate.lastMemoryConfig)
@@ -122,6 +153,9 @@ function loadSavedNavState(): SavedNavState {
       : null;
     const lastLetterTrainConfig = isValidLetterTrainConfig(candidate.lastLetterTrainConfig)
       ? candidate.lastLetterTrainConfig
+      : null;
+    const lastSafariConfig = isValidSafariConfig(candidate.lastSafariConfig)
+      ? candidate.lastSafariConfig
       : null;
     const lastWordConfig = isValidWordGameConfig(candidate.lastWordConfig)
       ? candidate.lastWordConfig
@@ -133,15 +167,25 @@ function loadSavedNavState(): SavedNavState {
     if (screen.view === 'letter-train-play' && !lastLetterTrainConfig) {
       screen = { view: 'hub' };
     }
+    if (screen.view === 'safari-play' && !lastSafariConfig) {
+      screen = { view: 'hub' };
+    }
     if (screen.view === 'word-play' && !lastWordConfig) {
       screen = { view: 'hub' };
     }
-    return { screen, lastMemoryConfig, lastLetterTrainConfig, lastWordConfig };
+    return {
+      screen,
+      lastMemoryConfig,
+      lastLetterTrainConfig,
+      lastSafariConfig,
+      lastWordConfig,
+    };
   } catch {
     return {
       screen: { view: 'hub' },
       lastMemoryConfig: null,
       lastLetterTrainConfig: null,
+      lastSafariConfig: null,
       lastWordConfig: null,
     };
   }
@@ -156,6 +200,9 @@ function PebbleRouter() {
   );
   const [lastLetterTrainConfig, setLastLetterTrainConfig] = useState<LetterTrainConfig | null>(
     initialNav.lastLetterTrainConfig,
+  );
+  const [lastSafariConfig, setLastSafariConfig] = useState<SafariGameConfig | null>(
+    initialNav.lastSafariConfig,
   );
   const [lastWordConfig, setLastWordConfig] = useState<WordGameConfig | null>(
     initialNav.lastWordConfig,
@@ -175,13 +222,14 @@ function PebbleRouter() {
         screen,
         lastMemoryConfig,
         lastLetterTrainConfig,
+        lastSafariConfig,
         lastWordConfig,
       };
       window.sessionStorage.setItem(NAV_STORAGE_KEY, JSON.stringify(payload));
     } catch {
       // Ignore storage errors in restricted environments
     }
-  }, [lastLetterTrainConfig, lastMemoryConfig, lastWordConfig, screen]);
+  }, [lastLetterTrainConfig, lastMemoryConfig, lastSafariConfig, lastWordConfig, screen]);
 
   // Sync in-app navigation with browser history so Android Back navigates within Pebble
   // instead of exiting the installed PWA, and guards active games from accidental exits.
@@ -223,6 +271,10 @@ function PebbleRouter() {
         clearSavedLetterTrainGame();
         isGameActiveRef.current = false;
       }
+      if (screenRef.current.view === 'safari-play' && targetScreen.view !== 'safari-play') {
+        clearSavedSafariGame();
+        isGameActiveRef.current = false;
+      }
       if (screenRef.current.view === 'word-play' && targetScreen.view !== 'word-play') {
         clearSavedWordGame();
         isGameActiveRef.current = false;
@@ -246,6 +298,9 @@ function PebbleRouter() {
     }
     if (fallbackScreen.view !== 'letter-train-play') {
       clearSavedLetterTrainGame();
+    }
+    if (fallbackScreen.view !== 'safari-play') {
+      clearSavedSafariGame();
     }
     if (fallbackScreen.view !== 'word-play') {
       clearSavedWordGame();
@@ -271,6 +326,7 @@ function PebbleRouter() {
     }
     clearSavedMemoryGame();
     clearSavedLetterTrainGame();
+    clearSavedSafariGame();
     clearSavedWordGame();
     isGameActiveRef.current = false;
     setShowLeaveConfirm(false);
@@ -288,6 +344,7 @@ function PebbleRouter() {
   const forceLeaveToHub = useCallback(() => {
     clearSavedMemoryGame();
     clearSavedLetterTrainGame();
+    clearSavedSafariGame();
     clearSavedWordGame();
     isGameActiveRef.current = false;
     setShowLeaveConfirm(false);
@@ -311,6 +368,8 @@ function PebbleRouter() {
       navigateTo({ view: 'memory-setup' });
     } else if (gameId === 'letter-train') {
       navigateTo({ view: 'letter-train-setup' });
+    } else if (gameId === 'number-safari') {
+      navigateTo({ view: 'safari-setup' });
     } else if (gameId === 'word-fun') {
       navigateTo({ view: 'word-setup' });
     }
@@ -322,9 +381,11 @@ function PebbleRouter() {
         ? { view: 'memory-setup' }
         : screen.returnTo === 'letter-train-setup'
           ? { view: 'letter-train-setup' }
-          : screen.returnTo === 'word-setup'
-            ? { view: 'word-setup' }
-            : { view: 'hub' };
+          : screen.returnTo === 'safari-setup'
+            ? { view: 'safari-setup' }
+            : screen.returnTo === 'word-setup'
+              ? { view: 'word-setup' }
+              : { view: 'hub' };
     return <FamilyProfilesPage onBack={() => navigateBack(fallback)} />;
   }
 
@@ -356,6 +417,22 @@ function PebbleRouter() {
           clearSavedLetterTrainGame();
           setLastLetterTrainConfig(config);
           navigateTo({ view: 'letter-train-play', gameKey: Date.now() });
+        }}
+      />
+    );
+  }
+
+  if (screen.view === 'safari-setup') {
+    return (
+      <SafariSetup
+        profiles={profiles}
+        initialConfig={lastSafariConfig}
+        onBackToHub={() => navigateBack({ view: 'hub' })}
+        onEditProfiles={() => navigateTo({ view: 'profiles', returnTo: 'safari-setup' })}
+        onStartGame={(config) => {
+          clearSavedSafariGame();
+          setLastSafariConfig(config);
+          navigateTo({ view: 'safari-play', gameKey: Date.now() });
         }}
       />
     );
@@ -465,6 +542,58 @@ function PebbleRouter() {
                   onClick={() => setShowLeaveConfirm(false)}
                 >
                   Keep Riding
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ width: '100%' }}
+                  onClick={forceLeaveToHub}
+                >
+                  Back to Games
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  if (screen.view === 'safari-play' && lastSafariConfig) {
+    return (
+      <>
+        <SafariBoard
+          key={screen.gameKey}
+          gameKey={screen.gameKey}
+          config={lastSafariConfig}
+          profiles={profiles}
+          soundEnabled={soundEnabled}
+          onToggleSound={toggleSound}
+          onChangeSetup={() => navigateBack({ view: 'safari-setup' }, true)}
+          onBackToHub={navigateToHub}
+          onGameActiveChange={handleGameActiveChange}
+        />
+
+        {showLeaveConfirm && (
+          <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leave-safari-headline"
+          >
+            <div className="winner-modal">
+              <h2 id="leave-safari-headline">Leave current safari?</h2>
+              <p className="winner-subtitle">
+                Your current safari progress and scores will be lost.
+              </p>
+              <div className="winner-actions">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ width: '100%' }}
+                  onClick={() => setShowLeaveConfirm(false)}
+                >
+                  Keep Playing
                 </button>
                 <button
                   type="button"

@@ -5,8 +5,8 @@
 - **Framework:** React 19 + TypeScript (`strict` mode, `noUnusedLocals`, `noUnusedParameters`)
 - **Bundler:** Vite 6 with `base: './'` (`vite.config.ts`) so static builds work cleanly at root (`/`) and subpaths (`/pebble/` on GitHub Pages)
 - **Styling:** Plain modular CSS variables and utility classes (`src/styles/tokens.css`), zero runtime CSS-in-JS dependencies
-- **Storage:** Client-only `localStorage` under `pebble.family.v1` with schema sanitization (`src/context/FamilyProfilesContext.tsx`)
-- **Audio:** Zero-asset synthesized chimes via the Web Audio API (`src/games/memory-match/soundEffects.ts`)
+- **Storage:** Client-only `localStorage` under `pebble.family.v1` with schema sanitization (`src/context/FamilyProfilesContext.tsx`), plus `sessionStorage` active-game recovery (`pebble.nav.v1`, `pebble.memory.active.v1`, `pebble.letter-train.active.v1`, `pebble.safari.active.v1`, `pebble.wordfun.active.v1`)
+- **Audio:** Zero-asset synthesized chimes via the Web Audio API (`src/games/memory-match/soundEffects.ts`, `src/games/letter-train/trainSounds.ts`, `src/games/number-safari/safariSounds.ts`, `src/games/word-fun/wordSounds.ts`)
 
 ## Directory Layout
 
@@ -34,14 +34,16 @@ pebble/
 │   │   └── car-logos/          # 16 automotive emblem 512x512 PNGs
 │   └── manifest.webmanifest
 ├── scripts/
-│   └── release.sh              # Build, commit, annotated tag, push main --follow-tags
+│   ├── release.sh              # Build, commit, annotated tag, push main --follow-tags
+│   └── visual-verify-helper.mjs # Playwright 768x1024 screenshot & WebM video helper
 ├── src/
 │   ├── components/             # BrandLogo, ConfettiBurst, WinnerModal
 │   ├── context/                # FamilyProfilesContext (validated localStorage state)
 │   ├── games/
 │   │   ├── registry.ts         # Hub game catalog
 │   │   ├── letter-train/       # letterData.ts, WordIllustration.tsx, trainSounds.ts, LetterTrainSetup.tsx, LetterTrainBoard.tsx
-│   │   ├── memory-match/       # themes.ts, soundEffects.ts, MemorySetup.tsx, MemoryBoard.tsx
+│   │   ├── memory-match/       # themes.ts, memoryStats.ts, soundEffects.ts, MemorySetup.tsx, MemoryBoard.tsx, MemoryRecordsModal.tsx
+│   │   ├── number-safari/      # safariData.ts, safariSounds.ts, SafariSetup.tsx, SafariBoard.tsx
 │   │   └── word-fun/           # wordBank.ts, WordFunArt.tsx, wordSounds.ts, WordFunSetup.tsx, WordFunBoard.tsx
 │   ├── pages/                  # GameHubPage.tsx, FamilyProfilesPage.tsx
 │   ├── styles/tokens.css
@@ -60,6 +62,14 @@ Turn phases prevent race conditions from rapid multi-finger taps:
 - `'finished'`: Renders `WinnerModal` with full `PTS` rankings.
 
 All active timeouts are stored in `timeoutRef` and cleared on unmount or board restart.
+
+## Number Safari Game State Machine (`SafariBoard.tsx`)
+
+Interactive tap-to-count and early-math state machine across 3 modes (`Meadow Count 1–5`, `Savanna Trail 1–10`, `Safari Sums Add to 10`):
+- `'idle'`: Active explorer taps individual savanna animals to assign sequential `1..N` count badges (playing an ascending C-major marimba scale) and picks a tactile number block (`1–5` or `1–10`).
+- `'resolving-correct'`: Selected block matches `currentStop.answer`. Reveals `1..N` badges across all animals, increments active player's score by `+1`, fires `ConfettiBurst` + `playSafariCorrectSound`, and advances to the next stop and next explorer (`(currentPlayerIdx + 1) % players.length`), or transitions to `'finished'` after the final stop.
+- `'resolving-wrong'`: Marks the tried number block disabled for the current stop (`playSafariTryAgainSound`). In multiplayer, passes the turn to the next explorer on the same clearing; in solo mode, returns to `'idle'` without penalty.
+- `'finished'`: Renders `WinnerModal` with full `PTS` rankings.
 
 ## Portrait Viewport Fitting (`ResizeObserver`)
 
@@ -81,3 +91,8 @@ This allows tall playing cards for `4 × 4`, `4 × 5` (default), and `5 × 6` gr
 - **XSS-Safe Rendering:** Pure JSX text interpolation; no `innerHTML` or `dangerouslySetInnerHTML`.
 - **Storage Validation (`FamilyProfilesContext.tsx`):** Reads from `localStorage` validate array bounds, profile ID format, avatar allow-list, accent color allow-list, and strip control characters (`<= 24` chars).
 - **Local Binding:** `vite` and `vite preview` bind strictly to `127.0.0.1`.
+
+## End-to-End Visual Verification (`768 × 1024`)
+
+- `scripts/visual-verify-helper.mjs` wraps Playwright (`playwright` + Playwright `ffmpeg` driving local Google Chrome when present) with a strict `http://127.0.0.1:<PORT>` guard, `768 × 1024` portrait viewport (`deviceScaleFactor: 2`), `waitForFontsAndImages()`, `assertZeroVerticalScroll()`, `captureScreenshot()`, and `finishAndSaveVideo()`.
+- Verification runs output step-by-step `.png` screenshots and a `.webm` walkthrough video directly into the active conversation's artifact directory so every change is reviewed visually before release.
