@@ -1,7 +1,14 @@
-import { useState } from 'react';
-import { BrandLogo } from '../../components/BrandLogo';
+import { useMemo, useState } from 'react';
+import { BrandLogo, CrownIcon } from '../../components/BrandLogo';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { assetUrl } from '../../utils/assets';
+import { MemoryRecordsModal } from './MemoryRecordsModal';
+import {
+  clearMemoryStats,
+  getThemeBoardSummary,
+  loadMemoryStatsRuns,
+  type MemoryGameRun,
+} from './memoryStats';
 import {
   BOARD_SIZES,
   CARD_THEMES,
@@ -49,6 +56,8 @@ export function MemorySetup({
     return profiles.slice(0, 2).map((p) => p.id);
   });
   const [playerHint, setPlayerHint] = useState<string | null>(null);
+  const [statsRuns, setStatsRuns] = useState<MemoryGameRun[]>(() => loadMemoryStatsRuns());
+  const [showRecordsModal, setShowRecordsModal] = useState(false);
 
   const togglePlayer = (profileId: string) => {
     setPlayerHint(null);
@@ -79,6 +88,11 @@ export function MemorySetup({
       ? CARD_THEMES
       : CARD_THEMES.filter((t) => t.category === categoryFilter);
 
+  const selectedThemeSummary = useMemo(
+    () => getThemeBoardSummary(statsRuns, themeId, boardSizeId),
+    [boardSizeId, statsRuns, themeId],
+  );
+
   const handleStart = () => {
     const activeIds =
       orderedSelectedProfiles.length > 0
@@ -103,6 +117,14 @@ export function MemorySetup({
         </div>
         <BrandLogo size="sm" />
         <div className="top-bar__right">
+          <button
+            type="button"
+            className="icon-pill-btn"
+            onClick={() => setShowRecordsModal(true)}
+          >
+            <CrownIcon size={18} />
+            <span>Records{statsRuns.length > 0 ? ` (${statsRuns.length})` : ''}</span>
+          </button>
           <button type="button" className="icon-pill-btn" onClick={onEditProfiles}>
             <span>Edit Names</span>
           </button>
@@ -154,6 +176,7 @@ export function MemorySetup({
         <div className="theme-selector-grid">
           {visibleThemes.map((theme) => {
             const isSelected = theme.id === themeId;
+            const summary = getThemeBoardSummary(statsRuns, theme.id, boardSizeId);
             return (
               <button
                 key={theme.id}
@@ -167,10 +190,97 @@ export function MemorySetup({
                   <img src={assetUrl(theme.previewPaths[1])} alt="" />
                 </div>
                 <span className="theme-option-card__title">{theme.title}</span>
-                <span className="theme-option-card__sub">{theme.subtitle}</span>
+                {summary.gamesPlayed > 0 && summary.bestAttempts !== null ? (
+                  <span className="theme-option-card__record">
+                    Best: {summary.bestAttempts} • Last: {summary.lastAttempts}
+                  </span>
+                ) : (
+                  <span className="theme-option-card__sub">{theme.subtitle}</span>
+                )}
               </button>
             );
           })}
+        </div>
+
+        {/* Selected Theme Attempts & Best Record Strip */}
+        <div className="theme-progress-strip" aria-live="polite">
+          {selectedThemeSummary.gamesPlayed > 0 && selectedThemeSummary.bestAttempts !== null ? (
+            <>
+              <div className="theme-progress-strip__main">
+                <span className="theme-progress-strip__title">
+                  {selectedTheme.title} ({selectedSize.label}) Record:
+                </span>
+                <span className="badge-pill badge-pill--honey">
+                  <CrownIcon size={13} />
+                  Best: {selectedThemeSummary.bestAttempts} attempts
+                </span>
+                <span className="badge-pill badge-pill--indigo">
+                  Last: {selectedThemeSummary.lastAttempts} attempts
+                </span>
+                {selectedThemeSummary.improvementFromFirst !== null &&
+                  selectedThemeSummary.improvementFromFirst > 0 ? (
+                    <span className="badge-pill badge-pill--mint">
+                      Improved by {selectedThemeSummary.improvementFromFirst}{' '}
+                      {selectedThemeSummary.improvementFromFirst === 1 ? 'attempt' : 'attempts'}!
+                    </span>
+                  ) : (
+                    selectedThemeSummary.improvementFromPrevious !== null &&
+                    selectedThemeSummary.improvementFromPrevious > 0 && (
+                      <span className="badge-pill badge-pill--mint">
+                        {selectedThemeSummary.improvementFromPrevious} fewer vs prev!
+                      </span>
+                    )
+                  )}
+              </div>
+              <div className="theme-progress-strip__right">
+                {selectedThemeSummary.recentRuns.length >= 2 && (
+                  <div className="attempts-trend-list" aria-label="Recent attempts">
+                    {selectedThemeSummary.recentRuns.slice(-5).map((run, idx, arr) => (
+                      <span key={run.id} className="attempts-trend-step">
+                        {idx > 0 && (
+                          <span className="attempts-trend-arrow" aria-hidden="true">
+                            →
+                          </span>
+                        )}
+                        <span
+                          className={`attempts-trend-pill ${
+                            run.totalAttempts === selectedThemeSummary.bestAttempts
+                              ? 'attempts-trend-pill--best'
+                              : ''
+                          } ${idx === arr.length - 1 ? 'attempts-trend-pill--latest' : ''}`}
+                        >
+                          {run.totalAttempts}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="theme-progress-strip__btn"
+                  onClick={() => setShowRecordsModal(true)}
+                >
+                  All Records
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <span className="theme-progress-strip__empty">
+                <strong>{selectedTheme.title}</strong> ({selectedSize.label}): No record yet — finish a
+                game to track attempts and improvement!
+              </span>
+              {statsRuns.length > 0 && (
+                <button
+                  type="button"
+                  className="theme-progress-strip__btn"
+                  onClick={() => setShowRecordsModal(true)}
+                >
+                  All Records
+                </button>
+              )}
+            </>
+          )}
         </div>
       </section>
 
@@ -256,6 +366,25 @@ export function MemorySetup({
           {orderedSelectedProfiles.map((p) => p.name).join(' & ')}
         </div>
       </div>
+
+      {showRecordsModal && (
+        <MemoryRecordsModal
+          runs={statsRuns}
+          profiles={profiles}
+          initialBoardSizeId={boardSizeId}
+          selectedThemeId={themeId}
+          onSelectTheme={(nextTheme, nextSize) => {
+            setThemeId(nextTheme);
+            setBoardSizeId(nextSize);
+            setShowRecordsModal(false);
+          }}
+          onResetRecords={() => {
+            clearMemoryStats();
+            setStatsRuns([]);
+          }}
+          onClose={() => setShowRecordsModal(false)}
+        />
+      )}
     </div>
   );
 }
