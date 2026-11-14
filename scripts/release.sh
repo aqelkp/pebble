@@ -3,7 +3,12 @@ set -euo pipefail
 
 # Ensure signed Node 22 binary is available if invoked from a minimal shell
 if [ -d "/Users/aqel/.nvm/versions/node/v22.12.0/bin" ]; then
-  export PATH="/Users/aqel/.nvm/versions/node/v22.12.0/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+  export PATH="/Users/aqel/.nvm/versions/node/v22.12.0/bin:/opt/homebrew/bin:$PATH"
+fi
+
+# Prefer macOS system /usr/bin/ssh so ~/.ssh/config UseKeychain works cleanly
+if [ -x "/usr/bin/ssh" ] && [ -z "${GIT_SSH_COMMAND:-}" ]; then
+  export GIT_SSH_COMMAND="/usr/bin/ssh -o BatchMode=yes"
 fi
 
 TAG="${1:-}"
