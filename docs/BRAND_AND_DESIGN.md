@@ -41,7 +41,7 @@ Defined in `src/styles/tokens.css`:
 ### 1. Game Hub (`GameHubPage.tsx`)
 - Header with `BrandLogo` and clickable stacked-avatar **Family** chip.
 - Personalizable welcome card showing `"Welcome to Pebble!"` (default `'Child'`) or `"Welcome, <Name>!"`.
-- 2-column grid led by featured **Memory Match** (`Play Memory Match`) and **Letter Train**, alongside **Word Fun** (`Play Word Fun`) and **Number Safari** (`Play Number Safari`).
+- 2-column grid led by featured **Memory Match** (`Play Memory Match`), **Letter Train** (`Play Letter Train`), and **Letter River** (`Play Letter River`), alongside **Word Fun** (`Play Word Fun`) and **Number Safari** (`Play Number Safari`).
 
 ### 2. Family Profiles (`FamilyProfilesPage.tsx`)
 - Editable profile cards (`2–6` players) allowing name edits (up to 24 chars), avatar selection from 6 custom portraits (`boy`, `girl`, `dad`, `mom`, `uncle`, `grandparent`), and ring accent colors.
@@ -66,5 +66,10 @@ Defined in `src/styles/tokens.css`:
 - **Setup:** 5 illustrated word packs (`All Cozy Words` default, `Animal Pals`, `Cozy Home`, `On the Go`, `Sunny Nature`), round length (`8 Words` default, `6 Words`, `12 Words`), helper mode toggle (`Sound It Out` default or `Letter Trace` ghost guides for ages 3–4), and `1–4` family players.
 - **Full-Height Phonics Stage (`100dvh`):** Dynamically scaled picture clue card with `Hear Word` audio & `Hint` button, 3 rounded letter slots, and a `3 × 2` tray of 6 tactile wooden letter blocks (`+1 POINT` per spelled word, confetti burst, and WinnerModal standings).
 
-### 7. Winner Announcement (`WinnerModal.tsx`)
-- Appears once all pairs, words, or stops are completed, showing a golden crown, glowing winner avatar halo(s), confetti burst, `"<Name> Wins!"` / `"It's a Tie!"` / `"Great Job, <Name>!"`, ranked `PTS` breakdown, and **Play Again** / **Change Setup** / **Back to Games** controls.
+### 7. Letter River (`LetterRiverSetup.tsx` & `LetterRiverBoard.tsx`)
+- **Portrait `100dvh` River Stage:** Gentle sunlit teal-mint river lanes at center with river-pebble shore trim above a warm sand-oak wooden dock holding 3 competing letter buckets (`--bucket-cols: 3`, fixed `214px` bucket height at tablet widths to guarantee zero vertical scrolling).
+- **Sound-First Fish Cards:** Swimming illustration fish carry circular pure-white picture medallions (`Sound First` default, optional word pills) without mirroring the object art when swimming left.
+- **Playful Success vs Calm Redirect:** Matching a bucket triggers buoyant water splash droplets, bucket squash-and-bounce, word reveal pop pills, Golden Fish `2×` bonuses on 4-streaks, and `3/3` bucket-pop confetti; wrong bucket drops softly nudge `3px` and return the fish calmly without slapstick distraction.
+
+### 8. Winner Announcement (`WinnerModal.tsx`)
+- Appears once all pairs, words, letters, or stops are completed, showing a golden crown, glowing winner avatar halo(s), confetti burst, `"<Name> Wins!"` / `"It's a Tie!"` / `"Great Job, <Name>!"`, ranked `PTS` breakdown, and **Play Again** / **Change Setup** / **Back to Games** controls.
