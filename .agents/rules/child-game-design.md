@@ -7,7 +7,7 @@ Whenever designing, proposing, or implementing a **new game** or modifying **rew
    - **Learning Hypothesis & Anti-Gaming Check:** What skill is taught and why the child cannot pass by random guessing.
    - **Child-First Reward Loop:** Tangible sensory/narrative rewards (animations, sounds, clapping, visual progress) rather than relying on abstract `+1 PTS` alone; keep numeric stats quiet for parents.
    - **Playfulness Asymmetry:** Failure must be calm, quiet, and boringly neutral (`Playfulness(Wrong) ≪ Playfulness(Right)`). Never make wrong answers funny, explosive, or entertaining.
-   - **Gentle Failure Consequences:** Include a legible, non-punitive consequence (e.g., visible bonus/star at stake, small progress setback, `~1s` think-pause cooldown, or turn pass) so children cannot spam-drag without thinking.
+   - **Gentle Failure Consequences ("Think Again" Pause Overlay):** Include a legible, non-punitive consequence so children cannot spam-drag without thinking—especially a calm, screen-taking **"Think Again" pause overlay** (`~2–3s` cooldown saying *"Hey, do you want to take some time to think again?"*), alongside options like a visible bonus/star at stake, small progress setback, or turn pass.
    - **Platform-Independent Audio & Rotating Content:** Use bundled audio + Web Audio API (never `speechSynthesis` as primary) and rotate targets/distractors each session.
    - **Portrait `768 × 1024` Dual Input & PWA Resilience:** Zero vertical scroll on gameplay, drag-and-drop paired with tap-to-place, `sessionStorage` resume, and Back-button guard.
 3. **Share early wireframes / design summary** for new games before heavy implementation so mechanics, rewards, and consequences can be reviewed early.

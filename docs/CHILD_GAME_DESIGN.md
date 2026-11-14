@@ -32,11 +32,11 @@ Every new game, mechanic, reward loop, or gameplay update **must** follow these 
 - **Design rule:**
   - Mistakes must carry a **gentle, legible, non-punitive consequence** that encourages *"slow down and think"* without causing frustration or dead-end "Game Over" screens.
   - **Approved consequence patterns:**
-    1. **Visible Streak / Bonus at Stake:** Show a **Perfect Run / Star / Clapping Party** badge *during* the round that dims or drops if a mistake is made (so the child actively tries to protect it).
-    2. **Small Progress Setback:** On a wrong drop, spill 1 unit from the current progress meter (e.g., bucket drops from `2/3` to `1/3`, or a combo resets to `0`).
-    3. **Think Pause (Brief Cooldown):** Apply a short `~1.0–1.5s` calm lock/return animation after a mistake so rapid-fire brute-force dragging doesn't work.
+    1. **"Think Again" Pause Overlay (Primary Anti-Spam Pattern):** Briefly take over the screen (`~2–3s` calm cooldown) with a gentle, encouraging message such as *"Hey, do you want to take some time to think again?"* before letting the child try again. This physically interrupts rapid brute-force dragging/tapping while staying warm, calm, and non-punitive.
+    2. **Visible Streak / Bonus at Stake:** Show a **Perfect Run / Star / Clapping Party** badge *during* the round that dims or drops if a mistake is made (so the child actively tries to protect it).
+    3. **Small Progress Setback:** On a wrong drop, spill 1 unit from the current progress meter (e.g., bucket drops from `2/3` to `1/3`, or a combo resets to `0`).
     4. **Turn Pass (Multiplayer):** In 2–4 player games, a wrong guess passes the turn to the next family member.
-  - **Anti-pattern:** Never lock the child out permanently, show harsh red `X`s, or play buzzer sounds.
+  - **Anti-pattern:** Never lock the child out permanently, show harsh red `X`s, or play buzzer sounds. The "Think Again" overlay must feel like a calm breath—zero funny animations, zero loud sounds.
 
 ---
 
@@ -111,7 +111,7 @@ Before writing implementation code for any new Pebble game, confirm all 8 items 
 - [ ] **Learning Hypothesis:** What exact skill is taught, and how does the mechanic prevent solving without that skill?
 - [ ] **Child Reward Loop:** What tangible, sensory/narrative celebration happens on success (beyond just `+1 PTS`)?
 - [ ] **Playfulness Asymmetry:** Is failure calm, quiet, and boringly neutral compared to success?
-- [ ] **Failure Consequence:** What gentle consequence prevents thoughtless spam-dragging/guessing (e.g., visible streak/star at stake, small progress setback, brief think-pause cooldown, or turn pass)?
+- [ ] **Failure Consequence:** What gentle consequence prevents thoughtless spam-dragging/guessing (e.g., a calm **"Think Again" screen-taking pause overlay**, visible streak/star at stake, small progress setback, or turn pass)?
 - [ ] **Freshness:** Does every round rotate/shuffle targets and distractors from a rich bank?
 - [ ] **Platform-Independent Audio:** Are voices/sounds bundled assets + Web Audio (zero reliance on `speechSynthesis`)?
 - [ ] **Portrait `768 × 1024` & Dual Input:** Zero vertical scroll on gameplay, compact setup, and both drag-and-drop + tap-to-place?
