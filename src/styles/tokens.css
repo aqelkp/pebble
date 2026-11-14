@@ -3592,7 +3592,7 @@ h3,
   background: #ffffff;
   border: 2.5px solid var(--border-subtle);
   box-shadow: 0 5px 14px -4px rgba(30, 36, 51, 0.1);
-  padding: 9%;
+  padding: clamp(6px, 1.2vw, 10px);
   display: flex;
   align-items: center;
   justify-content: center;
