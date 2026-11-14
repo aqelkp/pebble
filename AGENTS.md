@@ -44,7 +44,7 @@ Pebble is a calm, tactile, screen-safe family learning web app designed primaril
 
 - **Asset Paths:** All assets in `public/` (512×512 PNGs under `public/avatars/`, `public/hub/`, `public/themes/`) must be referenced with `assetUrl(...)` (`src/utils/assets.ts`) so `./` relative Vite builds work on both `127.0.0.1` and `https://aqelkp.github.io/pebble/`.
 - **Web Security:** Follow `index.html` strict CSP. Never use `dangerouslySetInnerHTML`, `innerHTML`, `alert()`, `confirm()`, or `prompt()`. Sanitize and bound all `localStorage` profile data. Bind dev/preview servers strictly to `127.0.0.1`.
-- **Extending Games:** Add new games in `src/games/<game-id>/` and register metadata in `src/games/registry.ts`. See `docs/ARCHITECTURE.md` and `docs/BRAND_AND_DESIGN.md` for full details.
+- **Extending Games & Child-Design Rules (`.agents/rules/child-game-design.md`):** Add new games in `src/games/<game-id>/` and register metadata in `src/games/registry.ts`. Before designing or coding any new game (or changing rewards/failure feedback), read `docs/CHILD_GAME_DESIGN.md` and satisfy its checklist (Learning Hypothesis, Child-First Sensory Rewards vs. Parent Metrics, Playfulness Asymmetry, Gentle Failure Consequences, Rotating Content, Bundled Audio, Dual Input, and PWA Back Guard). See `docs/ARCHITECTURE.md` and `docs/BRAND_AND_DESIGN.md` for full technical/brand details.
 
 ## 5. Build, Verification & Mandatory Auto-Deploy Workflow
 
