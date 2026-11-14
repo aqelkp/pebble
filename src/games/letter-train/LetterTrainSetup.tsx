@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { BrandLogo } from '../../components/BrandLogo';
+import { BrandLogo, CrownIcon } from '../../components/BrandLogo';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import {
   ALL_LETTERS,
   VOWEL_LETTERS,
   isValidLetterId,
   loadMasteredLetters,
+  loadPerfectLetters,
   type LetterId,
 } from './letterData';
 
@@ -73,15 +74,17 @@ export function LetterTrainSetup({
     initialConfig?.wordLabelMode ?? 'after-drop',
   );
   const [masteredLetters] = useState<LetterId[]>(() => loadMasteredLetters());
+  const [perfectLetters] = useState<LetterId[]>(() => loadPerfectLetters());
   const [letterHint, setLetterHint] = useState<string | null>(null);
 
   const masteredSet = new Set<LetterId>(masteredLetters);
+  const perfectSet = new Set<LetterId>(perfectLetters);
   const selectedSet = new Set<LetterId>(selectedLetters);
   const allSelected = selectedLetters.length === ALL_LETTERS.length;
   const vowelsSelected =
     selectedLetters.length === VOWEL_LETTERS.length &&
     VOWEL_LETTERS.every((v) => selectedSet.has(v));
-  const unmasteredLetters = ALL_LETTERS.filter((l) => !masteredSet.has(l));
+  const unmasteredLetters = ALL_LETTERS.filter((l) => !perfectSet.has(l));
 
   const toggleLetter = (letter: LetterId) => {
     setLetterHint(null);
@@ -108,7 +111,7 @@ export function LetterTrainSetup({
     setSelectedLetters([...VOWEL_LETTERS]);
   };
 
-  const selectUnmastered = () => {
+  const selectNeedCrown = () => {
     setLetterHint(null);
     if (unmasteredLetters.length > 0) {
       setSelectedLetters([...unmasteredLetters]);
@@ -151,7 +154,10 @@ export function LetterTrainSetup({
 
       <div className="page-title-block" style={{ marginTop: 2, marginBottom: 10 }}>
         <h1>Letter Train</h1>
-        <p>Load the 3 words that start with each station&apos;s letter—watch out for boiler smoke!</p>
+        <p>
+          Pick all 3 matching words with <strong>zero mistakes</strong> to win a Golden Crown and
+          cheering applause! New words appear every trip.
+        </p>
       </div>
 
       {/* 1. A-Z Station Picker (All 26 selected by default) */}
@@ -160,7 +166,7 @@ export function LetterTrainSetup({
           <div>
             <h2 id="lt-letters-heading">1. Station Letters ({selectedLetters.length} of 26)</h2>
             <span className="lt-mastery-caption">
-              {masteredLetters.length} / 26 sticker badges mastered
+              {perfectLetters.length} / 26 Golden Crowns • {masteredLetters.length} / 26 Cleared
             </span>
           </div>
           <div className="category-filter-pills" role="group" aria-label="Quick letter presets">
@@ -184,9 +190,9 @@ export function LetterTrainSetup({
               <button
                 type="button"
                 className="category-pill-btn"
-                onClick={selectUnmastered}
+                onClick={selectNeedCrown}
               >
-                New ({unmasteredLetters.length})
+                Need Crown ({unmasteredLetters.length})
               </button>
             )}
           </div>
@@ -195,24 +201,33 @@ export function LetterTrainSetup({
         <div className="lt-letter-grid" role="group" aria-label="Toggle letters A through Z">
           {ALL_LETTERS.map((letter) => {
             const isSelected = selectedSet.has(letter);
+            const isPerfect = perfectSet.has(letter);
             const isMastered = masteredSet.has(letter);
             return (
               <button
                 key={letter}
                 type="button"
                 className={`lt-letter-tile ${isSelected ? 'lt-letter-tile--selected' : ''} ${
-                  isMastered ? 'lt-letter-tile--mastered' : ''
+                  isPerfect ? 'lt-letter-tile--perfect' : ''
                 }`}
                 aria-pressed={isSelected}
                 onClick={() => toggleLetter(letter)}
               >
                 <span className="lt-letter-tile__upper">{letter}</span>
                 <span className="lt-letter-tile__lower">{letter.toLowerCase()}</span>
-                {isMastered && (
-                  <span className="lt-letter-tile__badge" title="Mastered!" aria-label="Mastered">
+                {isPerfect ? (
+                  <span
+                    className="lt-letter-tile__badge lt-letter-tile__badge--gold"
+                    title="Perfect Golden Crown!"
+                    aria-label="Perfect Golden Crown"
+                  >
+                    <CrownIcon size={11} />
+                  </span>
+                ) : isMastered ? (
+                  <span className="lt-letter-tile__badge" title="Cleared" aria-label="Cleared">
                     ✓
                   </span>
-                )}
+                ) : null}
               </button>
             );
           })}
@@ -285,7 +300,8 @@ export function LetterTrainSetup({
       <footer className="setup-launch-bar">
         <div className="setup-launch-summary">
           <strong>
-            {selectedLetters.length} {selectedLetters.length === 1 ? 'Station' : 'Stations'} Ready
+            {selectedLetters.length} {selectedLetters.length === 1 ? 'Station' : 'Stations'} • Fresh
+            Words Every Game
           </strong>
           <span>
             {orderMode === 'alphabetical' ? 'A → Z in order' : 'Shuffled stations'} • Conductor:{' '}
