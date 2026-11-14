@@ -48,7 +48,7 @@ Defined in `src/styles/tokens.css`:
 
 ### 3. Memory Match Setup (`MemorySetup.tsx`)
 - Pre-selected defaults for fast zero-friction start:
-  - Theme: **Lion King** (`Kung Fu Panda` & `PAW Patrol` also included, each with 16 custom illustrated 512×512 PNGs).
+  - Theme: **Lion King** default inside a 5-column portrait grid with category filters (`All (10)`, `Stories (6)`, `World & Sports (4)`). Includes `Lion King`, `Kung Fu Panda`, `PAW Patrol`, `Toy Story`, `Cars`, `Tom & Jerry`, `Sports`, `Fruits`, `Vegetables`, and `Car Logos` (16 custom `512×512` PNGs each).
   - Board Layout: **`4 × 5` (5 rows vertically = 20 cards / 10 pairs)** first & default; **`4 × 4`** (16 cards) and **`5 × 6`** (30 cards) also available.
   - Players: First 2 profiles pre-selected (`1–4` selectable).
 

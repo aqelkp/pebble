@@ -9,7 +9,7 @@ A calm, tactile, child-friendly learning game hub designed for portrait tablets 
 - **Pebble Game Hub:** Clean, screen-safe Alabaster & Warm Indigo interface with personalized family greeting and modular game catalog (`Memory Match`, plus upcoming `Number Safari` and `Word Fun`).
 - **Family Profiles (`localStorage`):** Customize player names (`1–6` profiles) and choose from 6 bespoke illustrated avatars right on the tablet. Zero personal data leaves your device.
 - **Memory Match:**
-  - **3 Illustrated Themes (48 custom 512×512 PNGs):** Lion King (default), Kung Fu Panda, and PAW Patrol.
+  - **10 Illustrated Themes (160 custom 512×512 PNGs):** Filterable across **Stories** (Lion King default, Kung Fu Panda, PAW Patrol, Toy Story, Cars, Tom & Jerry) and **World & Sports** (Sports, Fruits, Vegetables, Car Logos).
   - **Portrait-First Layouts:** **`4 × 5` (5 rows vertically = 20 cards, Default)**, `4 × 4` (16 cards), and `5 × 6` (30 cards).
   - **Multi-Player Scoreboard & Celebration:** Prominent `PTS` counters, active turn highlights, Sage Mint `MATCH! +1 POINT` banner, confetti burst, Web Audio chimes (with mute toggle), extra turn on match, and end-of-game Winner Announcement modal.
 

@@ -24,7 +24,14 @@ pebble/
 │   ├── themes/
 │   │   ├── lion-king/          # 16 character 512x512 PNGs
 │   │   ├── kung-fu-panda/      # 16 character 512x512 PNGs
-│   │   └── paw-patrol/         # 16 character 512x512 PNGs
+│   │   ├── paw-patrol/         # 16 character 512x512 PNGs
+│   │   ├── toy-story/          # 16 character 512x512 PNGs
+│   │   ├── cars/               # 16 character 512x512 PNGs
+│   │   ├── tom-and-jerry/      # 16 character 512x512 PNGs
+│   │   ├── sports/             # 16 equipment 512x512 PNGs
+│   │   ├── fruits/             # 16 fruit 512x512 PNGs
+│   │   ├── vegetables/         # 16 vegetable 512x512 PNGs
+│   │   └── car-logos/          # 16 automotive emblem 512x512 PNGs
 │   └── manifest.webmanifest
 ├── scripts/
 │   └── release.sh              # Build, commit, annotated tag, push main --follow-tags

@@ -27,6 +27,8 @@ interface MemorySetupProps {
   onStartGame: (config: MemoryGameConfig) => void;
 }
 
+type CategoryFilter = 'all' | 'stories' | 'world';
+
 export function MemorySetup({
   profiles,
   initialConfig,
@@ -35,6 +37,7 @@ export function MemorySetup({
   onStartGame,
 }: MemorySetupProps) {
   const [themeId, setThemeId] = useState<ThemeId>(initialConfig?.themeId ?? DEFAULT_THEME_ID);
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [boardSizeId, setBoardSizeId] = useState<BoardSizeId>(
     initialConfig?.boardSizeId ?? DEFAULT_BOARD_SIZE_ID,
   );
@@ -69,6 +72,12 @@ export function MemorySetup({
   const orderedSelectedProfiles = profiles.filter((p) => selectedPlayerIds.includes(p.id));
   const selectedTheme = getThemeSpec(themeId);
   const selectedSize = getBoardSizeSpec(boardSizeId);
+  const storiesCount = CARD_THEMES.filter((t) => t.category === 'stories').length;
+  const worldCount = CARD_THEMES.filter((t) => t.category === 'world').length;
+  const visibleThemes =
+    categoryFilter === 'all'
+      ? CARD_THEMES
+      : CARD_THEMES.filter((t) => t.category === categoryFilter);
 
   const handleStart = () => {
     const activeIds =
@@ -100,19 +109,50 @@ export function MemorySetup({
         </div>
       </header>
 
-      <div className="page-title-block" style={{ marginTop: 6, marginBottom: 14 }}>
+      <div className="page-title-block" style={{ marginTop: 4, marginBottom: 10 }}>
         <h1>Memory Match Setup</h1>
-        <p>Pick your favorite characters, card layout, and family players.</p>
+        <p>Pick a favorite theme, card layout, and family players.</p>
       </div>
 
       {/* 1. Theme Selector */}
       <section className="setup-card-section" aria-labelledby="setup-theme-heading">
         <div className="setup-section-header">
-          <h2 id="setup-theme-heading">1. Character Theme</h2>
-          <span className="section-pill">16 pairs ready</span>
+          <h2 id="setup-theme-heading">1. Choose a Theme</h2>
+          <div className="category-filter-pills" role="group" aria-label="Filter themes">
+            <button
+              type="button"
+              className={`category-pill-btn ${
+                categoryFilter === 'all' ? 'category-pill-btn--active' : ''
+              }`}
+              aria-pressed={categoryFilter === 'all'}
+              onClick={() => setCategoryFilter('all')}
+            >
+              All ({CARD_THEMES.length})
+            </button>
+            <button
+              type="button"
+              className={`category-pill-btn ${
+                categoryFilter === 'stories' ? 'category-pill-btn--active' : ''
+              }`}
+              aria-pressed={categoryFilter === 'stories'}
+              onClick={() => setCategoryFilter('stories')}
+            >
+              Stories ({storiesCount})
+            </button>
+            <button
+              type="button"
+              className={`category-pill-btn ${
+                categoryFilter === 'world' ? 'category-pill-btn--active' : ''
+              }`}
+              aria-pressed={categoryFilter === 'world'}
+              onClick={() => setCategoryFilter('world')}
+            >
+              World &amp; Sports ({worldCount})
+            </button>
+          </div>
         </div>
         <div className="theme-selector-grid">
-          {CARD_THEMES.map((theme) => {
+          {visibleThemes.map((theme) => {
             const isSelected = theme.id === themeId;
             return (
               <button

@@ -8,15 +8,69 @@ import { playFlipSound, playMatchSound, playMismatchSound, playWinSound } from '
 import { buildDeck, getBoardSizeSpec, getThemeSpec, type DeckCard } from './themes';
 
 interface MemoryBoardProps {
+  gameKey: number;
   config: MemoryGameConfig;
   profiles: FamilyProfile[];
   soundEnabled: boolean;
   onToggleSound: () => void;
   onChangeSetup: () => void;
   onBackToHub: () => void;
+  onGameActiveChange?: (active: boolean) => void;
 }
 
 type TurnPhase = 'idle' | 'resolving-match' | 'resolving-mismatch' | 'finished';
+
+const ACTIVE_GAME_STORAGE_KEY = 'pebble.memory.active.v1';
+
+interface SavedMemoryGameState {
+  gameKey: number;
+  deck: DeckCard[];
+  matchedPairIds: Record<string, true>;
+  scores: Record<string, number>;
+  currentPlayerIdx: number;
+  phase: TurnPhase;
+}
+
+function loadSavedGameState(gameKey: number): SavedMemoryGameState | null {
+  try {
+    const raw = window.sessionStorage.getItem(ACTIVE_GAME_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null) return null;
+    const candidate = parsed as Partial<SavedMemoryGameState>;
+    if (
+      candidate.gameKey !== gameKey ||
+      !Array.isArray(candidate.deck) ||
+      candidate.deck.length === 0 ||
+      typeof candidate.matchedPairIds !== 'object' ||
+      candidate.matchedPairIds === null ||
+      typeof candidate.scores !== 'object' ||
+      candidate.scores === null ||
+      typeof candidate.currentPlayerIdx !== 'number'
+    ) {
+      return null;
+    }
+    const restoredPhase: TurnPhase = candidate.phase === 'finished' ? 'finished' : 'idle';
+    return {
+      gameKey,
+      deck: candidate.deck,
+      matchedPairIds: candidate.matchedPairIds,
+      scores: candidate.scores,
+      currentPlayerIdx: candidate.currentPlayerIdx,
+      phase: restoredPhase,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function clearSavedMemoryGame(): void {
+  try {
+    window.sessionStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
+  } catch {
+    // Ignore storage errors in restricted environments
+  }
+}
 
 interface CardDimensions {
   width: number;
@@ -33,12 +87,14 @@ function buildInitialScores(players: FamilyProfile[]): Record<string, number> {
 }
 
 export function MemoryBoard({
+  gameKey,
   config,
   profiles,
   soundEnabled,
   onToggleSound,
   onChangeSetup,
   onBackToHub,
+  onGameActiveChange,
 }: MemoryBoardProps) {
   const theme = useMemo(() => getThemeSpec(config.themeId), [config.themeId]);
   const boardSize = useMemo(() => getBoardSizeSpec(config.boardSizeId), [config.boardSizeId]);
@@ -50,13 +106,21 @@ export function MemoryBoard({
     return selected.length > 0 ? selected : profiles.slice(0, 2);
   }, [config.playerIds, profiles]);
 
-  const [deck, setDeck] = useState<DeckCard[]>(() => buildDeck(config.themeId, config.boardSizeId));
+  const [savedState] = useState<SavedMemoryGameState | null>(() => loadSavedGameState(gameKey));
+
+  const [deck, setDeck] = useState<DeckCard[]>(
+    () => savedState?.deck ?? buildDeck(config.themeId, config.boardSizeId),
+  );
   const [flippedIds, setFlippedIds] = useState<string[]>([]);
-  const [matchedPairIds, setMatchedPairIds] = useState<Record<string, true>>({});
+  const [matchedPairIds, setMatchedPairIds] = useState<Record<string, true>>(
+    () => savedState?.matchedPairIds ?? {},
+  );
   const [justMatchedPairId, setJustMatchedPairId] = useState<string | null>(null);
-  const [scores, setScores] = useState<Record<string, number>>(() => buildInitialScores(players));
-  const [currentPlayerIdx, setCurrentPlayerIdx] = useState(0);
-  const [phase, setPhase] = useState<TurnPhase>('idle');
+  const [scores, setScores] = useState<Record<string, number>>(
+    () => savedState?.scores ?? buildInitialScores(players),
+  );
+  const [currentPlayerIdx, setCurrentPlayerIdx] = useState(() => savedState?.currentPlayerIdx ?? 0);
+  const [phase, setPhase] = useState<TurnPhase>(() => savedState?.phase ?? 'idle');
   const [matchBurstCount, setMatchBurstCount] = useState(0);
   const [nextPlayerName, setNextPlayerName] = useState<string | null>(null);
 
@@ -79,6 +143,26 @@ export function MemoryBoard({
   useEffect(() => {
     return () => clearPendingTimer();
   }, [clearPendingTimer]);
+
+  useEffect(() => {
+    onGameActiveChange?.(phase !== 'finished');
+  }, [onGameActiveChange, phase]);
+
+  useEffect(() => {
+    try {
+      const snapshot: SavedMemoryGameState = {
+        gameKey,
+        deck,
+        matchedPairIds,
+        scores,
+        currentPlayerIdx,
+        phase: phase === 'finished' ? 'finished' : 'idle',
+      };
+      window.sessionStorage.setItem(ACTIVE_GAME_STORAGE_KEY, JSON.stringify(snapshot));
+    } catch {
+      // Ignore storage errors in restricted environments
+    }
+  }, [currentPlayerIdx, deck, gameKey, matchedPairIds, phase, scores]);
 
   // Measure the card grid container dynamically so every tall 2.5:3.5 card fits cleanly inside 100dvh
   useEffect(() => {

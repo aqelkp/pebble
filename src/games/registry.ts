@@ -14,7 +14,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     id: 'memory-match',
     title: 'Memory Match',
     description:
-      'Flip tall illustrated cards to find matching characters, earn +1 point per pair, and celebrate the winner together.',
+      'Flip tall illustrated cards across 10 themes—stories, cars, sports, fruits, vegetables, and car logos—to earn points and celebrate the winner.',
     badgeText: 'Ready to Play',
     ageHint: 'Ages 3–7 • 1–4 Players',
     artPath: 'hub/memory-match.png',
