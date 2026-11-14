@@ -28,6 +28,16 @@ import {
   isValidSafariModeId,
 } from './games/number-safari/safariData';
 import { SafariSetup, type SafariGameConfig } from './games/number-safari/SafariSetup';
+import {
+  clearSavedSudokuGame,
+  PictureSudokuBoard,
+} from './games/picture-sudoku/PictureSudokuBoard';
+import {
+  getDefaultPictureSudokuConfig,
+  isValidPictureSudokuConfig,
+  PictureSudokuSetup,
+  type PictureSudokuConfig,
+} from './games/picture-sudoku/PictureSudokuSetup';
 import type { GameRegistryEntry } from './games/registry';
 import { clearSavedWordGame, WordFunBoard } from './games/word-fun/WordFunBoard';
 import {
@@ -48,7 +58,8 @@ type Screen =
         | 'letter-train-setup'
         | 'letter-river-setup'
         | 'safari-setup'
-        | 'word-setup';
+        | 'word-setup'
+        | 'sudoku-setup';
     }
   | { view: 'memory-setup' }
   | { view: 'memory-play'; gameKey: number }
@@ -59,7 +70,9 @@ type Screen =
   | { view: 'safari-setup' }
   | { view: 'safari-play'; gameKey: number }
   | { view: 'word-setup' }
-  | { view: 'word-play'; gameKey: number };
+  | { view: 'word-play'; gameKey: number }
+  | { view: 'sudoku-setup' }
+  | { view: 'sudoku-play'; gameKey: number };
 
 const NAV_STORAGE_KEY = 'pebble.nav.v1';
 
@@ -70,6 +83,7 @@ interface SavedNavState {
   lastLetterRiverConfig: LetterRiverConfig | null;
   lastSafariConfig: SafariGameConfig | null;
   lastWordConfig: WordGameConfig | null;
+  lastSudokuConfig: PictureSudokuConfig | null;
 }
 
 function isPlayScreen(screen: Screen): boolean {
@@ -78,7 +92,8 @@ function isPlayScreen(screen: Screen): boolean {
     screen.view === 'letter-train-play' ||
     screen.view === 'letter-river-play' ||
     screen.view === 'safari-play' ||
-    screen.view === 'word-play'
+    screen.view === 'word-play' ||
+    screen.view === 'sudoku-play'
   );
 }
 
@@ -91,7 +106,8 @@ function isValidScreen(value: unknown): value is Screen {
     candidate.view === 'letter-train-setup' ||
     candidate.view === 'letter-river-setup' ||
     candidate.view === 'safari-setup' ||
-    candidate.view === 'word-setup'
+    candidate.view === 'word-setup' ||
+    candidate.view === 'sudoku-setup'
   ) {
     return true;
   }
@@ -102,7 +118,8 @@ function isValidScreen(value: unknown): value is Screen {
       candidate.returnTo === 'letter-train-setup' ||
       candidate.returnTo === 'letter-river-setup' ||
       candidate.returnTo === 'safari-setup' ||
-      candidate.returnTo === 'word-setup')
+      candidate.returnTo === 'word-setup' ||
+      candidate.returnTo === 'sudoku-setup')
   ) {
     return true;
   }
@@ -111,7 +128,8 @@ function isValidScreen(value: unknown): value is Screen {
       candidate.view === 'letter-train-play' ||
       candidate.view === 'letter-river-play' ||
       candidate.view === 'safari-play' ||
-      candidate.view === 'word-play') &&
+      candidate.view === 'word-play' ||
+      candidate.view === 'sudoku-play') &&
     typeof candidate.gameKey === 'number'
   ) {
     return true;
@@ -150,6 +168,7 @@ function loadSavedNavState(): SavedNavState {
     lastLetterRiverConfig: null,
     lastSafariConfig: null,
     lastWordConfig: null,
+    lastSudokuConfig: null,
   };
   try {
     const raw = window.sessionStorage.getItem(NAV_STORAGE_KEY);
@@ -167,6 +186,7 @@ function loadSavedNavState(): SavedNavState {
       lastLetterRiverConfig?: unknown;
       lastSafariConfig?: unknown;
       lastWordConfig?: unknown;
+      lastSudokuConfig?: unknown;
     };
     const lastMemoryConfig = isValidMemoryConfig(candidate.lastMemoryConfig)
       ? candidate.lastMemoryConfig
@@ -182,6 +202,9 @@ function loadSavedNavState(): SavedNavState {
       : null;
     const lastWordConfig = isValidWordGameConfig(candidate.lastWordConfig)
       ? candidate.lastWordConfig
+      : null;
+    const lastSudokuConfig = isValidPictureSudokuConfig(candidate.lastSudokuConfig)
+      ? candidate.lastSudokuConfig
       : null;
     let screen: Screen = isValidScreen(candidate.screen) ? candidate.screen : { view: 'hub' };
     if (screen.view === 'memory-play' && !lastMemoryConfig) {
@@ -199,6 +222,9 @@ function loadSavedNavState(): SavedNavState {
     if (screen.view === 'word-play' && !lastWordConfig) {
       screen = { view: 'hub' };
     }
+    if (screen.view === 'sudoku-play' && !lastSudokuConfig) {
+      screen = { view: 'hub' };
+    }
     return {
       screen,
       lastMemoryConfig,
@@ -206,6 +232,7 @@ function loadSavedNavState(): SavedNavState {
       lastLetterRiverConfig,
       lastSafariConfig,
       lastWordConfig,
+      lastSudokuConfig,
     };
   } catch {
     return emptyState;
@@ -231,6 +258,9 @@ function PebbleRouter() {
   const [lastWordConfig, setLastWordConfig] = useState<WordGameConfig | null>(
     initialNav.lastWordConfig,
   );
+  const [lastSudokuConfig, setLastSudokuConfig] = useState<PictureSudokuConfig | null>(
+    initialNav.lastSudokuConfig,
+  );
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   const screenRef = useRef<Screen>(screen);
@@ -249,6 +279,7 @@ function PebbleRouter() {
         lastLetterRiverConfig,
         lastSafariConfig,
         lastWordConfig,
+        lastSudokuConfig,
       };
       window.sessionStorage.setItem(NAV_STORAGE_KEY, JSON.stringify(payload));
     } catch {
@@ -259,6 +290,7 @@ function PebbleRouter() {
     lastLetterTrainConfig,
     lastMemoryConfig,
     lastSafariConfig,
+    lastSudokuConfig,
     lastWordConfig,
     screen,
   ]);
@@ -318,6 +350,10 @@ function PebbleRouter() {
         clearSavedWordGame();
         isGameActiveRef.current = false;
       }
+      if (screenRef.current.view === 'sudoku-play' && targetScreen.view !== 'sudoku-play') {
+        clearSavedSudokuGame();
+        isGameActiveRef.current = false;
+      }
       setScreen(targetScreen);
     };
 
@@ -347,6 +383,9 @@ function PebbleRouter() {
     if (fallbackScreen.view !== 'word-play') {
       clearSavedWordGame();
     }
+    if (fallbackScreen.view !== 'sudoku-play') {
+      clearSavedSudokuGame();
+    }
     if (!isPlayScreen(fallbackScreen)) {
       isGameActiveRef.current = false;
     }
@@ -371,6 +410,7 @@ function PebbleRouter() {
     clearSavedLetterRiverGame();
     clearSavedSafariGame();
     clearSavedWordGame();
+    clearSavedSudokuGame();
     isGameActiveRef.current = false;
     setShowLeaveConfirm(false);
     if (historyDepthRef.current > 0) {
@@ -390,6 +430,7 @@ function PebbleRouter() {
     clearSavedLetterRiverGame();
     clearSavedSafariGame();
     clearSavedWordGame();
+    clearSavedSudokuGame();
     isGameActiveRef.current = false;
     setShowLeaveConfirm(false);
     if (historyDepthRef.current > 0) {
@@ -418,6 +459,8 @@ function PebbleRouter() {
       navigateTo({ view: 'safari-setup' });
     } else if (gameId === 'word-fun') {
       navigateTo({ view: 'word-setup' });
+    } else if (gameId === 'picture-sudoku') {
+      navigateTo({ view: 'sudoku-setup' });
     }
   };
 
@@ -433,7 +476,9 @@ function PebbleRouter() {
               ? { view: 'safari-setup' }
               : screen.returnTo === 'word-setup'
                 ? { view: 'word-setup' }
-                : { view: 'hub' };
+                : screen.returnTo === 'sudoku-setup'
+                  ? { view: 'sudoku-setup' }
+                  : { view: 'hub' };
     return <FamilyProfilesPage onBack={() => navigateBack(fallback)} />;
   }
 
@@ -764,6 +809,76 @@ function PebbleRouter() {
                   onClick={() => setShowLeaveConfirm(false)}
                 >
                   Keep Playing
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ width: '100%' }}
+                  onClick={forceLeaveToHub}
+                >
+                  Back to Games
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  if (screen.view === 'sudoku-setup') {
+    const childProfile = profiles[0];
+    return (
+      <PictureSudokuSetup
+        childProfile={childProfile}
+        initialConfig={lastSudokuConfig ?? getDefaultPictureSudokuConfig()}
+        onBackToHub={() => navigateBack({ view: 'hub' })}
+        onEditProfiles={() => navigateTo({ view: 'profiles', returnTo: 'sudoku-setup' })}
+        onStartGame={(config) => {
+          clearSavedSudokuGame();
+          setLastSudokuConfig(config);
+          navigateTo({ view: 'sudoku-play', gameKey: Date.now() });
+        }}
+      />
+    );
+  }
+
+  if (screen.view === 'sudoku-play') {
+    const activeSudokuConfig = lastSudokuConfig ?? getDefaultPictureSudokuConfig();
+    return (
+      <>
+        <PictureSudokuBoard
+          key={screen.gameKey}
+          gameKey={screen.gameKey}
+          config={activeSudokuConfig}
+          childProfile={profiles[0]}
+          soundEnabled={soundEnabled}
+          onToggleSound={toggleSound}
+          onChangeSetup={() => navigateBack({ view: 'sudoku-setup' }, true)}
+          onBackToHub={navigateToHub}
+          onGameActiveChange={handleGameActiveChange}
+        />
+
+        {showLeaveConfirm && (
+          <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leave-sudoku-headline"
+          >
+            <div className="winner-modal">
+              <h2 id="leave-sudoku-headline">Leave this puzzle?</h2>
+              <p className="winner-subtitle">
+                Your current Picture Sudoku progress will be cleared.
+              </p>
+              <div className="winner-actions">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ width: '100%' }}
+                  onClick={() => setShowLeaveConfirm(false)}
+                >
+                  Keep Solving
                 </button>
                 <button
                   type="button"

@@ -5243,3 +5243,379 @@ h3,
     font-size: 1.05rem;
   }
 }
+
+/* ==========================================================================
+   Picture Sudoku (.ps-*)
+   ========================================================================== */
+
+.ps-shell {
+  height: 100dvh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-top: 10px;
+  padding-bottom: 12px;
+  gap: 8px;
+}
+
+.ps-top-bar {
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+.ps-player-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-white);
+  border: 1.5px solid var(--border-soft);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+.ps-player-pill img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.ps-player-pill__meta {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding-left: 6px;
+  border-left: 1px solid var(--border-soft);
+}
+
+.ps-banner {
+  flex-shrink: 0;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.ps-banner--neutral {
+  background: var(--surface-white);
+  border: 1.5px solid var(--border-soft);
+  color: var(--text-primary);
+}
+
+.ps-banner--success {
+  background: var(--mint-tint);
+  border: 1.5px solid var(--mint-500);
+  color: #1c6b62;
+}
+
+.ps-banner--warn {
+  background: var(--coral-tint);
+  border: 1.5px solid var(--coral-500);
+  color: #9c341d;
+}
+
+.ps-banner__counter {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.ps-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ps-grid {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 24px;
+  background: var(--surface-white);
+  border: 2px solid var(--border-soft);
+  box-shadow: var(--shadow-md);
+  touch-action: none;
+}
+
+.ps-cell {
+  position: relative;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  transition: transform 0.14s ease, border-color 0.14s ease, background-color 0.14s ease,
+    box-shadow 0.14s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ps-cell--given {
+  background: #f3f1eb;
+  border: 2px solid #e2ded3;
+  cursor: default;
+}
+
+.ps-cell--empty {
+  background: #faf9f6;
+  border: 2.5px dashed #c7c9e2;
+  cursor: pointer;
+}
+
+.ps-cell--empty:hover {
+  border-color: var(--indigo-500);
+  background: var(--indigo-tint);
+}
+
+.ps-cell--placed {
+  background: var(--surface-white);
+  border: 2.5px solid var(--indigo-500);
+  box-shadow: 0 3px 10px rgba(91, 91, 214, 0.14);
+  cursor: pointer;
+}
+
+.ps-cell--drop-hover {
+  border-style: solid;
+  border-color: var(--indigo-500);
+  background: var(--indigo-tint);
+  transform: scale(1.04);
+  box-shadow: 0 0 0 4px rgba(91, 91, 214, 0.18);
+}
+
+.ps-cell--conflict {
+  border-style: solid !important;
+  border-color: var(--coral-500) !important;
+  background: var(--coral-tint) !important;
+  animation: ps-wobble 0.36s ease;
+}
+
+.ps-cell--just-placed {
+  animation: ps-pop 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 2x2 Quadrant dividers for 4x4 Sudoku */
+.ps-cell--box-right {
+  margin-right: 5px;
+}
+
+.ps-cell--box-bottom {
+  margin-bottom: 5px;
+}
+
+.ps-cell__img {
+  width: 84%;
+  height: 84%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.ps-cell__placeholder {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #b4b7d4;
+}
+
+.ps-cell__remove-hint {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-secondary);
+  opacity: 0.65;
+}
+
+.ps-tray-dock {
+  flex-shrink: 0;
+  background: var(--surface-white);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 22px;
+  padding: 10px 14px 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.ps-tray-dock__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ps-tray-dock__title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ps-tray-dock__hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.ps-tray-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  min-height: 82px;
+  align-items: center;
+}
+
+.ps-tray-card {
+  width: 66px;
+  height: 78px;
+  border-radius: 15px;
+  background: var(--surface-white);
+  border: 2px solid var(--border-soft);
+  box-shadow: 0 3px 8px rgba(30, 36, 51, 0.08);
+  padding: 5px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.ps-tray-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--indigo-500);
+}
+
+.ps-tray-card--selected {
+  border-color: var(--indigo-500);
+  background: var(--indigo-tint);
+  box-shadow: 0 0 0 3px rgba(91, 91, 214, 0.2);
+  transform: translateY(-3px);
+}
+
+.ps-tray-card--ghosted {
+  opacity: 0.25;
+}
+
+.ps-tray-card img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.ps-tray-card__label {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ps-tray-empty {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--mint-500);
+}
+
+.ps-drag-ghost {
+  position: fixed;
+  z-index: 200;
+  width: 84px;
+  height: 84px;
+  border-radius: 18px;
+  background: var(--surface-white);
+  border: 3px solid var(--indigo-500);
+  box-shadow: 0 14px 28px rgba(30, 36, 51, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  transform: translate(-50%, -50%) scale(1.06);
+  pointer-events: none;
+}
+
+.ps-drag-ghost--over {
+  border-color: var(--mint-500);
+  box-shadow: 0 16px 32px rgba(59, 169, 156, 0.28);
+}
+
+.ps-drag-ghost img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@keyframes ps-wobble {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes ps-pop {
+  0% {
+    transform: scale(0.86);
+  }
+  60% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .ps-player-pill__meta {
+    display: none;
+  }
+
+  .ps-tray-dock__hint {
+    display: none;
+  }
+
+  .ps-tray-card {
+    width: 62px;
+    height: 72px;
+  }
+
+  .ps-tray-card img {
+    width: 40px;
+    height: 40px;
+  }
+}
