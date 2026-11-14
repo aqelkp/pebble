@@ -1,5 +1,5 @@
 export interface GameRegistryEntry {
-  id: 'memory-match' | 'letter-train' | 'number-safari' | 'word-fun';
+  id: 'memory-match' | 'letter-train' | 'picture-sudoku' | 'number-safari' | 'word-fun';
   title: string;
   description: string;
   badgeText: string;
@@ -29,6 +29,17 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     badgeText: 'New Game',
     ageHint: 'K1 / LKG • A–Z Phonics',
     artPath: 'hub/letter-train.png',
+    status: 'available',
+    featured: true,
+  },
+  {
+    id: 'picture-sudoku',
+    title: 'Picture Sudoku',
+    description:
+      'Fill every row and column with matching theme pictures—drag the missing cards into place on 3×3, 4×4, or 5×5 puzzles.',
+    badgeText: 'New Game',
+    ageHint: 'Ages 4–8 • Logic & Patterns',
+    artPath: 'hub/picture-sudoku.png',
     status: 'available',
     featured: true,
   },
