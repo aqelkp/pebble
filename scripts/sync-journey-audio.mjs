@@ -71,12 +71,20 @@ const JOURNEY_PROMPTS = [
     id: 'spot-the-twin',
     text: 'Find the one picture that is the same on both cards and tap it!',
   },
+  {
+    id: 'letter-trace',
+    text: 'Start at circle one and trace each letter stroke in order along the arrows!',
+  },
 ];
 
 const UI_PROMPTS = [
   {
     id: 'awesome-job',
     text: 'Awesome job!',
+  },
+  {
+    id: 'trace-in-order',
+    text: "Let's write in order! Start at the numbered circle and follow the arrow.",
   },
 ];
 

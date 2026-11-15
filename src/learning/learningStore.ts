@@ -68,6 +68,7 @@ const SAFE_ID_PATTERN = /^[a-z0-9:_-]{1,64}$/i;
 const VALID_GAME_IDS = new Set<GameId>([
   'memory-match',
   'letter-train',
+  'letter-trace',
   'letter-river',
   'picture-sudoku',
   'number-safari',
@@ -82,6 +83,7 @@ const VALID_SKILL_TYPES = new Set<SkillType>([
   'picture_recognition',
   'initial_letter_sound',
   'word_spelling',
+  'letter_formation',
   'quantity_counting',
   'group_joining',
   'grid_deduction',

@@ -3,6 +3,7 @@ import type { CurriculumDomainId, SkillType } from '../curriculum/curriculumType
 export type GameId =
   | 'memory-match'
   | 'letter-train'
+  | 'letter-trace'
   | 'letter-river'
   | 'picture-sudoku'
   | 'number-safari'
@@ -92,6 +93,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['literacy', 'self-regulation'],
       targetSkills: ['initial_letter_sound', 'picture_recognition'],
       conceptUnitLabel: 'Letters A–Z & Picture Words',
+    },
+  },
+  {
+    id: 'letter-trace',
+    title: 'Letter Trace',
+    description:
+      'Follow numbered circles and arrows to write Capital (A–Z) and Small (a–z) letters side-by-side in strict stroke order — only the active stroke unlocks!',
+    badgeText: 'Handwriting',
+    ageHint: 'Ages 3.5–7 • Stroke Order',
+    artPath: 'hub/letter-trace.png',
+    shelf: 'letters-words',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Enforces authentic top-to-bottom letter stroke sequence and direction for capitals and lowercase pairs side-by-side, preventing mirror reversals.',
+      domains: ['literacy', 'self-regulation'],
+      targetSkills: ['letter_formation', 'initial_letter_sound'],
+      conceptUnitLabel: 'Capitals & Smalls (A–Z / a–z)',
     },
   },
   {

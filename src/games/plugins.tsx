@@ -22,6 +22,13 @@ const LetterTrainBoard = lazy(() =>
   import('./letter-train/LetterTrainBoard').then((m) => ({ default: m.LetterTrainBoard })),
 );
 
+const LetterTraceSetup = lazy(() =>
+  import('./letter-trace/LetterTraceSetup').then((m) => ({ default: m.LetterTraceSetup })),
+);
+const LetterTraceBoard = lazy(() =>
+  import('./letter-trace/LetterTraceBoard').then((m) => ({ default: m.LetterTraceBoard })),
+);
+
 const LetterRiverSetup = lazy(() =>
   import('./letter-river/LetterRiverSetup').then((m) => ({ default: m.LetterRiverSetup })),
 );
@@ -253,6 +260,57 @@ const GAME_PLUGINS: GamePluginRegistry = {
       journeyContext,
     }) => (
       <LetterTrainBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'letter-trace': {
+    id: 'letter-trace',
+    activeSessionStorageKey: 'pebble.letter-trace.active.v1',
+    leaveCopy: {
+      headline: 'Leave Letter Trace?',
+      subtitle: 'Mastered A–Z crowns are saved, but your current tracing round will reset.',
+      keepPlayingLabel: 'Keep Tracing',
+    },
+    ...makeConfigAccessors('letter-trace'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./letter-trace/LetterTraceSetup'),
+        import('./letter-trace/LetterTraceBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onEditProfiles, onStartGame }) => (
+      <LetterTraceSetup
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig('letter-trace', profiles)}
+        onBackToHub={onBackToHub}
+        onEditProfiles={onEditProfiles}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <LetterTraceBoard
         key={gameKey}
         gameKey={gameKey}
         config={config}

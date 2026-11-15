@@ -91,6 +91,64 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     );
   }
 
+  if (activity.gameId === 'letter-trace') {
+    const letter = activity.lettersCovered?.[0] ?? 'A';
+    return (
+      <div className="intro-demo-stage intro-demo-stage--trace" aria-hidden="true">
+        <div className="intro-demo-trace-card">
+          <svg viewBox="0 0 220 118" className="intro-demo-trace-svg">
+            <line x1="12" y1="22" x2="208" y2="22" stroke="#BFD7F5" strokeWidth="2" />
+            <line
+              x1="12"
+              y1="56"
+              x2="208"
+              y2="56"
+              stroke="#C7CDD8"
+              strokeWidth="2"
+              strokeDasharray="6 6"
+            />
+            <line x1="12" y1="94" x2="208" y2="94" stroke="#8FD3C8" strokeWidth="2.5" />
+            <text
+              x="64"
+              y="91"
+              textAnchor="middle"
+              fontFamily="Fredoka, sans-serif"
+              fontSize="74"
+              fontWeight="700"
+              fill="#5B5BD6"
+            >
+              {letter}
+            </text>
+            <text
+              x="156"
+              y="91"
+              textAnchor="middle"
+              fontFamily="Fredoka, sans-serif"
+              fontSize="66"
+              fontWeight="700"
+              fill="#E5E0D5"
+            >
+              {letter.toLowerCase()}
+            </text>
+            <circle cx="64" cy="24" r="11" fill="#5B5BD6" stroke="#FFFFFF" strokeWidth="2.5" />
+            <text
+              x="64"
+              y="28"
+              textAnchor="middle"
+              fontFamily="Fredoka, sans-serif"
+              fontSize="12"
+              fontWeight="700"
+              fill="#FFFFFF"
+            >
+              1
+            </text>
+            <circle cx="48" cy="60" r="7" fill="#F2B84B" className="intro-demo-trace-pebble" />
+          </svg>
+        </div>
+      </div>
+    );
+  }
+
   if (activity.gameId === 'letter-river') {
     const letter = activity.lettersCovered?.[0] ?? 'E';
     const station = getStationSpec(letter);

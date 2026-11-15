@@ -79,9 +79,9 @@ export const K1_BENCHMARK: CurriculumBenchmarkSpec = {
     {
       id: 'literacy',
       title: 'Language & Literacy',
-      subtitle: 'A–Z phonics, 130 core K1 words & early 3-letter CVC spelling',
+      subtitle: 'A–Z phonics, 130 core K1 words, stroke-order writing & 3-letter CVC spelling',
       accentColor: '#5B5BD6',
-      targetSkills: ['initial_letter_sound', 'picture_recognition', 'word_spelling'],
+      targetSkills: ['initial_letter_sound', 'picture_recognition', 'word_spelling', 'letter_formation'],
     },
     {
       id: 'numeracy',
@@ -102,7 +102,13 @@ export const K1_BENCHMARK: CurriculumBenchmarkSpec = {
       title: 'Focus & Careful Thinking',
       subtitle: 'Mistake-free rounds & slowing down before answering',
       accentColor: '#E09F2D',
-      targetSkills: ['initial_letter_sound', 'word_spelling', 'quantity_counting', 'grid_deduction'],
+      targetSkills: [
+        'initial_letter_sound',
+        'word_spelling',
+        'letter_formation',
+        'quantity_counting',
+        'grid_deduction',
+      ],
     },
   ],
   targetLetters: ALL_K1_LETTERS,

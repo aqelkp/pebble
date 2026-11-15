@@ -10,6 +10,7 @@ export type SkillType =
   | 'picture_recognition'
   | 'initial_letter_sound'
   | 'word_spelling'
+  | 'letter_formation'
   | 'quantity_counting'
   | 'group_joining'
   | 'grid_deduction'
@@ -65,6 +66,10 @@ export const SKILL_LABELS: Record<SkillType, { label: string; question: string }
   word_spelling: {
     label: 'Letter Spelling & Blending',
     question: 'Can he come up with the letters of this word?',
+  },
+  letter_formation: {
+    label: 'Letter Stroke Order',
+    question: 'Can he write capital and small letters in the right stroke order?',
   },
   quantity_counting: {
     label: 'One-to-One Counting',

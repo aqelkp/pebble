@@ -71,5 +71,9 @@ Defined in `src/styles/tokens.css`:
 - **Sound-First Fish Cards:** Swimming illustration fish carry circular pure-white picture medallions (`Sound First` default, optional word pills) without mirroring the object art when swimming left.
 - **Playful Success vs Calm Redirect:** Matching a bucket triggers buoyant water splash droplets, bucket squash-and-bounce, word reveal pop pills, Golden Fish `2×` bonuses on 4-streaks, and `3/3` bucket-pop confetti; wrong bucket drops softly nudge `3px` and return the fish calmly without slapstick distraction.
 
-### 8. Winner Announcement (`WinnerModal.tsx`)
+### 8. Letter Trace (`LetterTraceSetup.tsx` & `LetterTraceBoard.tsx`)
+- **Strict Stroke-Order Handwriting Slate (`700 × 520` SVG):** Ruled Sky (`y=95`), Fence (`y=235` dashed), Grass (`y=385`), and Root (`y=475`) lines with Capital (`A–Z`) and Small (`a–z`) pairs side-by-side by default (`Both Together`), plus `Capitals Only` and `Small Only` modes and stroke-family presets (`Straight`, `Slants`, `Magic C`, `b / d / p / q Guard`).
+- **Zero-Ink Locked Progression & Teach-First Redirect:** Only active numbered Stroke `k` accepts forward directional strokes (continuous drag or sequential stepping-stone checkpoints); out-of-order or reverse strokes draw zero ink and animate a Warm Honey guide pebble with bundled Kokoro voice instruction before `ThinkAgainOverlay`.
+
+### 9. Winner Announcement (`WinnerModal.tsx`)
 - Appears once all pairs, words, letters, or stops are completed, showing a golden crown, glowing winner avatar halo(s), confetti burst, `"<Name> Wins!"` / `"It's a Tie!"` / `"Great Job, <Name>!"`, ranked `PTS` breakdown, and **Play Again** / **Change Setup** / **Back to Games** controls.
