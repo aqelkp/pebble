@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { DEFAULT_CLASS_LEVEL, isValidClassLevelId } from '../curriculum/curriculumRegistry';
+import type { ClassLevelId } from '../curriculum/curriculumTypes';
 import { assetUrl } from '../utils/assets';
 
 // TODO(security): Pebble runs 100% locally in the browser with no backend server, authentication,
@@ -33,6 +35,7 @@ export interface FamilyProfile {
   roleLabel: string;
   avatar: AvatarId;
   accentColor: AccentColor;
+  classLevel?: ClassLevelId;
 }
 
 interface StoredState {
@@ -52,6 +55,7 @@ const DEFAULT_PROFILES: FamilyProfile[] = [
     roleLabel: 'Player 1',
     avatar: 'boy',
     accentColor: '#3BA99C',
+    classLevel: DEFAULT_CLASS_LEVEL,
   },
   {
     id: 'dad',
@@ -139,12 +143,19 @@ function loadInitialState(): StoredState {
           ? sanitizeDisplayName(candidate.name, fallback.name)
           : fallback.name;
 
+      const classLevel: ClassLevelId | undefined = isValidClassLevelId(candidate.classLevel)
+        ? candidate.classLevel
+        : i === 0
+          ? DEFAULT_CLASS_LEVEL
+          : undefined;
+
       sanitizedProfiles.push({
         id: rawId,
         name,
         roleLabel,
         avatar,
         accentColor,
+        ...(classLevel ? { classLevel } : {}),
       });
     }
 
@@ -166,7 +177,7 @@ interface FamilyProfilesContextValue {
   soundEnabled: boolean;
   updateProfile: (
     id: string,
-    patch: Partial<Pick<FamilyProfile, 'name' | 'avatar' | 'accentColor'>>,
+    patch: Partial<Pick<FamilyProfile, 'name' | 'avatar' | 'accentColor' | 'classLevel'>>,
   ) => void;
   replaceProfiles: (nextProfiles: FamilyProfile[]) => void;
   addProfile: (name: string, avatar?: AvatarId) => boolean;
@@ -190,7 +201,7 @@ export function FamilyProfilesProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = (
     id: string,
-    patch: Partial<Pick<FamilyProfile, 'name' | 'avatar' | 'accentColor'>>,
+    patch: Partial<Pick<FamilyProfile, 'name' | 'avatar' | 'accentColor' | 'classLevel'>>,
   ) => {
     setState((prev) => ({
       ...prev,
@@ -207,6 +218,10 @@ export function FamilyProfilesProvider({ children }: { children: ReactNode }) {
             patch.accentColor !== undefined && VALID_COLORS.has(patch.accentColor)
               ? patch.accentColor
               : profile.accentColor,
+          classLevel:
+            patch.classLevel !== undefined && isValidClassLevelId(patch.classLevel)
+              ? patch.classLevel
+              : profile.classLevel,
         };
       }),
     }));

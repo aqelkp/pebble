@@ -3,6 +3,7 @@ import { BrandLogo, PawPipIcon, PebbleMark } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import {
   getThemeBoardSummary,
   loadMemoryStatsRuns,
@@ -354,6 +355,27 @@ export function MemoryBoard({
         });
         setCompletionOutcome(outcome);
         setStatsRuns(loadMemoryStatsRuns());
+
+        const primaryPlayerId = players[0]?.id ?? 'child';
+        recordSkillAttempt({
+          playerId: primaryPlayerId,
+          gameId: 'memory-match',
+          conceptId: `memory:${config.boardSizeId}`,
+          conceptLabel: `${boardSize.label} Memory`,
+          skillType: 'visual_recall',
+          correct: true,
+          attemptsTaken: nextTotalAttempts,
+        });
+        recordLearningSession({
+          playerId: primaryPlayerId,
+          gameId: 'memory-match',
+          mode: config.boardSizeId,
+          totalAttempts: nextTotalAttempts,
+          correctAttempts: boardSize.pairs,
+          mistakes: Math.max(0, nextTotalAttempts - boardSize.pairs),
+          flawless: nextTotalAttempts === boardSize.pairs,
+          conceptsTested: [`theme:${config.themeId}`, `memory:${config.boardSizeId}`],
+        });
 
         timeoutRef.current = window.setTimeout(() => {
           setFlippedIds([]);
