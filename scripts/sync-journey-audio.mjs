@@ -83,6 +83,10 @@ const JOURNEY_PROMPTS = [
     id: 'word-peekaboo',
     text: 'Listen to each word and tap it to uncover the hidden friend!',
   },
+  {
+    id: 'word-trace',
+    text: 'Listen to the word and trace each letter from left to right along the arrows!',
+  },
 ];
 
 const UI_PROMPTS = [

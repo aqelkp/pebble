@@ -130,6 +130,16 @@ const CompareQuestBoard = lazy(() =>
     default: m.CompareQuestBoard,
   })),
 );
+const WordTraceSetup = lazy(() =>
+  import('./word-trace/WordTraceSetup').then((m) => ({
+    default: m.WordTraceSetup,
+  })),
+);
+const WordTraceBoard = lazy(() =>
+  import('./word-trace/WordTraceBoard').then((m) => ({
+    default: m.WordTraceBoard,
+  })),
+);
 
 export interface LeaveGameCopy {
   headline: string;
@@ -885,6 +895,57 @@ const GAME_PLUGINS: GamePluginRegistry = {
       journeyContext,
     }) => (
       <CompareQuestBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'word-trace': {
+    id: 'word-trace',
+    activeSessionStorageKey: 'pebble.word-trace.active.v1',
+    leaveCopy: {
+      headline: 'Leave Word Trace?',
+      subtitle: 'Collected crowns are saved, but your current notebook page will reset.',
+      keepPlayingLabel: 'Keep Writing',
+    },
+    ...makeConfigAccessors('word-trace'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./word-trace/WordTraceSetup'),
+        import('./word-trace/WordTraceBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onEditProfiles, onStartGame }) => (
+      <WordTraceSetup
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig('word-trace', profiles)}
+        onBackToHub={onBackToHub}
+        onEditProfiles={onEditProfiles}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <WordTraceBoard
         key={gameKey}
         gameKey={gameKey}
         config={config}

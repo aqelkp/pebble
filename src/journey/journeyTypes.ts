@@ -15,6 +15,7 @@ import type { StickerSceneConfig } from '../games/sticker-scene/sceneEngine';
 import type { WordGameConfig } from '../games/word-fun/WordFunSetup';
 import type { WordPeekabooConfig } from '../games/word-peekaboo/peekabooData';
 import type { CompareQuestConfig } from '../games/compare-quest/compareData';
+import type { WordTraceConfig } from '../games/word-trace/wordTraceEngine';
 
 export const TOTAL_CHAPTERS = 20;
 export const ACTIVITIES_PER_CHAPTER = 20;
@@ -40,7 +41,8 @@ export type JourneyVoiceClipId =
   | 'spot-the-twin'
   | 'dot-to-dot'
   | 'word-peekaboo'
-  | 'compare-quest';
+  | 'compare-quest'
+  | 'word-trace';
 
 export interface JourneyBoardContext {
   chapterNumber: number;
@@ -87,7 +89,8 @@ export type JourneyActivityPayload =
   | { gameId: 'spot-the-twin'; config: SpotTheTwinConfig }
   | { gameId: 'dot-to-dot'; config: DotToDotConfig }
   | { gameId: 'word-peekaboo'; config: WordPeekabooConfig }
-  | { gameId: 'compare-quest'; config: CompareQuestConfig };
+  | { gameId: 'compare-quest'; config: CompareQuestConfig }
+  | { gameId: 'word-trace'; config: WordTraceConfig };
 
 export interface JourneyActivity {
   index: number;

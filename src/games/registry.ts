@@ -14,7 +14,8 @@ export type GameId =
   | 'spot-the-twin'
   | 'dot-to-dot'
   | 'word-peekaboo'
-  | 'compare-quest';
+  | 'compare-quest'
+  | 'word-trace';
 
 export type HubShelfId =
   | 'letters-words'
@@ -116,6 +117,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['literacy', 'self-regulation'],
       targetSkills: ['initial_letter_sound', 'picture_recognition'],
       conceptUnitLabel: 'Letters A–Z & Picture Words',
+    },
+  },
+  {
+    id: 'word-trace',
+    title: 'Word Trace',
+    description:
+      'Write CVC picture words, school sight words, and numbers left-to-right on 4-line notebook paper with sound waves and sticker stamps!',
+    badgeText: 'New Game',
+    ageHint: 'K1 / LKG • 4-Line Words & Numbers',
+    artPath: 'hub/word-trace.png',
+    shelf: 'letters-words',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Builds left-to-right multi-letter handwriting fluency across CVC picture words, K1 school sight words (or, be, an, no, do, am), and numbers in both lowercase and uppercase.',
+      domains: ['literacy', 'numeracy', 'self-regulation'],
+      targetSkills: ['letter_formation', 'word_spelling'],
+      conceptUnitLabel: 'CVC, Sight Words & Numbers',
     },
   },
   {

@@ -974,6 +974,89 @@
           "endMs": 4415
         }
       ]
+    },
+    "word-trace": {
+      "id": "word-trace",
+      "text": "Listen to the word, then trace each letter left to right along the four lines!",
+      "audioPath": "audio/journey/word-trace.mp3",
+      "durationMs": 4376,
+      "words": [
+        {
+          "word": "Listen",
+          "startMs": 0,
+          "endMs": 467
+        },
+        {
+          "word": "to",
+          "startMs": 467,
+          "endMs": 742
+        },
+        {
+          "word": "the",
+          "startMs": 742,
+          "endMs": 955
+        },
+        {
+          "word": "word,",
+          "startMs": 955,
+          "endMs": 1231
+        },
+        {
+          "word": "then",
+          "startMs": 1231,
+          "endMs": 1518
+        },
+        {
+          "word": "trace",
+          "startMs": 1518,
+          "endMs": 1759
+        },
+        {
+          "word": "each",
+          "startMs": 1759,
+          "endMs": 1892
+        },
+        {
+          "word": "letter",
+          "startMs": 1892,
+          "endMs": 2278
+        },
+        {
+          "word": "left",
+          "startMs": 2278,
+          "endMs": 2661
+        },
+        {
+          "word": "to",
+          "startMs": 2661,
+          "endMs": 2736
+        },
+        {
+          "word": "right",
+          "startMs": 2736,
+          "endMs": 3096
+        },
+        {
+          "word": "along",
+          "startMs": 3096,
+          "endMs": 3509
+        },
+        {
+          "word": "the",
+          "startMs": 3509,
+          "endMs": 3603
+        },
+        {
+          "word": "four",
+          "startMs": 3603,
+          "endMs": 3795
+        },
+        {
+          "word": "lines!",
+          "startMs": 3795,
+          "endMs": 4376
+        }
+      ]
     }
   }
 }

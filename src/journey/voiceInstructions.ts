@@ -39,6 +39,7 @@ export const ALL_JOURNEY_VOICE_CLIP_IDS: readonly JourneyVoiceClipId[] = [
   'dot-to-dot',
   'word-peekaboo',
   'compare-quest',
+  'word-trace',
 ];
 
 const warmedVoiceElements = new Map<JourneyVoiceClipId, HTMLAudioElement>();

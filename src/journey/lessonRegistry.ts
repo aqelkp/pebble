@@ -17,6 +17,11 @@ import {
   type CompareModeId,
   type CompareRoundSize,
 } from '../games/compare-quest/compareData';
+import {
+  getWordTracePackSpec,
+  type WordTracePackId,
+  type WordTraceRoundSize,
+} from '../games/word-trace/wordTraceEngine';
 import type { JourneyActivityAdapter } from './journeyTypes';
 
 const COMPARE_MODE_ROTATION: readonly CompareModeId[] = [
@@ -28,6 +33,12 @@ const COMPARE_MODE_ROTATION: readonly CompareModeId[] = [
 ];
 
 const WORD_PACK_ROTATION: readonly WordPackId[] = ['animals', 'home', 'play', 'nature', 'all'];
+const WORD_TRACE_PACK_ROTATION: readonly WordTracePackId[] = [
+  'cvc',
+  'sight',
+  'numbers',
+  'cvc-mix',
+];
 const PEEKABOO_PACK_ROTATION: readonly PeekabooPackId[] = [
   'sight-1',
   'cvc-ai',
@@ -555,6 +566,38 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
           gameId: 'compare-quest',
           config: {
             modeId,
+            roundSize,
+          },
+        },
+      };
+    },
+  },
+
+  'word-trace': {
+    gameId: 'word-trace',
+    title: 'Word Trace',
+    artPath: 'hub/word-trace.png',
+    category: 'words',
+    buildActivity: (ctx) => {
+      const packId =
+        WORD_TRACE_PACK_ROTATION[
+          (ctx.chapterNumber - 1 + ctx.gameOrdinal) % WORD_TRACE_PACK_ROTATION.length
+        ];
+      const roundSize: WordTraceRoundSize =
+        ctx.settings.durationMode === 'short' ? 4 : 6;
+      const pack = getWordTracePackSpec(packId);
+
+      return {
+        title: `Word Trace: ${pack.title}`,
+        subtitle: `abc & ABC • ${roundSize} notebook items`,
+        detailLine: `Listen to each prompt and write letters left-to-right on the 4-line notebook!`,
+        artPath: 'hub/word-trace.png',
+        voiceClipId: 'word-trace',
+        payload: {
+          gameId: 'word-trace',
+          config: {
+            packId,
+            caseMode: 'mix',
             roundSize,
           },
         },

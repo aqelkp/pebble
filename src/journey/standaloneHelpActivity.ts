@@ -9,6 +9,7 @@ import { getTwinItemsPerCard } from '../games/spot-the-twin/twinEngine';
 import { getWordPackSpec } from '../games/word-fun/wordBank';
 import { getPeekabooPackSpec, getPeekabooWorldSpec } from '../games/word-peekaboo/peekabooData';
 import { getCompareModeSpec } from '../games/compare-quest/compareData';
+import { getWordTracePackSpec } from '../games/word-trace/wordTraceEngine';
 import type { JourneyActivity } from './journeyTypes';
 
 function resolveConfig<K extends GameId>(
@@ -260,6 +261,22 @@ export function buildStandaloneHelpActivity(
           'Compare both sides — tap, drag, or write >, =, or < in the center box (wide side points to bigger)!',
         artPath: 'hub/compare-quest.png',
         voiceClipId: 'compare-quest',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'word-trace': {
+      const cfg = resolveConfig('word-trace', rawConfig, profiles);
+      const pack = getWordTracePackSpec(cfg.packId);
+      return {
+        ...base,
+        gameId,
+        title: 'Word Trace',
+        subtitle: `${pack.title} • 4-Line Notebook`,
+        detailLine:
+          'Listen to the prompt and trace each letter from left to right starting at Circle 1!',
+        artPath: 'hub/word-trace.png',
+        voiceClipId: 'word-trace',
         payload: { gameId, config: cfg },
       };
     }

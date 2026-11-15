@@ -68,6 +68,11 @@ import {
   isValidCompareQuestConfig,
   type CompareQuestConfig,
 } from './compare-quest/compareData';
+import {
+  getDefaultWordTraceConfig,
+  isValidWordTraceConfig,
+  type WordTraceConfig,
+} from './word-trace/wordTraceEngine';
 
 // TODO(security): Pebble runs 100% locally in the browser as a static client-only PWA with no
 // backend server, authentication, or database. All saved game configuration objects restored from
@@ -89,6 +94,7 @@ export interface GameConfigMap {
   'dot-to-dot': DotToDotConfig;
   'word-peekaboo': WordPeekabooConfig;
   'compare-quest': CompareQuestConfig;
+  'word-trace': WordTraceConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -200,6 +206,7 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'dot-to-dot': isValidDotToDotConfig,
   'word-peekaboo': isValidWordPeekabooConfig,
   'compare-quest': isValidCompareQuestConfig,
+  'word-trace': isValidWordTraceConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -266,5 +273,7 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultWordPeekabooConfig() as GameConfigMap[K];
     case 'compare-quest':
       return getDefaultCompareQuestConfig() as GameConfigMap[K];
+    case 'word-trace':
+      return getDefaultWordTraceConfig() as GameConfigMap[K];
   }
 }

@@ -235,6 +235,7 @@ export function buildJourneyCurriculum(
     'dot-to-dot': 0,
     'word-peekaboo': 0,
     'compare-quest': 0,
+    'word-trace': 0,
   };
 
   return gameSequence.map((gameId, slotIndex) => {
