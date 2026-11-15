@@ -12,7 +12,11 @@ import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { pickWeightedAdaptive } from '../../learning/adaptiveSelector';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
-import { preloadLettersAudio, preloadWordsAudio } from '../../utils/wordAudio';
+import {
+  preloadLetterMistakeAudio,
+  preloadLettersAudio,
+  preloadWordsAudio,
+} from '../../utils/wordAudio';
 import {
   ALL_LETTERS,
   buildPlatformCards,
@@ -36,6 +40,7 @@ import {
   playTripCompleteSound,
   speakPhrase,
   speakTrainWord,
+  speakWrongLetterExplanation,
   stopTrainSpeech,
 } from './trainSounds';
 import { WordIllustration } from './WordIllustration';
@@ -332,6 +337,11 @@ export function LetterTrainBoard({
   const [platformCards, setPlatformCards] = useState<PlatformCardItem[]>(
     () => saved?.platformCards ?? buildPlatformCards(currentLetter),
   );
+
+  // Silently preload contrastive mistake audio for visible distractors + current target letter
+  useEffect(() => {
+    preloadLetterMistakeAudio([currentLetter, ...platformCards.map((c) => c.spec.letter)]);
+  }, [currentLetter, platformCards]);
   const [loadedUids, setLoadedUids] = useState<string[]>(() => saved?.loadedUids ?? []);
   const [triedWrongUids, setTriedWrongUids] = useState<Record<string, true>>(
     () => saved?.triedWrongUids ?? {},
@@ -362,6 +372,7 @@ export function LetterTrainBoard({
   const [confettiMode, setConfettiMode] = useState<'match' | 'win'>('match');
   const [showDepartureConfetti, setShowDepartureConfetti] = useState<boolean>(false);
   const [dragState, setDragState] = useState<DragState | null>(null);
+  const [explainingWrongUid, setExplainingWrongUid] = useState<string | null>(null);
   const [thinkAgainHint, setThinkAgainHint] = useState<string | null>(null);
 
   const dropZoneRef = useRef<HTMLDivElement | null>(null);
@@ -466,6 +477,7 @@ export function LetterTrainBoard({
       setLoadedUids([]);
       setTriedWrongUids({});
       setMistakes(0);
+      setExplainingWrongUid(null);
       setShowDepartureConfetti(false);
       setBannerTone('neutral');
       setBannerText(
@@ -483,7 +495,7 @@ export function LetterTrainBoard({
 
   const attemptBoardCard = useCallback(
     (card: PlatformCardItem) => {
-      if (thinkAgainHint !== null) return;
+      if (thinkAgainHint !== null || explainingWrongUid !== null) return;
       if (phase !== 'idle' && phase !== 'arriving') return;
       if (loadedUids.includes(card.uid)) return;
 
@@ -619,16 +631,9 @@ export function LetterTrainBoard({
           );
         }
       } else {
-        // Calm, intentionally un-dramatic wrong pick:
-        // No explosion, no boing, no shake — quietly shows starting letter and dims Golden Bonus.
-        const recentlySpokenOnTouch =
-          lastSpokenWordRef.current.id === card.spec.id &&
-          Date.now() - lastSpokenWordRef.current.at < 600;
-        if (!recentlySpokenOnTouch) {
-          lastSpokenWordRef.current = { id: card.spec.id, at: Date.now() };
-          speakTrainWord(card.spec.id, card.spec.word, soundEnabled);
-        }
-
+        // Teach-First, Pause-Second wrong pick:
+        // Stage 1 keeps the board visible, speaks "Okay, hey! You picked <Word>. That starts with letter <Wrong>, not letter <Target>.",
+        // and calmly highlights the card on the platform before Stage 2 opens the pause dialogue.
         setMistakes((prev) => prev + 1);
         setPerfectStreak(0);
         setTriedWrongUids((prev) => ({ ...prev, [card.uid]: true }));
@@ -648,17 +653,49 @@ export function LetterTrainBoard({
           skillType: 'initial_letter_sound',
           correct: false,
         });
-        const hintMsg = `${card.spec.word} starts with ${card.spec.letter} — listen and pick a word starting with ${currentLetter}.`;
-        setBannerTone('muted');
-        setBannerText(hintMsg);
-        setThinkAgainHint(hintMsg);
+
         playCalmWrongHintSound(soundEnabled);
+
+        const boardExplainMsg = `Okay, hey — you picked ${card.spec.word}! It starts with ${card.spec.letter}, not ${currentLetter}.`;
+        const modalHintMsg = `You picked ${card.spec.word} (starts with ${card.spec.letter}). Look for words starting with ${currentLetter}!`;
+        setExplainingWrongUid(card.uid);
+        setBannerTone('muted');
+        setBannerText(boardExplainMsg);
+
+        const startedAt = Date.now();
+        let opened = false;
+        const openPauseDialog = () => {
+          if (opened) return;
+          opened = true;
+          setExplainingWrongUid(null);
+          setThinkAgainHint(modalHintMsg);
+        };
+
+        if (soundEnabled) {
+          speakWrongLetterExplanation(
+            card.spec.id,
+            card.spec.word,
+            card.spec.letter,
+            currentLetter,
+            true,
+            () => {
+              const elapsed = Date.now() - startedAt;
+              const remainingBeat = Math.max(320, 2200 - elapsed);
+              scheduleTimer(openPauseDialog, remainingBeat);
+            },
+          );
+          scheduleTimer(openPauseDialog, 4800);
+        } else {
+          scheduleTimer(openPauseDialog, 2200);
+        }
       }
     },
     [
       advanceToNextStation,
+      childProfile.id,
       childProfile.name,
       currentLetter,
+      explainingWrongUid,
       loadedUids,
       mistakes,
       perfectCarsCount,
@@ -689,7 +726,7 @@ export function LetterTrainBoard({
     e: ReactPointerEvent<HTMLDivElement>,
     card: PlatformCardItem,
   ) => {
-    if (thinkAgainHint !== null) return;
+    if (thinkAgainHint !== null || explainingWrongUid !== null) return;
     if (phase !== 'idle' && phase !== 'arriving') return;
     if (loadedUids.includes(card.uid)) return;
     if (triedWrongUids[card.uid]) return;
@@ -750,11 +787,31 @@ export function LetterTrainBoard({
     setDragState(null);
   };
 
+  const handleRestartCurrentCar = useCallback(() => {
+    clearTimers();
+    stopTrainSpeech();
+    lastSpokenWordRef.current = { id: '', at: 0 };
+    setExplainingWrongUid(null);
+    setThinkAgainHint(null);
+    setLoadedUids([]);
+    setTriedWrongUids({});
+    setMistakes(0);
+    setShowDepartureConfetti(false);
+    setPlatformCards(buildPlatformCards(currentLetter));
+    setBannerTone('neutral');
+    setBannerText(
+      `Fresh ${currentLetter} cards! Pick all 3 ${currentLetter} words with zero mistakes!`,
+    );
+    setPhase('idle');
+    playTrainArrivalSound(currentLetter, soundEnabled);
+  }, [clearTimers, currentLetter, soundEnabled]);
+
   const handleRestartTrip = () => {
     clearTimers();
     stopTrainSpeech();
     clearSavedLetterTrainGame();
     lastSpokenWordRef.current = { id: '', at: 0 };
+    setExplainingWrongUid(null);
     setThinkAgainHint(null);
 
     const freshQueue = buildInitialQueue(config, childProfile.id);
@@ -1201,6 +1258,7 @@ export function LetterTrainBoard({
           {platformCards.map((card) => {
             const isLoaded = loadedUids.includes(card.uid);
             const wasTriedWrong = Boolean(triedWrongUids[card.uid]);
+            const isExplainingWrong = explainingWrongUid === card.uid;
             const isBeingDragged =
               dragState?.isDragging && dragState.card.uid === card.uid;
 
@@ -1225,22 +1283,27 @@ export function LetterTrainBoard({
               <div
                 key={card.uid}
                 role="button"
-                tabIndex={wasTriedWrong ? -1 : 0}
-                aria-disabled={wasTriedWrong}
+                tabIndex={wasTriedWrong || explainingWrongUid !== null ? -1 : 0}
+                aria-disabled={wasTriedWrong || explainingWrongUid !== null}
                 aria-label={`${card.spec.word}. ${
                   wasTriedWrong
                     ? `Starts with ${firstChar}`
                     : `Tap or drag onto the ${currentLetter} train`
                 }`}
                 className={`lt-card ${wasTriedWrong ? 'lt-card--wrong-calm' : ''} ${
-                  isBeingDragged ? 'lt-card--dragging-origin' : ''
-                }`}
+                  isExplainingWrong ? 'lt-card--explaining-wrong' : ''
+                } ${isBeingDragged ? 'lt-card--dragging-origin' : ''}`}
                 onPointerDown={(e) => handleCardPointerDown(e, card)}
                 onPointerMove={handleCardPointerMove}
                 onPointerUp={handleCardPointerUp}
                 onPointerCancel={handleCardPointerCancel}
                 onKeyDown={(e) => {
-                  if (!wasTriedWrong && (e.key === 'Enter' || e.key === ' ')) {
+                  if (
+                    !wasTriedWrong &&
+                    explainingWrongUid === null &&
+                    thinkAgainHint === null &&
+                    (e.key === 'Enter' || e.key === ' ')
+                  ) {
                     e.preventDefault();
                     attemptBoardCard(card);
                   }
@@ -1254,6 +1317,7 @@ export function LetterTrainBoard({
                   title="Hear word"
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (explainingWrongUid !== null || thinkAgainHint !== null) return;
                     playCardPickupSound(true);
                     speakTrainWord(card.spec.id, card.spec.word, true);
                   }}
@@ -1262,8 +1326,14 @@ export function LetterTrainBoard({
                 </button>
 
                 {wasTriedWrong && (
-                  <span className="lt-card__calm-tag">
-                    Starts with {firstChar}
+                  <span
+                    className={`lt-card__calm-tag ${
+                      isExplainingWrong ? 'lt-card__calm-tag--focus' : ''
+                    }`}
+                  >
+                    {isExplainingWrong
+                      ? `Starts with ${firstChar} • Not ${currentLetter}`
+                      : `Starts with ${firstChar}`}
                   </span>
                 )}
 
@@ -1400,6 +1470,9 @@ export function LetterTrainBoard({
       <ThinkAgainOverlay
         open={thinkAgainHint !== null}
         hint={thinkAgainHint ?? undefined}
+        readyLabel={`Keep Trying Letter ${currentLetter}`}
+        onStartAgain={handleRestartCurrentCar}
+        startAgainLabel={`Start Letter ${currentLetter} Again`}
         soundEnabled={soundEnabled}
         onReady={() => setThinkAgainHint(null)}
       />

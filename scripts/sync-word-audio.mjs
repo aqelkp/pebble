@@ -25,6 +25,8 @@ const repoRoot = path.resolve(__dirname, '..');
 const catalogPath = path.join(repoRoot, 'src', 'data', 'wordCatalog.json');
 const wordsOutDir = path.join(repoRoot, 'public', 'audio', 'words');
 const lettersOutDir = path.join(repoRoot, 'public', 'audio', 'letters');
+const lettersStartsOutDir = path.join(repoRoot, 'public', 'audio', 'letters-starts');
+const lettersNotOutDir = path.join(repoRoot, 'public', 'audio', 'letters-not');
 const uiOutDir = path.join(repoRoot, 'public', 'audio', 'ui');
 
 const forceRegen = process.argv.includes('--force');
@@ -104,6 +106,8 @@ async function main() {
   const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
   fs.mkdirSync(wordsOutDir, { recursive: true });
   fs.mkdirSync(lettersOutDir, { recursive: true });
+  fs.mkdirSync(lettersStartsOutDir, { recursive: true });
+  fs.mkdirSync(lettersNotOutDir, { recursive: true });
   fs.mkdirSync(uiOutDir, { recursive: true });
 
   const jobs = [];
@@ -111,6 +115,14 @@ async function main() {
     {
       id: 'think-again',
       text: 'Hey, do you want to take some time to think again?',
+    },
+    {
+      id: 'mistake-hey-picked',
+      text: 'Okay, hey! You picked',
+    },
+    {
+      id: 'think-or-start-again',
+      text: 'Do you want to think again, or start again?',
     },
   ];
   for (const prompt of uiPrompts) {
@@ -124,15 +136,34 @@ async function main() {
       });
     }
   }
+  const letterVariants = [
+    {
+      dir: lettersOutDir,
+      kind: 'letter',
+      textFor: (letter) => `Letter ${letter}.`,
+    },
+    {
+      dir: lettersStartsOutDir,
+      kind: 'letter-starts',
+      textFor: (letter) => `That starts with letter ${letter},`,
+    },
+    {
+      dir: lettersNotOutDir,
+      kind: 'letter-not',
+      textFor: (letter) => `not letter ${letter}.`,
+    },
+  ];
   for (const letterSpec of catalog.letters) {
-    const outPath = path.join(lettersOutDir, `${letterSpec.letter.toLowerCase()}.mp3`);
-    if (forceRegen || !fs.existsSync(outPath)) {
-      jobs.push({
-        kind: 'letter',
-        id: letterSpec.letter,
-        text: `Letter ${letterSpec.letter}.`,
-        outPath,
-      });
+    for (const variant of letterVariants) {
+      const outPath = path.join(variant.dir, `${letterSpec.letter.toLowerCase()}.mp3`);
+      if (forceRegen || !fs.existsSync(outPath)) {
+        jobs.push({
+          kind: variant.kind,
+          id: `${variant.kind}-${letterSpec.letter}`,
+          text: variant.textFor(letterSpec.letter),
+          outPath,
+        });
+      }
     }
   }
 

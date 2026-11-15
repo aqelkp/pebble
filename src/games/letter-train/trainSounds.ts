@@ -1,6 +1,7 @@
 import {
   playLetterAudio,
   playWordAudio,
+  playWrongLetterExplanation,
   speakWithSynthesis,
   stopAllSpokenAudio,
 } from '../../utils/wordAudio';
@@ -217,6 +218,24 @@ function playAcceleratingChugs(
 
 export function speakTrainWord(wordId: string, fallbackWord: string, enabled: boolean): void {
   playWordAudio(wordId, fallbackWord, enabled);
+}
+
+export function speakWrongLetterExplanation(
+  wordId: string,
+  wordLabel: string,
+  wrongLetter: LetterId,
+  targetLetter: LetterId,
+  enabled: boolean,
+  onComplete?: () => void,
+): void {
+  playWrongLetterExplanation(
+    wordId,
+    wordLabel,
+    wrongLetter,
+    targetLetter,
+    enabled,
+    onComplete,
+  );
 }
 
 export function speakPhrase(phrase: string, enabled: boolean): void {
