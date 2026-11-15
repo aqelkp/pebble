@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
+import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { preloadLettersAudio, preloadWordsAudio } from '../../utils/wordAudio';
 import { WordIllustration } from '../letter-train/WordIllustration';
@@ -664,6 +665,7 @@ export function LetterRiverBoard({
   const [bannerText, setBannerText] = useState<string>(
     'Scoop a fish and drop it in the matching letter bucket!',
   );
+  const [thinkAgainHint, setThinkAgainHint] = useState<string | null>(null);
 
   const riverLanesRef = useRef<HTMLDivElement | null>(null);
   const riverWidthRef = useRef<number>(680);
@@ -840,7 +842,7 @@ export function LetterRiverBoard({
 
   const handleDropFishIntoBucket = useCallback(
     (fish: SwimmingFish, slotIndex: number) => {
-      if (finished) return;
+      if (finished || thinkAgainHint !== null) return;
       const targetBucket = buckets[slotIndex];
       if (!targetBucket || targetBucket.state === 'popping') return;
 
@@ -875,6 +877,7 @@ export function LetterRiverBoard({
 
         const fbKey = Date.now();
         setBucketFeedback({ slotIndex, kind: 'gentle-nope', key: fbKey });
+        setThinkAgainHint(hintLine);
         scheduleTimer(() => {
           setBucketFeedback((prev) => (prev && prev.key === fbKey ? null : prev));
         }, 260);
@@ -1094,6 +1097,7 @@ export function LetterRiverBoard({
       scheduleTimer,
       soundEnabled,
       streak,
+      thinkAgainHint,
     ],
   );
 
@@ -1101,7 +1105,7 @@ export function LetterRiverBoard({
     e: ReactPointerEvent<HTMLDivElement>,
     fish: SwimmingFish,
   ) => {
-    if (finished) return;
+    if (finished || thinkAgainHint !== null) return;
     if (e.button !== 0 && e.pointerType === 'mouse') return;
 
     e.stopPropagation();
@@ -1352,9 +1356,14 @@ export function LetterRiverBoard({
             </div>
           </div>
 
-          <div className="lr-angler-card__pts" aria-label={`Score: ${totalScore} points`}>
-            <strong>{totalScore}</strong>
-            <span>PTS</span>
+          <div
+            className="lr-angler-card__pts"
+            aria-label={`Buckets filled: ${completedLetters.length} of ${letterQueue.length}`}
+          >
+            <strong>
+              {completedLetters.length}/{letterQueue.length}
+            </strong>
+            <span>BUCKETS</span>
           </div>
         </div>
 
@@ -1672,8 +1681,10 @@ export function LetterRiverBoard({
                   <span className="standing-row__name">{childProfile.name}</span>
                 </div>
                 <div className="standing-row__pts">
-                  <strong>{totalScore}</strong>
-                  <span>PTS</span>
+                  <strong>
+                    {completedLetters.length}/{letterQueue.length}
+                  </strong>
+                  <span>BUCKETS</span>
                 </div>
               </div>
               <div className="standing-row">
@@ -1717,6 +1728,11 @@ export function LetterRiverBoard({
           </div>
         </div>
       )}
+      <ThinkAgainOverlay
+        open={thinkAgainHint !== null}
+        hint={thinkAgainHint ?? undefined}
+        onReady={() => setThinkAgainHint(null)}
+      />
     </div>
   );
 }
