@@ -87,7 +87,7 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
       const label = formatLettersLabel(letters);
       const orderMode =
         ctx.chapterNumber <= 4 || ctx.gameOrdinal % 2 === 0 ? 'alphabetical' : 'shuffle';
-      const wordLabelMode = ctx.chapterNumber <= 3 ? 'always' : 'after-drop';
+      const wordLabelMode = 'on-mistake';
 
       return {
         title: 'Letter Train',
@@ -124,7 +124,7 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
       const label = formatLettersLabel(letters);
       const orderMode =
         ctx.chapterNumber <= 4 || ctx.gameOrdinal % 2 === 0 ? 'alphabetical' : 'shuffle';
-      const wordLabelMode = ctx.chapterNumber <= 3 ? 'always' : 'after-drop';
+      const wordLabelMode = 'after-drop';
 
       return {
         title: 'Letter River',

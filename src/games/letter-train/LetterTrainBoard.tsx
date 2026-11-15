@@ -39,8 +39,11 @@ import {
   playTrainArrivalSound,
   playTrainDepartureSound,
   playTripCompleteSound,
-  speakPhrase,
+  preloadTrainCelebrationAudio,
+  speakPerfectTrainCheer,
+  speakStationLetter,
   speakTrainWord,
+  speakTripCompleteCheer,
   speakWrongLetterExplanation,
   stopTrainSpeech,
 } from './trainSounds';
@@ -170,9 +173,9 @@ function TrainWheel({ spinning, turbo }: { spinning: boolean; turbo: boolean }) 
 const ACTIVE_TRAIN_STORAGE_KEY = 'pebble.letter-train.active.v2';
 
 const PERFECT_CHEERS = [
-  'CLAP! CLAP! ZERO MISTAKES! +2 BONUS PTS!',
+  'ZERO MISTAKES! GOLDEN EXPRESS! +2 BONUS PTS!',
   'BRAVO, SUPER CONDUCTOR! +2 GOLDEN BONUS!',
-  'WOOHOO! 3 IN A ROW! EVERYBODY CLAP!',
+  'WOOHOO! 3 IN A ROW! ZERO MISTAKES!',
   'GOLDEN EXPRESS UNLOCKED! +2 BONUS PTS!',
 ] as const;
 
@@ -337,6 +340,10 @@ export function LetterTrainBoard({
     preloadWordsAudio(lookaheadLetters.flatMap((letter) => getStationSpec(letter).words.map((w) => w.id)));
   }, [stationIdx, stationQueue]);
 
+  useEffect(() => {
+    preloadTrainCelebrationAudio();
+  }, []);
+
   const [platformCards, setPlatformCards] = useState<PlatformCardItem[]>(
     () => saved?.platformCards ?? buildPlatformCards(currentLetter),
   );
@@ -369,7 +376,7 @@ export function LetterTrainBoard({
   );
   const [bannerTone, setBannerTone] = useState<BannerTone>('neutral');
   const [bannerText, setBannerText] = useState<string>(
-    `Pick all 3 ${currentLetter} words with zero mistakes for a Clapping Party!`,
+    `Pick all 3 ${currentLetter} words with zero mistakes for a Golden Express!`,
   );
   const [confettiKey, setConfettiKey] = useState<number>(0);
   const [confettiMode, setConfettiMode] = useState<'match' | 'win'>('match');
@@ -486,7 +493,7 @@ export function LetterTrainBoard({
       if (nextIdx >= queue.length) {
         setPhase('finished');
         playTripCompleteSound(soundEnabled);
-        speakPhrase(`Hooray, ${childProfile.name}! All stations complete!`, soundEnabled);
+        speakTripCompleteCheer(soundEnabled);
         return;
       }
       const nextLetter = queue[nextIdx];
@@ -499,7 +506,7 @@ export function LetterTrainBoard({
       setShowDepartureConfetti(false);
       setBannerTone('neutral');
       setBannerText(
-        `Pick all 3 ${nextLetter} words with zero mistakes for a Golden Clapping Party!`,
+        `Pick all 3 ${nextLetter} words with zero mistakes for a Golden Express!`,
       );
       setPhase('arriving');
       playTrainArrivalSound(nextLetter, soundEnabled);
@@ -596,21 +603,12 @@ export function LetterTrainBoard({
             setShowDepartureConfetti(true);
             setPhase('departing-perfect');
 
-            const spokenCheers = [
-              `Bravo, ${childProfile.name}! Zero mistakes! Everybody clap!`,
-              `Woohoo! Three out of three! Clap clap clap for ${childProfile.name}!`,
-              `Golden Crown on ${currentLetter}! Amazing ears, ${childProfile.name}!`,
-            ];
-
             scheduleTimer(() => {
               playPerfectApplauseAndTrainSound(soundEnabled);
             }, 160);
 
             scheduleTimer(() => {
-              speakPhrase(
-                spokenCheers[(stationIdx + nextStreak) % spokenCheers.length],
-                soundEnabled,
-              );
+              speakPerfectTrainCheer(stationIdx + nextStreak, soundEnabled);
             }, 620);
 
             scheduleTimer(() => {
@@ -644,7 +642,7 @@ export function LetterTrainBoard({
           setBannerTone('mint');
           setBannerText(
             mistakes === 0
-              ? `${currentLetter} — ${card.spec.word}! +1 PT (${3 - seatCount} more for Clapping Party!)`
+              ? `${currentLetter} — ${card.spec.word}! +1 PT (${3 - seatCount} more for Golden Express!)`
               : `${currentLetter} — ${card.spec.word}! +1 PT (${seatCount} of 3 aboard)`,
           );
         }
@@ -849,7 +847,7 @@ export function LetterTrainBoard({
     setShowDepartureConfetti(false);
     setBannerTone('neutral');
     setBannerText(
-      `Pick all 3 ${firstLetter} words with zero mistakes for a Clapping Party!`,
+      `Pick all 3 ${firstLetter} words with zero mistakes for a Golden Express!`,
     );
     setPhase('arriving');
     playTrainArrivalSound(firstLetter, soundEnabled);
@@ -917,12 +915,7 @@ export function LetterTrainBoard({
           <button
             type="button"
             className="lt-station-pill"
-            onClick={() =>
-              speakPhrase(
-                `Letter ${currentLetter}! Pick words starting with ${currentLetter}!`,
-                true,
-              )
-            }
+            onClick={() => speakStationLetter(currentLetter, true)}
             aria-label={`Station ${stationIdx + 1} of ${stationQueue.length}, Letter ${currentLetter}. Tap to hear letter`}
           >
             <span className="lt-station-pill__dot" />
@@ -1075,7 +1068,7 @@ export function LetterTrainBoard({
             <div className="lt-clap-party-bar">
               <ClappingHandsBadge />
               <span className="lt-clap-party-bar__text">
-                <CrownIcon size={17} /> BRAVO, {childProfile.name.toUpperCase()}! CLAP! CLAP! +2
+                <CrownIcon size={17} /> BRAVO, {childProfile.name.toUpperCase()}! ZERO MISTAKES! +2
                 BONUS!
               </span>
               <ClappingHandsBadge />
@@ -1115,12 +1108,7 @@ export function LetterTrainBoard({
                 type="button"
                 className="lt-letter-sign"
                 style={{ backgroundColor: stationSpec.accentColor }}
-                onClick={() =>
-                  speakPhrase(
-                    `Letter ${currentLetter}! Find words that start with ${currentLetter}!`,
-                    true,
-                  )
-                }
+                onClick={() => speakStationLetter(currentLetter, true)}
                 title={`Tap to hear Letter ${currentLetter}`}
               >
                 <span>{currentLetter}</span>
@@ -1274,9 +1262,9 @@ export function LetterTrainBoard({
       {/* 5. Station Platform: 3 x 2 Picture Cards */}
       <section className="lt-platform" aria-label="Station Platform Word Cards">
         <div className="lt-platform__header">
-          <span>STATION PLATFORM — LISTEN CAREFULLY FOR ZERO MISTAKES!</span>
+          <span>STATION PLATFORM — SAY EACH PICTURE SOUND FIRST!</span>
           <span className="lt-platform__listen-hint">
-            <AudioSpeakerIcon size={13} /> TAP SPEAKER TO CHECK FIRST
+            <AudioSpeakerIcon size={13} /> TAP SPEAKER TO HEAR
           </span>
         </div>
 
@@ -1301,7 +1289,15 @@ export function LetterTrainBoard({
               );
             }
 
-            const showWordLabel = config.wordLabelMode === 'always' || wasTriedWrong;
+            const showScaffoldAfterMistakes =
+              config.wordLabelMode === 'on-mistake' && mistakes >= 2;
+            const showWordLabel =
+              config.wordLabelMode === 'show-all' ||
+              wasTriedWrong ||
+              showScaffoldAfterMistakes;
+            const highlightFirstLetter =
+              config.wordLabelMode === 'show-all' || wasTriedWrong;
+            const isPictureOnly = !showWordLabel;
             const firstChar = card.spec.word.slice(0, 1);
             const restChars = card.spec.word.slice(1);
 
@@ -1316,7 +1312,9 @@ export function LetterTrainBoard({
                     ? `Starts with ${firstChar}`
                     : `Tap or drag onto the ${currentLetter} train`
                 }`}
-                className={`lt-card ${wasTriedWrong ? 'lt-card--wrong-calm' : ''} ${
+                className={`lt-card ${isPictureOnly ? 'lt-card--picture-only' : ''} ${
+                  wasTriedWrong ? 'lt-card--wrong-calm' : ''
+                } ${
                   isExplainingWrong ? 'lt-card--explaining-wrong' : ''
                 } ${isBeingDragged ? 'lt-card--dragging-origin' : ''}`}
                 onPointerDown={(e) => handleCardPointerDown(e, card)}
@@ -1367,21 +1365,30 @@ export function LetterTrainBoard({
                   className="lt-card__art-frame"
                   style={{ backgroundColor: card.spec.tintBg }}
                 >
-                  <WordIllustration id={card.spec.id} size={106} />
+                  <WordIllustration
+                    id={card.spec.id}
+                    size={isPictureOnly ? 122 : 106}
+                  />
                 </div>
 
-                {showWordLabel ? (
+                {showWordLabel && (
                   <span
                     className={`lt-card__label ${
-                      wasTriedWrong ? 'lt-card__label--muted' : ''
+                      wasTriedWrong
+                        ? 'lt-card__label--muted'
+                        : !highlightFirstLetter
+                          ? 'lt-card__label--scaffold'
+                          : ''
                     }`}
                   >
-                    <strong>{firstChar}</strong>
-                    {restChars}
-                  </span>
-                ) : (
-                  <span className="lt-card__label lt-card__label--mystery">
-                    Tap or Drag
+                    {highlightFirstLetter ? (
+                      <>
+                        <strong>{firstChar}</strong>
+                        {restChars}
+                      </>
+                    ) : (
+                      card.spec.word
+                    )}
                   </span>
                 )}
               </div>
@@ -1408,7 +1415,7 @@ export function LetterTrainBoard({
           >
             <WordIllustration id={dragState.card.spec.id} size={74} />
           </div>
-          {config.wordLabelMode === 'always' && (
+          {config.wordLabelMode === 'show-all' && (
             <span className="lt-card__label">{dragState.card.spec.word}</span>
           )}
         </div>

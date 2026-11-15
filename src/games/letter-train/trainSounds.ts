@@ -1,8 +1,10 @@
 import {
   playLetterAudio,
+  playPerfectTrainCheer,
+  playTripCompleteCheer,
   playWordAudio,
   playWrongLetterExplanation,
-  speakWithSynthesis,
+  preloadTrainCelebrationAudio,
   stopAllSpokenAudio,
 } from '../../utils/wordAudio';
 import type { LetterId } from './letterData';
@@ -238,9 +240,19 @@ export function speakWrongLetterExplanation(
   );
 }
 
-export function speakPhrase(phrase: string, enabled: boolean): void {
-  speakWithSynthesis(phrase, enabled);
+export function speakStationLetter(letter: LetterId, enabled: boolean): void {
+  playLetterAudio(letter, `Letter ${letter}`, enabled);
 }
+
+export function speakPerfectTrainCheer(variantIdx: number, enabled: boolean): void {
+  playPerfectTrainCheer(variantIdx, enabled);
+}
+
+export function speakTripCompleteCheer(enabled: boolean): void {
+  playTripCompleteCheer(enabled);
+}
+
+export { preloadTrainCelebrationAudio };
 
 export function stopTrainSpeech(): void {
   stopAllSpokenAudio();

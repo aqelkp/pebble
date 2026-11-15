@@ -3023,6 +3023,17 @@ h3,
 }
 
 /* Floating Dragged Card Under Finger */
+.lt-card--picture-only .lt-card__art-frame {
+  max-height: 184px;
+  padding: 12px;
+}
+
+.lt-card__label--scaffold {
+  font-size: 0.96rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
 .lt-drag-ghost {
   position: fixed;
   z-index: 100;

@@ -13,7 +13,7 @@ import {
 } from './letterData';
 
 export type StationOrderMode = 'alphabetical' | 'shuffle';
-export type WordLabelMode = 'after-drop' | 'always';
+export type WordLabelMode = 'on-mistake' | 'show-all';
 
 export interface LetterTrainConfig {
   selectedLetters: LetterId[];
@@ -35,7 +35,7 @@ export function isValidLetterTrainConfig(value: unknown): value is LetterTrainCo
   if (candidate.orderMode !== 'alphabetical' && candidate.orderMode !== 'shuffle') {
     return false;
   }
-  if (candidate.wordLabelMode !== 'after-drop' && candidate.wordLabelMode !== 'always') {
+  if (candidate.wordLabelMode !== 'on-mistake' && candidate.wordLabelMode !== 'show-all') {
     return false;
   }
   return true;
@@ -45,7 +45,7 @@ export function getDefaultLetterTrainConfig(): LetterTrainConfig {
   return {
     selectedLetters: [...ALL_LETTERS],
     orderMode: 'alphabetical',
-    wordLabelMode: 'after-drop',
+    wordLabelMode: 'on-mistake',
   };
 }
 
@@ -81,7 +81,7 @@ export function LetterTrainSetup({
     initialConfig?.orderMode ?? 'alphabetical',
   );
   const [wordLabelMode, setWordLabelMode] = useState<WordLabelMode>(
-    initialConfig?.wordLabelMode ?? 'after-drop',
+    initialConfig?.wordLabelMode ?? 'on-mistake',
   );
   const [masteredLetters] = useState<LetterId[]>(() => loadMasteredLetters());
   const [perfectLetters] = useState<LetterId[]>(() => loadPerfectLetters());
@@ -282,24 +282,24 @@ export function LetterTrainSetup({
           </div>
 
           <div className="lt-option-group">
-            <span className="lt-option-group__label">Word Spelling Hint</span>
+            <span className="lt-option-group__label">Word Labels</span>
             <div className="lt-toggle-pills">
               <button
                 type="button"
-                className={`lt-toggle-pill ${wordLabelMode === 'after-drop' ? 'lt-toggle-pill--active' : ''}`}
-                aria-pressed={wordLabelMode === 'after-drop'}
-                onClick={() => setWordLabelMode('after-drop')}
+                className={`lt-toggle-pill ${wordLabelMode === 'on-mistake' ? 'lt-toggle-pill--active' : ''}`}
+                aria-pressed={wordLabelMode === 'on-mistake'}
+                onClick={() => setWordLabelMode('on-mistake')}
               >
-                <strong>Sound First</strong>
-                <span>Speak on touch, spell on drop</span>
+                <strong>Picture &amp; Sound First</strong>
+                <span>Hide words; hint after mistakes</span>
               </button>
               <button
                 type="button"
-                className={`lt-toggle-pill ${wordLabelMode === 'always' ? 'lt-toggle-pill--active' : ''}`}
-                aria-pressed={wordLabelMode === 'always'}
-                onClick={() => setWordLabelMode('always')}
+                className={`lt-toggle-pill ${wordLabelMode === 'show-all' ? 'lt-toggle-pill--active' : ''}`}
+                aria-pressed={wordLabelMode === 'show-all'}
+                onClick={() => setWordLabelMode('show-all')}
               >
-                <strong>Show Spelling</strong>
+                <strong>Always Show Words</strong>
                 <span>Print word under pictures</span>
               </button>
             </div>

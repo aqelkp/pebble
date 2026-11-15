@@ -128,6 +128,22 @@ async function main() {
       id: 'daily-time-over',
       text: 'Time is over for today! See you tomorrow!',
     },
+    {
+      id: 'perfect-cheer-1',
+      text: 'Bravo! Zero mistakes! You found every single word!',
+    },
+    {
+      id: 'perfect-cheer-2',
+      text: 'Woohoo! Three out of three! Super listening!',
+    },
+    {
+      id: 'perfect-cheer-3',
+      text: 'Amazing job! You got every picture right on the first try!',
+    },
+    {
+      id: 'trip-complete-cheer',
+      text: 'Hooray! What a wonderful train adventure! You completed all the stations!',
+    },
   ];
   for (const prompt of uiPrompts) {
     const outPath = path.join(uiOutDir, `${prompt.id}.mp3`);
