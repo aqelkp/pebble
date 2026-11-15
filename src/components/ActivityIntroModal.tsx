@@ -156,6 +156,10 @@ export function ActivityIntroModal({
   const [unlocked, setUnlocked] = useState(!waitForVoiceIntro);
   const [replayNonce, setReplayNonce] = useState(0);
 
+  useEffect(() => {
+    setUnlocked(!waitForVoiceIntro);
+  }, [activity.index, waitForVoiceIntro]);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const rafRef = useRef<number | null>(null);
 

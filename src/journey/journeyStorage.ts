@@ -1,4 +1,5 @@
-import { ALL_LETTERS, isValidLetterId, type LetterId } from '../data/wordBank';
+import type { LetterId } from '../data/wordBank';
+import { ALL_LETTERS, isValidLetterId } from '../games/letter-train/letterData';
 import { GAME_REGISTRY, type GameRegistryEntry } from '../games/registry';
 import {
   TOTAL_ACTIVITIES,

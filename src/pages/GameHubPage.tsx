@@ -8,6 +8,9 @@ interface GameHubPageProps {
   onOpenGame: (gameId: GameRegistryEntry['id']) => void;
   onOpenProfiles: () => void;
   onOpenParentInsights: () => void;
+  isFreePlayPreview?: boolean;
+  onBackToActivityBook?: () => void;
+  onOpenJourneySettings?: () => void;
 }
 
 export function GameHubPage({
@@ -15,6 +18,9 @@ export function GameHubPage({
   onOpenGame,
   onOpenProfiles,
   onOpenParentInsights,
+  isFreePlayPreview = false,
+  onBackToActivityBook,
+  onOpenJourneySettings,
 }: GameHubPageProps) {
   const primaryChild = profiles[0];
   const isCustomChildName =
@@ -27,7 +33,28 @@ export function GameHubPage({
     <div className="app-shell">
       <header className="hub-header">
         <BrandLogo size="lg" subtitle="Family learning games" />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {isFreePlayPreview && onBackToActivityBook ? (
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ padding: '8px 14px', fontSize: '0.88rem' }}
+              onClick={onBackToActivityBook}
+            >
+              ← Activity Book
+            </button>
+          ) : (
+            onOpenJourneySettings && (
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ padding: '8px 14px', fontSize: '0.88rem' }}
+                onClick={onOpenJourneySettings}
+              >
+                Activity Book
+              </button>
+            )
+          )}
           <button
             type="button"
             className="btn-secondary"

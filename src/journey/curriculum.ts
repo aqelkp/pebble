@@ -1,5 +1,6 @@
 import type { FamilyProfile } from '../context/FamilyProfilesContext';
-import { ALL_LETTERS, type LetterId } from '../data/wordBank';
+import type { LetterId } from '../data/wordBank';
+import { ALL_LETTERS } from '../games/letter-train/letterData';
 import type { GameRegistryEntry } from '../games/registry';
 import {
   ACTIVITIES_PER_CHAPTER,

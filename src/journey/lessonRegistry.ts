@@ -1,4 +1,5 @@
-import { ALL_LETTERS, type LetterId } from '../data/wordBank';
+import type { LetterId } from '../data/wordBank';
+import { ALL_LETTERS } from '../games/letter-train/letterData';
 import { CARD_THEMES, type BoardSizeId } from '../games/memory-match/themes';
 import { getSafariModeSpec, type SafariLengthId, type SafariModeId } from '../games/number-safari/safariData';
 import type { SudokuSize } from '../games/picture-sudoku/sudokuEngine';
