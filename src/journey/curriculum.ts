@@ -234,6 +234,7 @@ export function buildJourneyCurriculum(
     'spot-the-twin': 0,
     'dot-to-dot': 0,
     'word-peekaboo': 0,
+    'compare-quest': 0,
   };
 
   return gameSequence.map((gameId, slotIndex) => {

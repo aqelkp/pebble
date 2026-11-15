@@ -120,6 +120,16 @@ const WordPeekabooBoard = lazy(() =>
     default: m.WordPeekabooBoard,
   })),
 );
+const CompareQuestSetup = lazy(() =>
+  import('./compare-quest/CompareQuestSetup').then((m) => ({
+    default: m.CompareQuestSetup,
+  })),
+);
+const CompareQuestBoard = lazy(() =>
+  import('./compare-quest/CompareQuestBoard').then((m) => ({
+    default: m.CompareQuestBoard,
+  })),
+);
 
 export interface LeaveGameCopy {
   headline: string;
@@ -824,6 +834,57 @@ const GAME_PLUGINS: GamePluginRegistry = {
       journeyContext,
     }) => (
       <WordPeekabooBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'compare-quest': {
+    id: 'compare-quest',
+    activeSessionStorageKey: 'pebble.compare-quest.active.v1',
+    leaveCopy: {
+      headline: 'Leave Compare Quest?',
+      subtitle: 'Your earned comparison badges are saved, but this round will reset.',
+      keepPlayingLabel: 'Keep Comparing',
+    },
+    ...makeConfigAccessors('compare-quest'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./compare-quest/CompareQuestSetup'),
+        import('./compare-quest/CompareQuestBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onEditProfiles, onStartGame }) => (
+      <CompareQuestSetup
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig('compare-quest', profiles)}
+        onBackToHub={onBackToHub}
+        onEditProfiles={onEditProfiles}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <CompareQuestBoard
         key={gameKey}
         gameKey={gameKey}
         config={config}
