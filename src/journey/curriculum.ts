@@ -234,6 +234,8 @@ export function buildJourneyCurriculum(
     'spot-the-twin': 0,
     'dot-to-dot': 0,
     'word-peekaboo': 0,
+    'compare-quest': 0,
+    'word-trace': 0,
     'mystery-express': 0,
     'pebble-creek': 0,
     'cloud-balloon': 0,

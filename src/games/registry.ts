@@ -14,6 +14,8 @@ export type GameId =
   | 'spot-the-twin'
   | 'dot-to-dot'
   | 'word-peekaboo'
+  | 'compare-quest'
+  | 'word-trace'
   | 'mystery-express'
   | 'pebble-creek'
   | 'cloud-balloon'
@@ -124,6 +126,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     },
   },
   {
+    id: 'word-trace',
+    title: 'Word Trace',
+    description:
+      'Write CVC picture words, school sight words, and numbers left-to-right on 4-line notebook paper with sound waves and sticker stamps!',
+    badgeText: 'New Game',
+    ageHint: 'K1 / LKG • 4-Line Words & Numbers',
+    artPath: 'hub/word-trace.png',
+    shelf: 'letters-words',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Builds left-to-right multi-letter handwriting fluency across CVC picture words, K1 school sight words (or, be, an, no, do, am), and numbers in both lowercase and uppercase.',
+      domains: ['literacy', 'numeracy', 'self-regulation'],
+      targetSkills: ['letter_formation', 'word_spelling'],
+      conceptUnitLabel: 'CVC, Sight Words & Numbers',
+    },
+  },
+  {
     id: 'letter-trace',
     title: 'Letter Trace',
     description:
@@ -219,6 +241,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['numeracy', 'self-regulation'],
       targetSkills: ['quantity_counting', 'group_joining'],
       conceptUnitLabel: 'Numbers 1–10 & Joining',
+    },
+  },
+  {
+    id: 'compare-quest',
+    title: 'Compare Quest',
+    description:
+      'Compare countable baskets, sticks & towers, juice jugs, and workbook numbers (0–10) — tap, drag, or write >, =, or < in the center box!',
+    badgeText: 'New Game',
+    ageHint: 'K1 / LKG • >, < & = (0–10)',
+    artPath: 'hub/compare-quest.png',
+    shelf: 'numbers-logic',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Connects concrete quantities (including 0), aligned lengths, liquid measures, and abstract numerals (0–10) to greater than (>), less than (<), and equal to (=).',
+      domains: ['numeracy', 'cognition', 'self-regulation'],
+      targetSkills: ['quantity_counting'],
+      conceptUnitLabel: 'Comparing >, < & = (0–10)',
     },
   },
   {

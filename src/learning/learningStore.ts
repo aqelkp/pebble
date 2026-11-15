@@ -84,6 +84,8 @@ const VALID_GAME_IDS = new Set<GameId>([
   'spot-the-twin',
   'dot-to-dot',
   'word-peekaboo',
+  'compare-quest',
+  'word-trace',
   'mystery-express',
   'pebble-creek',
   'cloud-balloon',

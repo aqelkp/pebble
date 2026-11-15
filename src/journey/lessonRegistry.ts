@@ -13,6 +13,16 @@ import {
   type PeekabooRoundLength,
 } from '../games/word-peekaboo/peekabooData';
 import {
+  getCompareModeSpec,
+  type CompareModeId,
+  type CompareRoundSize,
+} from '../games/compare-quest/compareData';
+import {
+  getWordTracePackSpec,
+  type WordTracePackId,
+  type WordTraceRoundSize,
+} from '../games/word-trace/wordTraceEngine';
+import {
   getQuestPackSpec,
   type AdventureSkinId,
   type QuestPackId,
@@ -20,7 +30,21 @@ import {
 } from '../curriculum/questEngine/questTypes';
 import type { JourneyActivityAdapter } from './journeyTypes';
 
+const COMPARE_MODE_ROTATION: readonly CompareModeId[] = [
+  'quantity',
+  'length',
+  'measure',
+  'numbers',
+  'mix',
+];
+
 const WORD_PACK_ROTATION: readonly WordPackId[] = ['animals', 'sight', 'home', 'play', 'nature', 'all'];
+const WORD_TRACE_PACK_ROTATION: readonly WordTracePackId[] = [
+  'cvc',
+  'sight',
+  'numbers',
+  'cvc-mix',
+];
 const QUEST_PACK_SPIRAL: readonly QuestPackId[] = [
   'numbers-50',
   'shapes-patterns',
@@ -530,6 +554,68 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
             packId,
             worldId: world.id,
             roundLength,
+          },
+        },
+      };
+    },
+  },
+
+  'compare-quest': {
+    gameId: 'compare-quest',
+    title: 'Compare Quest',
+    artPath: 'hub/compare-quest.png',
+    category: 'math',
+    buildActivity: (ctx) => {
+      const modeId: CompareModeId =
+        ctx.chapterNumber <= 2 && ctx.gameOrdinal === 0
+          ? 'quantity'
+          : COMPARE_MODE_ROTATION[(ctx.chapterNumber + ctx.gameOrdinal) % COMPARE_MODE_ROTATION.length];
+      const roundSize: CompareRoundSize = ctx.settings.durationMode === 'short' ? 6 : 8;
+      const spec = getCompareModeSpec(modeId);
+
+      return {
+        title: `Compare Quest: ${spec.title}`,
+        subtitle: `${spec.rangeBadge} • ${roundSize} prompts`,
+        detailLine: `Compare both sides and place >, =, or < in the center box!`,
+        artPath: 'hub/compare-quest.png',
+        voiceClipId: 'compare-quest',
+        payload: {
+          gameId: 'compare-quest',
+          config: {
+            modeId,
+            roundSize,
+          },
+        },
+      };
+    },
+  },
+
+  'word-trace': {
+    gameId: 'word-trace',
+    title: 'Word Trace',
+    artPath: 'hub/word-trace.png',
+    category: 'words',
+    buildActivity: (ctx) => {
+      const packId =
+        WORD_TRACE_PACK_ROTATION[
+          (ctx.chapterNumber - 1 + ctx.gameOrdinal) % WORD_TRACE_PACK_ROTATION.length
+        ];
+      const roundSize: WordTraceRoundSize =
+        ctx.settings.durationMode === 'short' ? 4 : 6;
+      const pack = getWordTracePackSpec(packId);
+
+      return {
+        title: `Word Trace: ${pack.title}`,
+        subtitle: `abc & ABC • ${roundSize} notebook items`,
+        detailLine: `Listen to each prompt and write letters left-to-right on the 4-line notebook!`,
+        artPath: 'hub/word-trace.png',
+        voiceClipId: 'word-trace',
+        payload: {
+          gameId: 'word-trace',
+          config: {
+            packId,
+            caseMode: 'mix',
+            roundSize,
           },
         },
       };

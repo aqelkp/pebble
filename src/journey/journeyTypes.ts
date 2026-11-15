@@ -14,6 +14,8 @@ import type { SpotTheTwinConfig } from '../games/spot-the-twin/twinEngine';
 import type { StickerSceneConfig } from '../games/sticker-scene/sceneEngine';
 import type { WordGameConfig } from '../games/word-fun/WordFunSetup';
 import type { WordPeekabooConfig } from '../games/word-peekaboo/peekabooData';
+import type { CompareQuestConfig } from '../games/compare-quest/compareData';
+import type { WordTraceConfig } from '../games/word-trace/wordTraceEngine';
 import type { QuestGameConfig } from '../curriculum/questEngine/questTypes';
 
 export const TOTAL_CHAPTERS = 20;
@@ -40,6 +42,8 @@ export type JourneyVoiceClipId =
   | 'spot-the-twin'
   | 'dot-to-dot'
   | 'word-peekaboo'
+  | 'compare-quest'
+  | 'word-trace'
   | 'mystery-express'
   | 'pebble-creek'
   | 'cloud-balloon'
@@ -90,6 +94,8 @@ export type JourneyActivityPayload =
   | { gameId: 'spot-the-twin'; config: SpotTheTwinConfig }
   | { gameId: 'dot-to-dot'; config: DotToDotConfig }
   | { gameId: 'word-peekaboo'; config: WordPeekabooConfig }
+  | { gameId: 'compare-quest'; config: CompareQuestConfig }
+  | { gameId: 'word-trace'; config: WordTraceConfig }
   | { gameId: 'mystery-express'; config: QuestGameConfig }
   | { gameId: 'pebble-creek'; config: QuestGameConfig }
   | { gameId: 'cloud-balloon'; config: QuestGameConfig }

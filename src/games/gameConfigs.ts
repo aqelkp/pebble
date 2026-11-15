@@ -64,6 +64,16 @@ import {
   type WordPeekabooConfig,
 } from './word-peekaboo/peekabooData';
 import {
+  getDefaultCompareQuestConfig,
+  isValidCompareQuestConfig,
+  type CompareQuestConfig,
+} from './compare-quest/compareData';
+import {
+  getDefaultWordTraceConfig,
+  isValidWordTraceConfig,
+  type WordTraceConfig,
+} from './word-trace/wordTraceEngine';
+import {
   getDefaultQuestConfigForSkin,
   isValidQuestGameConfig,
   type QuestGameConfig,
@@ -88,6 +98,8 @@ export interface GameConfigMap {
   'spot-the-twin': SpotTheTwinConfig;
   'dot-to-dot': DotToDotConfig;
   'word-peekaboo': WordPeekabooConfig;
+  'compare-quest': CompareQuestConfig;
+  'word-trace': WordTraceConfig;
   'mystery-express': QuestGameConfig;
   'pebble-creek': QuestGameConfig;
   'cloud-balloon': QuestGameConfig;
@@ -202,6 +214,8 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'spot-the-twin': isValidSpotTheTwinConfig,
   'dot-to-dot': isValidDotToDotConfig,
   'word-peekaboo': isValidWordPeekabooConfig,
+  'compare-quest': isValidCompareQuestConfig,
+  'word-trace': isValidWordTraceConfig,
   'mystery-express': isValidQuestGameConfig,
   'pebble-creek': isValidQuestGameConfig,
   'cloud-balloon': isValidQuestGameConfig,
@@ -270,6 +284,10 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultDotToDotConfig() as GameConfigMap[K];
     case 'word-peekaboo':
       return getDefaultWordPeekabooConfig() as GameConfigMap[K];
+    case 'compare-quest':
+      return getDefaultCompareQuestConfig() as GameConfigMap[K];
+    case 'word-trace':
+      return getDefaultWordTraceConfig() as GameConfigMap[K];
     case 'mystery-express':
       return getDefaultQuestConfigForSkin('mystery-express') as GameConfigMap[K];
     case 'pebble-creek':

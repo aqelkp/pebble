@@ -897,6 +897,167 @@
         }
       ]
     },
+    "compare-quest": {
+      "id": "compare-quest",
+      "text": "Compare both sides and place greater than, less than, or equal in the middle!",
+      "audioPath": "audio/journey/compare-quest.mp3",
+      "durationMs": 4415,
+      "words": [
+        {
+          "word": "Compare",
+          "startMs": 0,
+          "endMs": 443
+        },
+        {
+          "word": "both",
+          "startMs": 443,
+          "endMs": 611
+        },
+        {
+          "word": "sides",
+          "startMs": 611,
+          "endMs": 1057
+        },
+        {
+          "word": "and",
+          "startMs": 1057,
+          "endMs": 1257
+        },
+        {
+          "word": "place",
+          "startMs": 1257,
+          "endMs": 1534
+        },
+        {
+          "word": "greater",
+          "startMs": 1534,
+          "endMs": 1902
+        },
+        {
+          "word": "than,",
+          "startMs": 1902,
+          "endMs": 2407
+        },
+        {
+          "word": "less",
+          "startMs": 2407,
+          "endMs": 2505
+        },
+        {
+          "word": "than,",
+          "startMs": 2505,
+          "endMs": 2905
+        },
+        {
+          "word": "or",
+          "startMs": 2905,
+          "endMs": 3176
+        },
+        {
+          "word": "equal",
+          "startMs": 3176,
+          "endMs": 3582
+        },
+        {
+          "word": "in",
+          "startMs": 3582,
+          "endMs": 3747
+        },
+        {
+          "word": "the",
+          "startMs": 3747,
+          "endMs": 3958
+        },
+        {
+          "word": "middle!",
+          "startMs": 3958,
+          "endMs": 4415
+        }
+      ]
+    },
+    "word-trace": {
+      "id": "word-trace",
+      "text": "Listen to the word, then trace each letter left to right along the four lines!",
+      "audioPath": "audio/journey/word-trace.mp3",
+      "durationMs": 4376,
+      "words": [
+        {
+          "word": "Listen",
+          "startMs": 0,
+          "endMs": 467
+        },
+        {
+          "word": "to",
+          "startMs": 467,
+          "endMs": 742
+        },
+        {
+          "word": "the",
+          "startMs": 742,
+          "endMs": 955
+        },
+        {
+          "word": "word,",
+          "startMs": 955,
+          "endMs": 1231
+        },
+        {
+          "word": "then",
+          "startMs": 1231,
+          "endMs": 1518
+        },
+        {
+          "word": "trace",
+          "startMs": 1518,
+          "endMs": 1759
+        },
+        {
+          "word": "each",
+          "startMs": 1759,
+          "endMs": 1892
+        },
+        {
+          "word": "letter",
+          "startMs": 1892,
+          "endMs": 2278
+        },
+        {
+          "word": "left",
+          "startMs": 2278,
+          "endMs": 2661
+        },
+        {
+          "word": "to",
+          "startMs": 2661,
+          "endMs": 2736
+        },
+        {
+          "word": "right",
+          "startMs": 2736,
+          "endMs": 3096
+        },
+        {
+          "word": "along",
+          "startMs": 3096,
+          "endMs": 3509
+        },
+        {
+          "word": "the",
+          "startMs": 3509,
+          "endMs": 3603
+        },
+        {
+          "word": "four",
+          "startMs": 3603,
+          "endMs": 3795
+        },
+        {
+          "word": "lines!",
+          "startMs": 3795,
+          "endMs": 4376
+        }
+      ]
+    },
     "mystery-express": {
       "id": "mystery-express",
       "text": "Solve each puzzle at the railway gate to send the train chugging ahead!",

@@ -8,6 +8,8 @@ import { getVehicleSpec } from '../games/rescue-road/roadEngine';
 import { getTwinItemsPerCard } from '../games/spot-the-twin/twinEngine';
 import { getWordPackSpec } from '../games/word-fun/wordBank';
 import { getPeekabooPackSpec, getPeekabooWorldSpec } from '../games/word-peekaboo/peekabooData';
+import { getCompareModeSpec } from '../games/compare-quest/compareData';
+import { getWordTracePackSpec } from '../games/word-trace/wordTraceEngine';
 import { getQuestPackSpec } from '../curriculum/questEngine/questTypes';
 import type { JourneyActivity } from './journeyTypes';
 
@@ -246,6 +248,38 @@ export function buildStandaloneHelpActivity(
           'Listen closely for the one spoken word, tap it to peel a tile, and uncover the hidden friend!',
         artPath: 'hub/word-peekaboo.png',
         voiceClipId: 'word-peekaboo',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'compare-quest': {
+      const cfg = resolveConfig('compare-quest', rawConfig, profiles);
+      const mode = getCompareModeSpec(cfg.modeId);
+      return {
+        ...base,
+        gameId,
+        title: 'Compare Quest',
+        subtitle: `${mode.title} (${mode.rangeBadge})`,
+        detailLine:
+          'Compare both sides — tap, drag, or write >, =, or < in the center box (wide side points to bigger)!',
+        artPath: 'hub/compare-quest.png',
+        voiceClipId: 'compare-quest',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'word-trace': {
+      const cfg = resolveConfig('word-trace', rawConfig, profiles);
+      const pack = getWordTracePackSpec(cfg.packId);
+      return {
+        ...base,
+        gameId,
+        title: 'Word Trace',
+        subtitle: `${pack.title} • 4-Line Notebook`,
+        detailLine:
+          'Listen to the prompt and trace each letter from left to right starting at Circle 1!',
+        artPath: 'hub/word-trace.png',
+        voiceClipId: 'word-trace',
         payload: { gameId, config: cfg },
       };
     }

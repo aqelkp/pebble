@@ -84,6 +84,14 @@ const JOURNEY_PROMPTS = [
     text: 'Listen to each word and tap it to uncover the hidden friend!',
   },
   {
+    id: 'compare-quest',
+    text: 'Compare both sides and place greater than, less than, or equal in the middle!',
+  },
+  {
+    id: 'word-trace',
+    text: 'Listen to the word and trace each letter from left to right along the arrows!',
+  },
+  {
     id: 'mystery-express',
     text: 'Solve each puzzle at the railway gate to send the train chugging ahead!',
   },
