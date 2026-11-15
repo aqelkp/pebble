@@ -134,6 +134,31 @@ function ClappingHandsBadge() {
   );
 }
 
+/**
+ * Spoked steam-train wheel with off-center crankpin dot so rotation is clearly visible.
+ */
+function TrainWheel({ spinning, turbo }: { spinning: boolean; turbo: boolean }) {
+  return (
+    <span
+      className={`lt-wheel ${spinning ? 'lt-wheel--spin' : ''} ${
+        spinning && turbo ? 'lt-wheel--turbo' : ''
+      }`}
+      aria-hidden="true"
+    >
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="12" fill="#1E2433" stroke="#1E2433" strokeWidth="1.5" />
+        <line x1="14" y1="5.5" x2="14" y2="22.5" stroke="#F2B84B" strokeWidth="2.1" strokeLinecap="round" />
+        <line x1="5.5" y1="14" x2="22.5" y2="14" stroke="#F2B84B" strokeWidth="2.1" strokeLinecap="round" />
+        <line x1="8" y1="8" x2="20" y2="20" stroke="#F2B84B" strokeWidth="1.9" strokeLinecap="round" />
+        <line x1="20" y1="8" x2="8" y2="20" stroke="#F2B84B" strokeWidth="1.9" strokeLinecap="round" />
+        <circle cx="14" cy="14" r="8.5" fill="none" stroke="#F2B84B" strokeWidth="2.5" />
+        <circle cx="14" cy="14" r="3.4" fill="#F27A5E" stroke="#1E2433" strokeWidth="1.2" />
+        <circle cx="20" cy="14" r="2.3" fill="#FFF9EB" stroke="#1E2433" strokeWidth="0.9" />
+      </svg>
+    </span>
+  );
+}
+
 const ACTIVE_TRAIN_STORAGE_KEY = 'pebble.letter-train.active.v2';
 
 const PERFECT_CHEERS = [
@@ -141,6 +166,13 @@ const PERFECT_CHEERS = [
   'BRAVO, SUPER CONDUCTOR! +2 GOLDEN BONUS!',
   'WOOHOO! 3 IN A ROW! EVERYBODY CLAP!',
   'GOLDEN EXPRESS UNLOCKED! +2 BONUS PTS!',
+] as const;
+
+const NORMAL_DEPART_CALLOUTS = [
+  'CHOO-CHOO! ALL ABOARD!',
+  'DING-DING! FULL STEAM AHEAD!',
+  'TOOT-TOOT! NEXT STATION!',
+  'ALL CLEAR! OFF WE CHUG!',
 ] as const;
 
 interface SavedTrainState {
@@ -332,6 +364,7 @@ export function LetterTrainBoard({
   const dropZoneRef = useRef<HTMLDivElement | null>(null);
   const timersRef = useRef<number[]>([]);
   const initialArrivalPlayedRef = useRef<boolean>(false);
+  const lastSpokenWordRef = useRef<{ id: string; at: number }>({ id: '', at: 0 });
 
   const clearTimers = useCallback(() => {
     for (const id of timersRef.current) {
@@ -361,7 +394,7 @@ export function LetterTrainBoard({
     playTrainArrivalSound(currentLetter, soundEnabled);
     const id = window.setTimeout(() => {
       setPhase((prev) => (prev === 'arriving' ? 'idle' : prev));
-    }, 520);
+    }, 580);
     timersRef.current.push(id);
   }, [currentLetter, phase, soundEnabled]);
 
@@ -440,7 +473,7 @@ export function LetterTrainBoard({
 
       scheduleTimer(() => {
         setPhase((prev) => (prev === 'arriving' ? 'idle' : prev));
-      }, 520);
+      }, 580);
     },
     [childProfile.name, scheduleTimer, soundEnabled],
   );
@@ -456,6 +489,14 @@ export function LetterTrainBoard({
         const seatCount = nextLoaded.length;
         setLoadedUids(nextLoaded);
 
+        const recentlySpokenOnTouch =
+          lastSpokenWordRef.current.id === card.spec.id &&
+          Date.now() - lastSpokenWordRef.current.at < 600;
+        if (!recentlySpokenOnTouch) {
+          lastSpokenWordRef.current = { id: card.spec.id, at: Date.now() };
+          speakTrainWord(card.spec.id, card.spec.word, soundEnabled);
+        }
+
         playCorrectSeatSound(seatCount, soundEnabled);
 
         if (seatCount >= 3) {
@@ -467,7 +508,7 @@ export function LetterTrainBoard({
 
           if (isFlawless) {
             // PERFECT 3-FOR-3 WITH ZERO MISTAKES!
-            // Big Clapping Crowd + Cheering + Golden Crown + +2 Bonus Points!
+            // Big Clapping Crowd + Cheering + Golden Crown + Wheelie Express Departure!
             const updatedPerfect = savePerfectLetter(currentLetter);
             setPerfectLetters(updatedPerfect);
             const nextStreak = perfectStreak + 1;
@@ -492,20 +533,23 @@ export function LetterTrainBoard({
               `Woohoo! Three out of three! Clap clap clap for ${childProfile.name}!`,
               `Golden Crown on ${currentLetter}! Amazing ears, ${childProfile.name}!`,
             ];
-            speakPhrase(
-              spokenCheers[(stationIdx + nextStreak) % spokenCheers.length],
-              soundEnabled,
-            );
 
             scheduleTimer(() => {
               playPerfectApplauseAndTrainSound(soundEnabled);
-            }, 140);
+            }, 160);
+
+            scheduleTimer(() => {
+              speakPhrase(
+                spokenCheers[(stationIdx + nextStreak) % spokenCheers.length],
+                soundEnabled,
+              );
+            }, 620);
 
             scheduleTimer(() => {
               advanceToNextStation(stationIdx + 1, stationQueue);
-            }, 2650);
+            }, 2950);
           } else {
-            // Completed after >= 1 mistake: polite regular departure (+1 PT, no clapping party)
+            // Completed after >= 1 mistake: lively steam train departure (+1 PT, no clapping party)
             setTotalScore((prev) => prev + 1);
             setBannerTone('mint');
             const nextLetter = stationQueue[stationIdx + 1];
@@ -519,14 +563,13 @@ export function LetterTrainBoard({
             setShowDepartureConfetti(true);
             setPhase('departing-normal');
 
-            speakPhrase(`${currentLetter}! ${card.spec.word}! All aboard!`, soundEnabled);
             scheduleTimer(() => {
               playTrainDepartureSound(soundEnabled);
-            }, 260);
+            }, 180);
 
             scheduleTimer(() => {
               advanceToNextStation(stationIdx + 1, stationQueue);
-            }, 1850);
+            }, 2250);
           }
         } else {
           setTotalScore((prev) => prev + 1);
@@ -536,11 +579,18 @@ export function LetterTrainBoard({
               ? `${currentLetter} — ${card.spec.word}! +1 PT (${3 - seatCount} more for Clapping Party!)`
               : `${currentLetter} — ${card.spec.word}! +1 PT (${seatCount} of 3 aboard)`,
           );
-          speakPhrase(`${currentLetter}! ${card.spec.word}!`, soundEnabled);
         }
       } else {
         // Calm, intentionally un-dramatic wrong pick:
         // No explosion, no boing, no shake — quietly shows starting letter and dims Golden Bonus.
+        const recentlySpokenOnTouch =
+          lastSpokenWordRef.current.id === card.spec.id &&
+          Date.now() - lastSpokenWordRef.current.at < 600;
+        if (!recentlySpokenOnTouch) {
+          lastSpokenWordRef.current = { id: card.spec.id, at: Date.now() };
+          speakTrainWord(card.spec.id, card.spec.word, soundEnabled);
+        }
+
         setMistakes((prev) => prev + 1);
         setPerfectStreak(0);
         setTriedWrongUids((prev) => ({ ...prev, [card.uid]: true }));
@@ -549,10 +599,12 @@ export function LetterTrainBoard({
         setBannerText(hintMsg);
         setThinkAgainHint(hintMsg);
         playCalmWrongHintSound(soundEnabled);
-        speakPhrase(
-          `${card.spec.word} starts with ${card.spec.letter}. Pick a word starting with ${currentLetter}.`,
-          soundEnabled,
-        );
+        scheduleTimer(() => {
+          speakPhrase(
+            `${card.spec.word} starts with ${card.spec.letter}. Pick a word starting with ${currentLetter}.`,
+            soundEnabled,
+          );
+        }, 550);
       }
     },
     [
@@ -602,6 +654,7 @@ export function LetterTrainBoard({
 
     e.currentTarget.setPointerCapture(e.pointerId);
     playCardPickupSound(soundEnabled);
+    lastSpokenWordRef.current = { id: card.spec.id, at: Date.now() };
     speakTrainWord(card.spec.id, card.spec.word, soundEnabled);
 
     setDragState({
@@ -653,6 +706,8 @@ export function LetterTrainBoard({
     clearTimers();
     stopTrainSpeech();
     clearSavedLetterTrainGame();
+    lastSpokenWordRef.current = { id: '', at: 0 };
+    setThinkAgainHint(null);
 
     const freshQueue = buildInitialQueue(config);
     const firstLetter = freshQueue[0] ?? 'A';
@@ -678,7 +733,7 @@ export function LetterTrainBoard({
 
     scheduleTimer(() => {
       setPhase((prev) => (prev === 'arriving' ? 'idle' : prev));
-    }, 520);
+    }, 580);
   };
 
   const loadedCards = useMemo(
@@ -857,13 +912,33 @@ export function LetterTrainBoard({
         ref={dropZoneRef}
         className={`lt-stage ${
           dragState?.overDropZone ? 'lt-stage--drop-active' : ''
+        } ${wheelsSpinning ? 'lt-stage--moving' : ''} ${
+          isDeparting ? 'lt-stage--departing' : ''
         } ${isPerfectParty ? 'lt-stage--party' : ''}`}
         aria-label={`Letter ${currentLetter} Train Car. ${loadedCards.length} of 3 seats filled.`}
       >
-        {/* Soft Scenic Hills */}
+        {/* Soft Scenic Hills & Animated Wind Speed Lines */}
         <div className="lt-stage__hills" aria-hidden="true" />
+        <div className="lt-speed-lines" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
 
-        {/* Sky / Celebration Layer: Animated Clapping Crowd on Perfect 3/3! */}
+        {/* Miniature Railroad Crossing Signal & Lifting Gate */}
+        <div
+          className={`lt-crossing ${isDeparting ? 'lt-crossing--open' : ''}`}
+          aria-hidden="true"
+        >
+          <div className="lt-crossing__lights">
+            <span />
+            <span />
+          </div>
+          <div className="lt-crossing__arm" />
+          <div className="lt-crossing__post" />
+        </div>
+
+        {/* Sky / Celebration Layer: Animated Clapping Crowd or Departure Callout */}
         <div className="lt-sky-fx" aria-hidden="true">
           {isPerfectParty ? (
             <div className="lt-clap-party-bar">
@@ -875,63 +950,17 @@ export function LetterTrainBoard({
               <ClappingHandsBadge />
             </div>
           ) : phase === 'departing-normal' ? (
-            <div className="lt-whistle-badge">TOOT-TOOT! ALL ABOARD!</div>
-          ) : (
-            <div className="lt-idle-puffs">
-              <span />
-              <span />
+            <div className="lt-depart-signal-bar">
+              <span className="lt-depart-signal-bar__dot" />
+              <span>
+                {NORMAL_DEPART_CALLOUTS[(stationIdx + carsCleared) % NORMAL_DEPART_CALLOUTS.length]}
+              </span>
             </div>
-          )}
+          ) : null}
         </div>
 
-        {/* Locomotive + Passenger Car */}
+        {/* Forward-Facing Train: Passenger Car (Left) -> Coupler -> Steam Locomotive (Right) */}
         <div className={`lt-train-assembly ${trainMotionClass}`}>
-          {/* Steam Locomotive with Golden Crown Perfect Bonus Box */}
-          <div
-            className={`lt-locomotive ${
-              isPerfectParty
-                ? 'lt-locomotive--golden'
-                : goldenBonusActive
-                  ? 'lt-locomotive--bonus-ready'
-                  : ''
-            }`}
-          >
-            <div className="lt-chimney-wrap" aria-hidden="true">
-              <div className="lt-chimney-cap" />
-              <div className="lt-chimney-pipe" />
-            </div>
-
-            <div
-              className={`lt-bonus-box ${
-                goldenBonusActive ? 'lt-bonus-box--active' : 'lt-bonus-box--dim'
-              }`}
-              aria-label={
-                goldenBonusActive
-                  ? 'Golden Crown Bonus active: zero mistakes so far!'
-                  : 'Golden Crown Bonus missed on this car'
-              }
-            >
-              <span className="lt-bonus-box__title">
-                {goldenBonusActive ? 'NO MISTAKES' : 'KEEP GOING'}
-              </span>
-              <div className="lt-bonus-box__crown">
-                <CrownIcon size={24} />
-              </div>
-              <span className="lt-bonus-box__status">
-                {isPerfectParty
-                  ? 'WON +2 PTS!'
-                  : goldenBonusActive
-                    ? '+2 PARTY!'
-                    : 'NEXT CAR'}
-              </span>
-            </div>
-
-            <div className="lt-cowcatcher" aria-hidden="true" />
-          </div>
-
-          {/* Coupler Link */}
-          <div className="lt-coupler" aria-hidden="true" />
-
           {/* Letter Passenger Car (3 Seats) */}
           <div
             className={`lt-passenger-car ${
@@ -942,6 +971,14 @@ export function LetterTrainBoard({
                   : ''
             } ${dragState?.overDropZone ? 'lt-passenger-car--hover' : ''}`}
           >
+            {isPerfectParty && (
+              <div className="lt-party-streamers" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+            )}
+
             <div className="lt-car-header">
               <button
                 type="button"
@@ -981,14 +1018,13 @@ export function LetterTrainBoard({
                       key={occupant.uid}
                       type="button"
                       className={`lt-seat lt-seat--filled ${
-                        isPerfectParty ? 'lt-seat--dancing' : ''
+                        isPerfectParty
+                          ? 'lt-seat--dancing'
+                          : isDeparting
+                            ? 'lt-seat--chugging'
+                            : ''
                       }`}
-                      onClick={() =>
-                        speakPhrase(
-                          `${currentLetter}! ${occupant.spec.word}!`,
-                          true,
-                        )
-                      }
+                      onClick={() => speakTrainWord(occupant.spec.id, occupant.spec.word, true)}
                     >
                       <div className="lt-seat__art">
                         <WordIllustration id={occupant.spec.id} size={48} />
@@ -1011,14 +1047,89 @@ export function LetterTrainBoard({
             </div>
           </div>
 
-          {/* Train Wheels */}
+          {/* Coupler Link */}
+          <div className="lt-coupler" aria-hidden="true" />
+
+          {/* Forward-Facing Steam Locomotive with Chimney Steam, Headlamp & Golden Crown Box */}
+          <div
+            className={`lt-locomotive ${
+              isPerfectParty
+                ? 'lt-locomotive--golden'
+                : goldenBonusActive
+                  ? 'lt-locomotive--bonus-ready'
+                  : ''
+            }`}
+          >
+            <div className="lt-chimney-wrap" aria-hidden="true">
+              <div className="lt-chimney-steam">
+                <span className="lt-steam-puff" />
+                <span className="lt-steam-puff" />
+                <span className="lt-steam-puff" />
+                <span className="lt-steam-puff" />
+                <span className="lt-steam-puff" />
+              </div>
+              <div className="lt-whistle-pipe" />
+              <div className={`lt-chimney-cap ${isDeparting ? 'lt-chimney-cap--puffing' : ''}`} />
+              <div className="lt-chimney-pipe" />
+            </div>
+
+            <div
+              className={`lt-bonus-box ${
+                goldenBonusActive ? 'lt-bonus-box--active' : 'lt-bonus-box--dim'
+              }`}
+              aria-label={
+                goldenBonusActive
+                  ? 'Golden Crown Bonus active: zero mistakes so far!'
+                  : 'Golden Crown Bonus missed on this car'
+              }
+            >
+              <span className="lt-bonus-box__title">
+                {goldenBonusActive ? 'NO MISTAKES' : 'KEEP GOING'}
+              </span>
+              <div className="lt-bonus-box__crown">
+                <CrownIcon size={24} />
+              </div>
+              <span className="lt-bonus-box__status">
+                {isPerfectParty
+                  ? 'WON +2 PTS!'
+                  : goldenBonusActive
+                    ? '+2 PARTY!'
+                    : 'NEXT CAR'}
+              </span>
+            </div>
+
+            <div className={`lt-headlamp ${wheelsSpinning ? 'lt-headlamp--on' : ''}`} aria-hidden="true">
+              <span className="lt-headlamp__beam" />
+            </div>
+            <div className="lt-cowcatcher" aria-hidden="true" />
+          </div>
+
+          {/* Aligned Spoked Train Wheels + Engine Coupling Rod */}
           <div className="lt-wheels-row" aria-hidden="true">
-            {[0, 1, 2, 3, 4].map((wheelIdx) => (
+            <div className="lt-wheels-group lt-wheels-group--car">
+              {[0, 1, 2].map((wheelIdx) => (
+                <TrainWheel
+                  key={wheelIdx}
+                  spinning={wheelsSpinning}
+                  turbo={isPerfectParty}
+                />
+              ))}
+            </div>
+            <span />
+            <div className="lt-wheels-group lt-wheels-group--engine">
+              {[0, 1].map((wheelIdx) => (
+                <TrainWheel
+                  key={wheelIdx}
+                  spinning={wheelsSpinning}
+                  turbo={isPerfectParty}
+                />
+              ))}
               <span
-                key={wheelIdx}
-                className={`lt-wheel ${wheelsSpinning ? 'lt-wheel--spin' : ''}`}
+                className={`lt-coupling-rod ${wheelsSpinning ? 'lt-coupling-rod--crank' : ''} ${
+                  isPerfectParty ? 'lt-coupling-rod--turbo' : ''
+                }`}
               />
-            ))}
+            </div>
           </div>
         </div>
 

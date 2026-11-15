@@ -1963,7 +1963,7 @@ h3,
   border-radius: 22px;
   background: linear-gradient(180deg, #eef4f7 0%, #f5efe4 76%, #e7dfd0 100%);
   border: 2px solid var(--border-subtle);
-  padding: 34px 16px 14px;
+  padding: 36px 18px 14px;
   overflow: hidden;
   flex-shrink: 0;
   transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.22s ease;
@@ -1989,6 +1989,124 @@ h3,
   border-radius: 50% 50% 0 0;
   background: rgba(59, 169, 156, 0.11);
   pointer-events: none;
+}
+
+.lt-speed-lines {
+  position: absolute;
+  inset: 38px 24px 36px;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+}
+
+.lt-stage--departing .lt-speed-lines {
+  opacity: 1;
+}
+
+.lt-speed-lines span {
+  position: absolute;
+  right: -60px;
+  height: 3px;
+  width: 56px;
+  border-radius: 999px;
+  background: rgba(91, 91, 214, 0.22);
+}
+
+.lt-stage--party .lt-speed-lines span {
+  background: rgba(229, 158, 36, 0.35);
+}
+
+.lt-stage--departing .lt-speed-lines span:nth-child(1) {
+  top: 18%;
+  width: 68px;
+  animation: ltSpeedZip 0.48s linear infinite 0.35s;
+}
+
+.lt-stage--departing .lt-speed-lines span:nth-child(2) {
+  top: 52%;
+  width: 50px;
+  animation: ltSpeedZip 0.42s linear infinite 0.52s;
+}
+
+.lt-stage--departing .lt-speed-lines span:nth-child(3) {
+  top: 78%;
+  width: 62px;
+  animation: ltSpeedZip 0.5s linear infinite 0.65s;
+}
+
+/* Miniature Railroad Crossing Signal & Lifting Gate */
+.lt-crossing {
+  position: absolute;
+  right: 10px;
+  bottom: 23px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.lt-crossing__lights {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 4px;
+  border-radius: 7px;
+  background: #1e2433;
+  box-shadow: 0 2px 6px rgba(30, 36, 51, 0.18);
+}
+
+.lt-crossing__lights span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f27a5e;
+  opacity: 0.4;
+}
+
+.lt-crossing__lights span:first-child {
+  opacity: 0.9;
+}
+
+.lt-crossing--open .lt-crossing__lights span:first-child {
+  background: var(--mint-match);
+  animation: ltSignalBlink 0.34s steps(2, start) infinite;
+}
+
+.lt-crossing--open .lt-crossing__lights span:last-child {
+  background: var(--honey-accent);
+  animation: ltSignalBlink 0.34s steps(2, start) 0.17s infinite;
+}
+
+.lt-crossing__post {
+  width: 6px;
+  height: 42px;
+  border-radius: 0 0 3px 3px;
+  background: #2c3547;
+}
+
+.lt-crossing__arm {
+  position: absolute;
+  right: 4px;
+  bottom: 26px;
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  border: 1px solid #1e2433;
+  background: repeating-linear-gradient(
+    90deg,
+    #f27a5e 0px,
+    #f27a5e 6px,
+    #ffffff 6px,
+    #ffffff 12px
+  );
+  transform-origin: right center;
+  transform: rotate(-10deg);
+  transition: transform 0.38s cubic-bezier(0.22, 1.3, 0.36, 1);
+}
+
+.lt-crossing--open .lt-crossing__arm {
+  transform: rotate(-82deg);
 }
 
 .lt-sky-fx {
@@ -2048,45 +2166,39 @@ h3,
   animation: ltClapWavePulse 0.26s ease-in-out infinite alternate;
 }
 
-.lt-whistle-badge {
-  margin-left: auto;
-  padding: 3px 12px;
-  border-radius: var(--radius-pill);
-  background: var(--mint-match);
-  color: #ffffff;
-  font-family: var(--font-display);
-  font-size: 0.82rem;
-  font-weight: 700;
-  animation: ltBadgePop 0.35s ease-out;
-}
-
-.lt-idle-puffs {
-  display: flex;
+.lt-depart-signal-bar {
+  margin: 0 auto;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-left: 22px;
+  gap: 8px;
+  padding: 3px 14px;
+  border-radius: var(--radius-pill);
+  background: #e4f6f3;
+  border: 2px solid var(--mint-match);
+  color: #165e55;
+  font-family: var(--font-display);
+  font-size: 0.84rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(59, 169, 156, 0.25);
+  animation: ltBadgePop 0.32s cubic-bezier(0.22, 1.25, 0.36, 1);
 }
 
-.lt-idle-puffs span {
-  width: 12px;
-  height: 12px;
+.lt-depart-signal-bar__dot {
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
-  animation: ltPuffFloat 2.1s ease-in-out infinite;
-}
-
-.lt-idle-puffs span:nth-child(2) {
-  width: 17px;
-  height: 17px;
-  animation-delay: 0.6s;
+  background: var(--mint-match);
+  box-shadow: 0 0 0 3px rgba(59, 169, 156, 0.25);
+  animation: ltSignalDotPulse 0.38s ease-in-out infinite alternate;
 }
 
 .lt-train-assembly {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: 146px 14px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 14px 150px;
   align-items: end;
+  transform-origin: center bottom;
 }
 
 .lt-locomotive {
@@ -2113,11 +2225,107 @@ h3,
 }
 
 .lt-chimney-wrap {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: -24px;
   margin-bottom: 4px;
+}
+
+.lt-chimney-steam {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 68px;
+  height: 36px;
+  transform: translateX(-62%);
+  pointer-events: none;
+}
+
+.lt-steam-puff {
+  position: absolute;
+  right: 18px;
+  bottom: 0;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid rgba(190, 200, 218, 0.55);
+  opacity: 0;
+}
+
+.lt-steam-puff:nth-child(1) {
+  opacity: 0.85;
+  animation: ltPuffFloat 2.1s ease-in-out infinite;
+}
+
+.lt-steam-puff:nth-child(2) {
+  right: 26px;
+  bottom: 7px;
+  width: 17px;
+  height: 17px;
+  opacity: 0.72;
+  animation: ltPuffFloat 2.1s ease-in-out 0.6s infinite;
+}
+
+.lt-stage--moving .lt-steam-puff {
+  opacity: 0.92;
+  animation: ltSteamBillow 0.85s ease-out infinite;
+}
+
+.lt-stage--moving .lt-steam-puff:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.lt-stage--moving .lt-steam-puff:nth-child(2) {
+  width: 16px;
+  height: 16px;
+  animation-delay: 0.16s;
+}
+
+.lt-stage--moving .lt-steam-puff:nth-child(3) {
+  width: 18px;
+  height: 18px;
+  animation-delay: 0.32s;
+}
+
+.lt-stage--moving .lt-steam-puff:nth-child(4) {
+  width: 14px;
+  height: 14px;
+  animation-delay: 0.48s;
+}
+
+.lt-stage--moving .lt-steam-puff:nth-child(5) {
+  width: 20px;
+  height: 20px;
+  animation-delay: 0.64s;
+}
+
+.lt-stage--party .lt-steam-puff:nth-child(odd) {
+  background: #ffe094;
+  border-color: #e59e24;
+}
+
+.lt-stage--party .lt-steam-puff:nth-child(2) {
+  background: #aeece3;
+  border-color: #3ba99c;
+}
+
+.lt-stage--party .lt-steam-puff:nth-child(4) {
+  background: #ffc4b5;
+  border-color: #f27a5e;
+}
+
+.lt-whistle-pipe {
+  position: absolute;
+  left: -15px;
+  bottom: 0;
+  width: 6px;
+  height: 11px;
+  border-radius: 3px 3px 0 0;
+  background: var(--honey-accent);
+  border: 1.5px solid #1e2433;
 }
 
 .lt-chimney-cap {
@@ -2126,6 +2334,11 @@ h3,
   border-radius: 5px;
   background: var(--honey-accent);
   border: 2px solid #1e2433;
+  transition: transform 0.2s ease;
+}
+
+.lt-chimney-cap--puffing {
+  animation: ltChimneyCapBounce 0.24s ease-in-out infinite alternate;
 }
 
 .lt-chimney-pipe {
@@ -2191,14 +2404,43 @@ h3,
   color: var(--text-muted);
 }
 
+.lt-headlamp {
+  position: absolute;
+  right: -7px;
+  top: 16px;
+  width: 9px;
+  height: 14px;
+  border-radius: 0 6px 6px 0;
+  background: var(--honey-accent);
+  border: 2px solid #1e2433;
+  pointer-events: none;
+}
+
+.lt-headlamp__beam {
+  position: absolute;
+  right: -56px;
+  top: -11px;
+  width: 58px;
+  height: 34px;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(242, 184, 75, 0.52), rgba(242, 184, 75, 0));
+  clip-path: polygon(0 38%, 100% 0, 100% 100%, 0 62%);
+  transition: opacity 0.2s ease;
+}
+
+.lt-headlamp--on .lt-headlamp__beam {
+  opacity: 1;
+}
+
 .lt-cowcatcher {
   position: absolute;
-  left: -10px;
+  right: -11px;
   bottom: 6px;
   width: 12px;
   height: 22px;
   background: var(--coral-accent);
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
 }
 
 .lt-coupler {
@@ -2209,12 +2451,46 @@ h3,
 }
 
 .lt-passenger-car {
+  position: relative;
   border-radius: 18px;
   background: var(--surface-card);
   border: 2.5px solid var(--indigo-primary);
   padding: 10px 12px;
   box-shadow: 0 6px 14px rgba(30, 36, 51, 0.08);
   transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.2s ease;
+}
+
+.lt-party-streamers {
+  position: absolute;
+  left: -24px;
+  top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  pointer-events: none;
+}
+
+.lt-party-streamers span {
+  width: 24px;
+  height: 6px;
+  border-radius: 999px;
+  transform-origin: right center;
+  animation: ltStreamerWave 0.28s ease-in-out infinite alternate;
+}
+
+.lt-party-streamers span:nth-child(1) {
+  background: var(--mint-match);
+}
+
+.lt-party-streamers span:nth-child(2) {
+  background: var(--coral-accent);
+  width: 28px;
+  animation-delay: 0.1s;
+}
+
+.lt-party-streamers span:nth-child(3) {
+  background: var(--indigo-primary);
+  animation-delay: 0.2s;
 }
 
 .lt-passenger-car--hover {
@@ -2330,6 +2606,18 @@ h3,
   animation: ltSeatDance 0.34s ease-in-out infinite alternate;
 }
 
+.lt-seat--chugging {
+  animation: ltSeatChug 0.28s ease-in-out infinite alternate;
+}
+
+.lt-seat--chugging:nth-child(2) {
+  animation-delay: 0.09s;
+}
+
+.lt-seat--chugging:nth-child(3) {
+  animation-delay: 0.18s;
+}
+
 .lt-seat--dancing:nth-child(2) {
   animation-delay: 0.1s;
 }
@@ -2362,25 +2650,57 @@ h3,
 
 .lt-wheels-row {
   grid-column: 1 / -1;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 14px 150px;
   align-items: center;
-  justify-content: space-around;
-  padding: 0 20px;
-  margin-top: -5px;
+  margin-top: -6px;
   z-index: 3;
 }
 
-.lt-wheel {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #1e2433;
-  border: 4px solid var(--honey-accent);
-  box-shadow: inset 0 0 0 3px #1e2433;
+.lt-wheels-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 18px;
 }
 
-.lt-wheel--spin {
-  animation: ltWheelSpin 0.45s linear infinite;
+.lt-wheel {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lt-wheel--spin svg {
+  animation: ltWheelSpin 0.34s linear infinite;
+}
+
+.lt-wheel--turbo svg {
+  animation: ltWheelSpin 0.19s linear infinite;
+}
+
+.lt-coupling-rod {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  top: 50%;
+  height: 5px;
+  margin-top: -2.5px;
+  border-radius: 999px;
+  background: var(--coral-accent);
+  border: 1.5px solid #1e2433;
+  pointer-events: none;
+}
+
+.lt-coupling-rod--crank {
+  animation: ltRodCrank 0.34s linear infinite;
+}
+
+.lt-coupling-rod--turbo {
+  animation: ltRodCrank 0.19s linear infinite;
 }
 
 .lt-rails {
@@ -2405,6 +2725,15 @@ h3,
     transparent 16px,
     transparent 30px
   );
+  background-size: 30px 6px;
+}
+
+.lt-stage--moving .lt-rails__sleepers {
+  animation: ltSleepersScroll 0.34s linear infinite;
+}
+
+.lt-stage--party .lt-rails__sleepers {
+  animation: ltSleepersScroll 0.2s linear infinite;
 }
 
 /* Station Platform (3 x 2 Picture Cards, fills remaining portrait height) */
@@ -2634,22 +2963,73 @@ h3,
     transform: translateX(-115%);
   }
   75% {
-    transform: translateX(2%);
+    transform: translateX(1.5%) rotate(0.5deg);
   }
   100% {
-    transform: translateX(0);
+    transform: translateX(0) rotate(0deg);
   }
 }
 
-@keyframes ltTrainDepart {
+@keyframes ltTrainDepartNormal {
   0% {
-    transform: translateX(0);
+    transform: translateX(0) translateY(0) rotate(0deg);
   }
-  20% {
-    transform: translateX(-2%);
+  8% {
+    transform: translateX(0) translateY(-2.5px) rotate(-0.3deg);
+  }
+  16% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  24% {
+    transform: translateX(0) translateY(-2.5px) rotate(-0.3deg);
+  }
+  34% {
+    transform: translateX(-14px) translateY(0) rotate(0.6deg);
+  }
+  48% {
+    transform: translateX(12%) translateY(-2px) rotate(-0.9deg);
+  }
+  65% {
+    transform: translateX(42%) translateY(0) rotate(0deg);
+  }
+  82% {
+    transform: translateX(82%) translateY(-2px) rotate(-0.6deg);
   }
   100% {
-    transform: translateX(120%);
+    transform: translateX(126%) translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes ltTrainDepartPerfect {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  9% {
+    transform: translateX(0) translateY(-3px) rotate(-0.4deg);
+  }
+  18% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  26% {
+    transform: translateX(0) translateY(-3px) rotate(-0.4deg);
+  }
+  34% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  42% {
+    transform: translateX(-18px) translateY(0) scaleX(0.985) rotate(0.8deg);
+  }
+  52% {
+    transform: translateX(8%) translateY(-5px) scaleX(1.01) rotate(-2.3deg);
+  }
+  68% {
+    transform: translateX(46%) translateY(-1px) rotate(-1deg);
+  }
+  84% {
+    transform: translateX(88%) translateY(-3px) rotate(-1.2deg);
+  }
+  100% {
+    transform: translateX(130%) translateY(0) rotate(-0.5deg);
   }
 }
 
@@ -2691,9 +3071,92 @@ h3,
   }
 }
 
+@keyframes ltSeatChug {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-3px);
+  }
+}
+
 @keyframes ltWheelSpin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+@keyframes ltRodCrank {
+  0% { transform: translate(3px, 0); }
+  25% { transform: translate(0, 2.5px); }
+  50% { transform: translate(-3px, 0); }
+  75% { transform: translate(0, -2.5px); }
+  100% { transform: translate(3px, 0); }
+}
+
+@keyframes ltSteamBillow {
+  0% {
+    transform: translate(0, 4px) scale(0.35);
+    opacity: 0.92;
+  }
+  100% {
+    transform: translate(-44px, -28px) scale(1.85);
+    opacity: 0;
+  }
+}
+
+@keyframes ltChimneyCapBounce {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-3.5px) rotate(-3deg);
+  }
+}
+
+@keyframes ltStreamerWave {
+  0% {
+    transform: rotate(-7deg) scaleX(0.92);
+  }
+  100% {
+    transform: rotate(7deg) scaleX(1.08);
+  }
+}
+
+@keyframes ltSpeedZip {
+  0% {
+    transform: translateX(120px);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(-520px);
+    opacity: 0;
+  }
+}
+
+@keyframes ltSignalBlink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes ltSignalDotPulse {
+  0% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1.2);
+  }
+}
+
+@keyframes ltSleepersScroll {
+  from { background-position-x: 0; }
+  to { background-position-x: -60px; }
 }
 
 @keyframes ltSeatPop {
@@ -2713,15 +3176,15 @@ h3,
 }
 
 .lt-train--arriving {
-  animation: ltTrainArrive 0.52s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: ltTrainArrive 0.58s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .lt-train--departing {
-  animation: ltTrainDepart 1.55s cubic-bezier(0.45, 0, 0.85, 0.35) 0.45s forwards;
+  animation: ltTrainDepartNormal 2.1s cubic-bezier(0.45, 0, 0.78, 0.45) forwards;
 }
 
 .lt-train--departing-perfect {
-  animation: ltTrainDepart 1.5s cubic-bezier(0.45, 0, 0.85, 0.35) 1.05s forwards;
+  animation: ltTrainDepartPerfect 2.8s cubic-bezier(0.45, 0, 0.82, 0.42) forwards;
 }
 
 @media (max-width: 680px) {
@@ -2746,8 +3209,9 @@ h3,
     display: none;
   }
 
-  .lt-train-assembly {
-    grid-template-columns: 108px 8px minmax(0, 1fr);
+  .lt-train-assembly,
+  .lt-wheels-row {
+    grid-template-columns: minmax(0, 1fr) 8px 112px;
   }
 
   .lt-seat {

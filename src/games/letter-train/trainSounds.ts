@@ -122,11 +122,97 @@ function playSingleHandclap(startSec: number, pitchHue = 1550, gainScale = 1): v
   playFilteredNoise(startSec + 0.022, 0.068, pitchHue * 0.94, 1.5, 0.115 * gainScale);
 }
 
-function playWhistleBlast(startSec: number, durationSec: number, peakGain = 0.075): void {
-  playTone(349.23, startSec, durationSec, 'triangle', peakGain, 354);
-  playTone(440.0, startSec, durationSec, 'triangle', peakGain * 0.85, 446);
-  playTone(587.33, startSec, durationSec, 'sine', peakGain * 0.65, 594);
-  playFilteredNoise(startSec, durationSec * 0.85, 1450, 2.2, peakGain * 0.32);
+function playWhistleVoice(
+  freq: number,
+  startSec: number,
+  durationSec: number,
+  type: OscillatorType,
+  peakGain: number,
+): void {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  try {
+    const t0 = ctx.currentTime + startSec;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(Math.max(24, freq * 0.96), t0);
+    osc.frequency.exponentialRampToValueAtTime(
+      freq * 1.01,
+      t0 + Math.min(0.08, durationSec * 0.35),
+    );
+
+    gain.gain.setValueAtTime(0.001, t0);
+    gain.gain.exponentialRampToValueAtTime(peakGain, t0 + Math.min(0.028, durationSec * 0.22));
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + durationSec);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(t0);
+    osc.stop(t0 + durationSec + 0.03);
+  } catch {
+    // Ignore autoplay-blocked audio errors
+  }
+}
+
+function playWhistleBlast(
+  startSec: number,
+  durationSec: number,
+  peakGain = 0.08,
+  pitchScale = 1,
+): void {
+  playWhistleVoice(349.23 * pitchScale, startSec, durationSec, 'triangle', peakGain);
+  playWhistleVoice(440.0 * pitchScale, startSec, durationSec, 'triangle', peakGain * 0.85);
+  playWhistleVoice(587.33 * pitchScale, startSec, durationSec, 'sine', peakGain * 0.65);
+  playFilteredNoise(startSec, durationSec * 0.88, 1480, 2.1, peakGain * 0.34);
+}
+
+/**
+ * Crisp metallic railroad crossing bell ("DING-DING-DING-DING!").
+ */
+function playCrossingBell(startSec: number, rings: number, gainScale = 1): void {
+  const interval = 0.17;
+  for (let i = 0; i < rings; i += 1) {
+    const t = startSec + i * interval;
+    playTone(1174.66, t, 0.16, 'triangle', 0.065 * gainScale);
+    playTone(2489.02, t, 0.13, 'sine', 0.035 * gainScale);
+  }
+}
+
+/**
+ * Warm brake/cylinder steam release ("PSSSHHH!") before pulling away from the station.
+ */
+function playSteamRelease(startSec: number, durationSec: number, peakGain = 0.065): void {
+  playFilteredNoise(startSec, durationSec, 1650, 1.15, peakGain);
+  playFilteredNoise(startSec + 0.02, durationSec * 0.9, 820, 1.4, peakGain * 0.72);
+}
+
+/**
+ * Accelerating steam-engine chugs whose tempo speeds up smoothly as the train rolls out.
+ */
+function playAcceleratingChugs(
+  startSec: number,
+  chugCount: number,
+  startGapSec: number,
+  endGapSec: number,
+  gainScale = 1,
+): void {
+  let cursor = startSec;
+  const denom = Math.max(1, chugCount - 1);
+  for (let i = 0; i < chugCount; i += 1) {
+    const isDownbeat = i % 2 === 0;
+    if (isDownbeat) {
+      playFilteredNoise(cursor, 0.09, 680, 1.4, 0.078 * gainScale);
+      playTone(96, cursor, 0.075, 'triangle', 0.062 * gainScale, 62);
+    } else {
+      playFilteredNoise(cursor, 0.07, 1080, 1.5, 0.052 * gainScale);
+    }
+    const progress = i / denom;
+    const gap = startGapSec + (endGapSec - startGapSec) * progress;
+    cursor += gap;
+  }
 }
 
 export function speakTrainWord(wordId: string, fallbackWord: string, enabled: boolean): void {
@@ -171,33 +257,30 @@ export function playCalmWrongHintSound(enabled: boolean): void {
 }
 
 /**
- * Normal polite train departure (when completed with >= 1 mistake):
- * Simple whistle + steam chugs without the big applause party.
+ * Lively train departure (when completed with >= 1 mistake):
+ * Crossing bell + steam release + two-tone whistle + accelerating engine chugs!
  */
 export function playTrainDepartureSound(enabled: boolean): void {
   if (!enabled) return;
-  playWhistleBlast(0.05, 0.22, 0.075);
-  playWhistleBlast(0.33, 0.36, 0.08);
-
-  const chugTimes = [0.12, 0.34, 0.54, 0.72, 0.88, 1.02];
-  chugTimes.forEach((t, idx) => {
-    const accent = idx % 2 === 0 ? 0.075 : 0.045;
-    playFilteredNoise(t, 0.1, idx % 2 === 0 ? 780 : 1040, 1.4, accent);
-  });
+  playCrossingBell(0.02, 4, 0.85);
+  playSteamRelease(0.18, 0.26, 0.06);
+  playWhistleBlast(0.3, 0.24, 0.08, 1.0);
+  playWhistleBlast(0.6, 0.42, 0.09, 1.0);
+  playAcceleratingChugs(0.42, 12, 0.19, 0.078, 0.95);
 }
 
 /**
  * BIG PERFECT 3-FOR-3 CELEBRATION (ZERO MISTAKES!):
  * Lively rhythmic crowd clapping ("CLAP-CLAP-CLAP-CLAP-CLAP!") + joyful brass/bell
- * victory melody + triumphant Golden Express steam train whistle!
+ * victory melody + crossing bell + 3-blast Golden Express whistle + turbo chugs!
  */
 export function playPerfectApplauseAndTrainSound(enabled: boolean): void {
   if (!enabled) return;
 
   // 1. Multi-person rhythmic applause ("Clap! Clap! Clap-Clap-Clap! + Cheerful crowd claps!")
   const clapBeats = [
-    0.02, 0.19, 0.36, 0.49, 0.62,
-    0.80, 0.94, 1.08, 1.22, 1.36, 1.50, 1.64,
+    0.02, 0.18, 0.34, 0.47, 0.6,
+    0.76, 0.9, 1.04, 1.18, 1.32, 1.46, 1.6, 1.74,
   ];
   clapBeats.forEach((beat, idx) => {
     // Layer 3 slightly offset "audience members" per beat so it sounds like a room clapping!
@@ -211,14 +294,16 @@ export function playPerfectApplauseAndTrainSound(enabled: boolean): void {
   playTone(659.25, 0.16, 0.15, 'triangle', 0.11); // E5
   playTone(783.99, 0.28, 0.16, 'triangle', 0.12); // G5
   playTone(1046.5, 0.42, 0.38, 'triangle', 0.13); // C6
-  playTone(1318.5, 0.62, 0.42, 'sine', 0.095);    // E6 sparkle harmonic
+  playTone(1318.5, 0.62, 0.42, 'sine', 0.095);    // E6 shimmer harmonic
+  playTone(1567.98, 0.78, 0.44, 'sine', 0.075);   // G6 celebratory shimmer
 
-  // 3. Golden Express two-tone whistle + fast happy chugs!
-  playWhistleBlast(0.88, 0.24, 0.09);
-  playWhistleBlast(1.18, 0.44, 0.1);
-  [1.0, 1.18, 1.34, 1.48, 1.61, 1.73].forEach((t, idx) => {
-    playFilteredNoise(t, 0.09, idx % 2 === 0 ? 820 : 1120, 1.5, 0.07);
-  });
+  // 3. Crossing bell + steam blast + 3-blast Golden Express whistle + turbo accelerating chugs!
+  playCrossingBell(0.76, 5, 1.0);
+  playSteamRelease(0.94, 0.3, 0.075);
+  playWhistleBlast(1.02, 0.2, 0.09, 1.0);
+  playWhistleBlast(1.26, 0.2, 0.095, 1.0);
+  playWhistleBlast(1.52, 0.48, 0.105, 1.122);
+  playAcceleratingChugs(1.12, 15, 0.17, 0.066, 1.1);
 }
 
 export function playTrainArrivalSound(letter: LetterId, enabled: boolean): void {
