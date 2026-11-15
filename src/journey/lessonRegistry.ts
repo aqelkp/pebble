@@ -110,6 +110,45 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
     },
   },
 
+  'letter-trace': {
+    gameId: 'letter-trace',
+    title: 'Letter Trace',
+    artPath: 'hub/letter-trace.png',
+    category: 'phonics',
+    buildActivity: (ctx) => {
+      const isReversalReview = ctx.gameOrdinal > 0 && ctx.gameOrdinal % 5 === 4;
+      const trickySlice = isReversalReview
+        ? getTrickyLettersForReview(ctx.settings.selectedLetters)
+        : undefined;
+      const letters = ctx.nextLetterSlice(trickySlice);
+      const label = formatLettersLabel(letters);
+      const roundSize = ctx.settings.durationMode === 'short' ? 4 : 6;
+      const caseMode = 'both' as const;
+      const orderMode =
+        ctx.chapterNumber <= 3 || ctx.gameOrdinal % 2 === 0 ? 'alphabetical' : 'shuffle';
+
+      return {
+        title: 'Letter Trace',
+        subtitle: label,
+        detailLine: isReversalReview
+          ? `Mirror letter guard: trace ${letters.join(', ')} in strict stroke order`
+          : `Trace Capital & Small pairs (${label}) along numbered arrows`,
+        artPath: 'hub/letter-trace.png',
+        voiceClipId: 'letter-trace',
+        lettersCovered: letters,
+        payload: {
+          gameId: 'letter-trace',
+          config: {
+            selectedLetters: letters,
+            caseMode,
+            roundSize,
+            orderMode,
+          },
+        },
+      };
+    },
+  },
+
   'letter-river': {
     gameId: 'letter-river',
     title: 'Letter River',

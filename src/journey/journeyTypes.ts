@@ -1,5 +1,6 @@
 import type { LetterId } from '../data/wordBank';
 import type { LetterRiverConfig } from '../games/letter-river/LetterRiverSetup';
+import type { LetterTraceConfig } from '../games/letter-trace/traceData';
 import type { LetterTrainConfig } from '../games/letter-train/LetterTrainSetup';
 import type { MemoryGameConfig } from '../games/memory-match/MemorySetup';
 import type { ThemeId } from '../games/memory-match/themes';
@@ -24,6 +25,7 @@ export type FunBreakPacingMode = 'after-2' | 'after-3' | 'after-1' | 'balanced' 
 export type JourneyVoiceClipId =
   | 'memory-match'
   | 'letter-train'
+  | 'letter-trace'
   | 'letter-river'
   | 'picture-sudoku'
   | 'word-fun'
@@ -68,6 +70,7 @@ export interface JourneyProgressState {
 export type JourneyActivityPayload =
   | { gameId: 'memory-match'; config: MemoryGameConfig }
   | { gameId: 'letter-train'; config: LetterTrainConfig }
+  | { gameId: 'letter-trace'; config: LetterTraceConfig }
   | { gameId: 'letter-river'; config: LetterRiverConfig }
   | { gameId: 'picture-sudoku'; config: PictureSudokuConfig }
   | { gameId: 'word-fun'; config: WordGameConfig }

@@ -223,6 +223,7 @@ export function buildJourneyCurriculum(
   const gameCounts: Record<GameRegistryEntry['id'], number> = {
     'memory-match': 0,
     'letter-train': 0,
+    'letter-trace': 0,
     'letter-river': 0,
     'picture-sudoku': 0,
     'word-fun': 0,

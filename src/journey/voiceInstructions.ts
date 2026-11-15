@@ -26,6 +26,7 @@ const CATALOG = rawAudioCatalog as RawJourneyCatalog;
 export const ALL_JOURNEY_VOICE_CLIP_IDS: readonly JourneyVoiceClipId[] = [
   'memory-match',
   'letter-train',
+  'letter-trace',
   'letter-river',
   'picture-sudoku',
   'word-fun',

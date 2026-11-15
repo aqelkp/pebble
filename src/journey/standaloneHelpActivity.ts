@@ -67,6 +67,21 @@ export function buildStandaloneHelpActivity(
       };
     }
 
+    case 'letter-trace': {
+      const cfg = resolveConfig('letter-trace', rawConfig, profiles);
+      return {
+        ...base,
+        gameId,
+        title: 'Letter Trace',
+        subtitle: 'Capital & Small Stroke Order',
+        detailLine: 'Start at Circle 1 and trace each letter stroke in strict order along the arrows!',
+        artPath: 'hub/letter-trace.png',
+        voiceClipId: 'letter-trace',
+        lettersCovered: cfg.selectedLetters.slice(0, 5),
+        payload: { gameId, config: cfg },
+      };
+    }
+
     case 'letter-river': {
       const cfg = resolveConfig('letter-river', rawConfig, profiles);
       return {

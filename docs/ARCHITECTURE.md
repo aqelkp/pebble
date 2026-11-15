@@ -53,6 +53,7 @@ pebble/
 │   │   ├── gameConfigs.ts      # Pure config validators & defaults (no heavy component imports)
 │   │   ├── plugins.tsx         # Lazy React.lazy game plugin registry & chunk preloader
 │   │   ├── letter-river/       # riverData.ts, riverSounds.ts, LetterRiverSetup.tsx, LetterRiverBoard.tsx
+│   │   ├── letter-trace/       # traceData.ts, traceSounds.ts, LetterTraceSetup.tsx, LetterTraceBoard.tsx
 │   │   ├── letter-train/       # letterData.ts, WordIllustration.tsx, trainSounds.ts, LetterTrainSetup.tsx, LetterTrainBoard.tsx
 │   │   ├── memory-match/       # themes.ts, memoryStats.ts, soundEffects.ts, MemorySetup.tsx, MemoryBoard.tsx, MemoryRecordsModal.tsx
 │   │   ├── number-safari/      # safariData.ts, safariSounds.ts, SafariSetup.tsx, SafariBoard.tsx

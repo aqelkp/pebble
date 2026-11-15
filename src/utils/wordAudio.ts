@@ -137,6 +137,9 @@ export function preloadLettersAudio(letters: readonly LetterId[]): void {
 const THINK_AGAIN_AUDIO_PATH = 'audio/ui/think-again.mp3';
 const MISTAKE_HEY_PICKED_AUDIO_PATH = 'audio/ui/mistake-hey-picked.mp3';
 const THINK_OR_START_AGAIN_AUDIO_PATH = 'audio/ui/think-or-start-again.mp3';
+const TRACE_IN_ORDER_AUDIO_PATH = 'audio/ui/trace-in-order.mp3';
+const TRACE_IN_ORDER_FALLBACK =
+  "Let's write in order! Start at the numbered circle and follow the arrow.";
 const DAILY_TIME_OVER_AUDIO_PATH = 'audio/ui/daily-time-over.mp3';
 const PERFECT_CHEER_CLIPS = [
   'audio/ui/perfect-cheer-1.mp3',
@@ -346,6 +349,105 @@ export function preloadThinkAgainVoice(): void {
     MISTAKE_HEY_PICKED_AUDIO_PATH,
     THINK_OR_START_AGAIN_AUDIO_PATH,
   ]);
+}
+
+export function preloadTraceOrderVoice(): void {
+  preloadAudioPaths([TRACE_IN_ORDER_AUDIO_PATH, THINK_OR_START_AGAIN_AUDIO_PATH]);
+}
+
+/**
+ * Plays the calm bundled Kokoro stroke-order voice cue during Teach-First demonstrations.
+ * Calls `onComplete` cleanly after audio finishes (or timer expires if muted/blocked),
+ * and returns a cancel handle to clear pending playback on unmount.
+ */
+export function playTraceOrderVoice(
+  enabled: boolean,
+  onComplete?: () => void,
+): () => void {
+  if (typeof window === 'undefined') {
+    onComplete?.();
+    return () => {};
+  }
+
+  let settled = false;
+  let settleTimer: number | null = null;
+  let safetyTimer: number | null = null;
+
+  const finish = () => {
+    if (settled) return;
+    settled = true;
+    if (settleTimer !== null) {
+      window.clearTimeout(settleTimer);
+      settleTimer = null;
+    }
+    if (safetyTimer !== null) {
+      window.clearTimeout(safetyTimer);
+      safetyTimer = null;
+    }
+    onComplete?.();
+  };
+
+  if (!enabled) {
+    settleTimer = window.setTimeout(finish, 2200);
+    return () => {
+      settled = true;
+      if (settleTimer !== null) window.clearTimeout(settleTimer);
+    };
+  }
+
+  stopAllSpokenAudio();
+  const currentNonce = playbackNonce;
+
+  const triggerFallback = () => {
+    if (settled || playbackNonce !== currentNonce) return;
+    speakWithSynthesis(TRACE_IN_ORDER_FALLBACK, true);
+    settleTimer = window.setTimeout(finish, 2400);
+  };
+
+  try {
+    const audio = new Audio(assetUrl(TRACE_IN_ORDER_AUDIO_PATH));
+    audio.preload = 'auto';
+    audio.volume = 0.95;
+    activeAudioEl = audio;
+
+    audio.addEventListener('ended', () => {
+      if (activeAudioEl === audio) {
+        activeAudioEl = null;
+      }
+      if (playbackNonce === currentNonce) {
+        settleTimer = window.setTimeout(finish, 320);
+      }
+    });
+
+    audio.addEventListener('error', () => {
+      if (activeAudioEl === audio) {
+        activeAudioEl = null;
+      }
+      triggerFallback();
+    });
+
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(() => {
+        if (activeAudioEl === audio) {
+          activeAudioEl = null;
+        }
+        triggerFallback();
+      });
+    }
+  } catch {
+    triggerFallback();
+  }
+
+  // Hard ceiling safety timer in case audio metadata or ended event stalls
+  safetyTimer = window.setTimeout(finish, 5200);
+
+  return () => {
+    settled = true;
+    if (settleTimer !== null) window.clearTimeout(settleTimer);
+    if (safetyTimer !== null) window.clearTimeout(safetyTimer);
+    stopAllSpokenAudio();
+  };
 }
 
 export function playPerfectTrainCheer(variantIdx: number, enabled: boolean): void {

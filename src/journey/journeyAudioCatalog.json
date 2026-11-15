@@ -677,6 +677,84 @@
           "endMs": 3747
         }
       ]
+    },
+    "letter-trace": {
+      "id": "letter-trace",
+      "text": "Start at circle one and trace each letter stroke in order along the arrows!",
+      "audioPath": "audio/journey/letter-trace.mp3",
+      "durationMs": 4328,
+      "words": [
+        {
+          "word": "Start",
+          "startMs": 0,
+          "endMs": 352
+        },
+        {
+          "word": "at",
+          "startMs": 352,
+          "endMs": 467
+        },
+        {
+          "word": "circle",
+          "startMs": 467,
+          "endMs": 967
+        },
+        {
+          "word": "one",
+          "startMs": 967,
+          "endMs": 1341
+        },
+        {
+          "word": "and",
+          "startMs": 1341,
+          "endMs": 1420
+        },
+        {
+          "word": "trace",
+          "startMs": 1420,
+          "endMs": 1647
+        },
+        {
+          "word": "each",
+          "startMs": 1647,
+          "endMs": 1970
+        },
+        {
+          "word": "letter",
+          "startMs": 1970,
+          "endMs": 2409
+        },
+        {
+          "word": "stroke",
+          "startMs": 2409,
+          "endMs": 2684
+        },
+        {
+          "word": "in",
+          "startMs": 2684,
+          "endMs": 2879
+        },
+        {
+          "word": "order",
+          "startMs": 2879,
+          "endMs": 3201
+        },
+        {
+          "word": "along",
+          "startMs": 3201,
+          "endMs": 3672
+        },
+        {
+          "word": "the",
+          "startMs": 3672,
+          "endMs": 3767
+        },
+        {
+          "word": "arrows!",
+          "startMs": 3767,
+          "endMs": 4328
+        }
+      ]
     }
   }
 }

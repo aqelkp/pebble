@@ -1,5 +1,10 @@
 import type { FamilyProfile } from '../context/FamilyProfilesContext';
 import type { LetterRiverConfig } from './letter-river/LetterRiverSetup';
+import {
+  getDefaultLetterTraceConfig,
+  isValidLetterTraceConfig,
+  type LetterTraceConfig,
+} from './letter-trace/traceData';
 import type { LetterTrainConfig } from './letter-train/LetterTrainSetup';
 import { ALL_LETTERS, isValidLetterId } from './letter-train/letterData';
 import type { MemoryGameConfig } from './memory-match/MemorySetup';
@@ -57,6 +62,7 @@ import {
 export interface GameConfigMap {
   'memory-match': MemoryGameConfig;
   'letter-train': LetterTrainConfig;
+  'letter-trace': LetterTraceConfig;
   'letter-river': LetterRiverConfig;
   'picture-sudoku': PictureSudokuConfig;
   'word-fun': WordGameConfig;
@@ -164,6 +170,7 @@ type ConfigValidatorMap = {
 const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'memory-match': isValidMemoryConfig,
   'letter-train': isValidLetterTrainConfig,
+  'letter-trace': isValidLetterTraceConfig,
   'letter-river': isValidLetterRiverConfig,
   'picture-sudoku': isValidPictureSudokuConfig,
   'word-fun': isValidWordGameConfig,
@@ -198,6 +205,8 @@ export function getDefaultGameConfig<K extends GameId>(
         orderMode: 'alphabetical',
         wordLabelMode: 'on-mistake',
       } as GameConfigMap[K];
+    case 'letter-trace':
+      return getDefaultLetterTraceConfig() as GameConfigMap[K];
     case 'letter-river':
       return {
         selectedLetters: [...ALL_LETTERS],
