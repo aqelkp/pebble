@@ -3,6 +3,7 @@ import { BrandLogo, PawPipIcon, PebbleMark } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { solveGridFit, useStageSize } from '../../engine';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import {
   getThemeBoardSummary,
@@ -101,12 +102,6 @@ export function clearSavedMemoryGame(): void {
   }
 }
 
-interface CardDimensions {
-  width: number;
-  height: number;
-  gap: number;
-}
-
 function buildInitialZeroMap(players: FamilyProfile[]): Record<string, number> {
   const map: Record<string, number> = {};
   for (const player of players) {
@@ -181,14 +176,31 @@ export function MemoryBoard({
     [config.boardSizeId, config.themeId, statsRuns],
   );
 
-  const stageRef = useRef<HTMLDivElement | null>(null);
+  const [stageRef, stageSize] = useStageSize<HTMLElement>();
   const timeoutRef = useRef<number | null>(null);
 
-  const [cardDims, setCardDims] = useState<CardDimensions>(() => ({
-    width: boardSize.rows >= 6 ? 88 : 108,
-    height: boardSize.rows >= 6 ? 123 : 151,
-    gap: boardSize.rows >= 6 ? 8 : 11,
-  }));
+  const cardDims = useMemo(() => {
+    const gap =
+      boardSize.rows >= 6 ? 8 : boardSize.cols === 4 && boardSize.rows <= 4 ? 14 : 11;
+    if (!stageSize.ready) {
+      return {
+        width: boardSize.rows >= 6 ? 88 : 108,
+        height: boardSize.rows >= 6 ? 123 : 151,
+        gap,
+      };
+    }
+    return solveGridFit({
+      stageWidth: stageSize.width,
+      stageHeight: stageSize.height,
+      cols: boardSize.cols,
+      rows: boardSize.rows,
+      cardAspectRatio: 2.5 / 3.5,
+      gap,
+      minItemWidth: 46,
+      minItemHeight: 64,
+      paddingPx: 4,
+    });
+  }, [boardSize.cols, boardSize.rows, stageSize.height, stageSize.ready, stageSize.width]);
 
   const clearPendingTimer = useCallback(() => {
     if (timeoutRef.current !== null) {
@@ -248,33 +260,6 @@ export function MemoryBoard({
     scores,
     totalAttempts,
   ]);
-
-  // Measure the card grid container dynamically so every tall 2.5:3.5 card fits cleanly inside 100dvh
-  useEffect(() => {
-    const element = stageRef.current;
-    if (!element) return;
-
-    const computeSize = () => {
-      const rect = element.getBoundingClientRect();
-      const stageW = Math.max(240, rect.width - 4);
-      const stageH = Math.max(240, rect.height - 4);
-      const gap = boardSize.rows >= 6 ? 8 : boardSize.cols === 4 && boardSize.rows <= 4 ? 14 : 11;
-
-      const maxWidthPerCard = (stageW - (boardSize.cols - 1) * gap) / boardSize.cols;
-      const maxHeightFromWidth = maxWidthPerCard * (3.5 / 2.5);
-      const maxHeightFromStage = (stageH - (boardSize.rows - 1) * gap) / boardSize.rows;
-
-      const cardH = Math.max(64, Math.floor(Math.min(maxHeightFromWidth, maxHeightFromStage)));
-      const cardW = Math.max(46, Math.floor(cardH * (2.5 / 3.5)));
-
-      setCardDims({ width: cardW, height: cardH, gap });
-    };
-
-    computeSize();
-    const observer = new ResizeObserver(() => computeSize());
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [boardSize.cols, boardSize.rows]);
 
   const restartGame = useCallback(() => {
     clearPendingTimer();

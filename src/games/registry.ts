@@ -8,6 +8,24 @@ export type GameId =
   | 'number-safari'
   | 'word-fun';
 
+export type HubShelfId =
+  | 'letters-words'
+  | 'numbers-logic'
+  | 'draw-create'
+  | 'fun-rewards';
+
+export interface HubShelfSpec {
+  id: HubShelfId;
+  label: string;
+}
+
+export const HUB_SHELVES: readonly HubShelfSpec[] = [
+  { id: 'letters-words', label: 'Letters & Words' },
+  { id: 'numbers-logic', label: 'Numbers & Logic' },
+  { id: 'draw-create', label: 'Draw & Color' },
+  { id: 'fun-rewards', label: 'Fun & Rewards' },
+];
+
 export type ActivityRole = 'learning' | 'reward';
 
 export interface GameLearningIntent {
@@ -24,6 +42,7 @@ export interface GameRegistryEntry {
   badgeText: string;
   ageHint: string;
   artPath: string;
+  shelf: HubShelfId;
   status: 'available' | 'coming-soon';
   featured?: boolean;
   activityRole: ActivityRole;
@@ -39,6 +58,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     badgeText: 'Ready to Play',
     ageHint: 'Ages 3–7 • 1–4 Players',
     artPath: 'hub/memory-match.png',
+    shelf: 'fun-rewards',
     status: 'available',
     featured: true,
     activityRole: 'reward',
@@ -58,6 +78,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     badgeText: 'New Game',
     ageHint: 'K1 / LKG • A–Z Phonics',
     artPath: 'hub/letter-train.png',
+    shelf: 'letters-words',
     status: 'available',
     featured: true,
     activityRole: 'learning',
@@ -77,6 +98,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     badgeText: 'New Game',
     ageHint: 'Ages 4–7 • Phonics Sorting',
     artPath: 'hub/letter-river.png',
+    shelf: 'letters-words',
     status: 'available',
     featured: true,
     activityRole: 'learning',
@@ -96,6 +118,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     badgeText: 'New Game',
     ageHint: 'Ages 4–8 • Logic & Patterns',
     artPath: 'hub/picture-sudoku.png',
+    shelf: 'numbers-logic',
     status: 'available',
     featured: true,
     activityRole: 'learning',
@@ -115,6 +138,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     badgeText: 'Ready to Play',
     ageHint: 'Ages 3–7 • 1–4 Players',
     artPath: 'hub/word-fun.png',
+    shelf: 'letters-words',
     status: 'available',
     activityRole: 'learning',
     learningIntent: {
@@ -133,6 +157,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     badgeText: 'Ready to Play',
     ageHint: 'Ages 3–7 • 1–4 Players',
     artPath: 'hub/number-safari.png',
+    shelf: 'numbers-logic',
     status: 'available',
     activityRole: 'learning',
     learningIntent: {
@@ -144,6 +169,13 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     },
   },
 ];
+
+export const VALID_GAME_IDS: readonly GameId[] = GAME_REGISTRY.map((g) => g.id);
+const VALID_GAME_ID_SET = new Set<string>(VALID_GAME_IDS);
+
+export function isValidGameId(value: unknown): value is GameId {
+  return typeof value === 'string' && VALID_GAME_ID_SET.has(value);
+}
 
 export function getGameRegistryEntry(id: GameId): GameRegistryEntry {
   return GAME_REGISTRY.find((g) => g.id === id) ?? GAME_REGISTRY[0];

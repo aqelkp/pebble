@@ -43,17 +43,21 @@ pebble/
 │   ├── sync-word-audio.mjs     # Incremental Kokoro TTS -> MP3 generator for wordCatalog.json
 │   └── visual-verify-helper.mjs # Playwright 768x1024 screenshot & WebM video helper
 ├── src/
-│   ├── components/             # BrandLogo, ConfettiBurst, WinnerModal
+│   ├── components/             # BrandLogo, ConfettiBurst, GameLoadingFallback, GameStage, LeaveGameModal, WinnerModal
 │   ├── context/                # FamilyProfilesContext (validated localStorage state)
 │   ├── data/                   # wordCatalog.json + wordBank.ts (single source of truth)
+│   ├── engine/                 # Shared micro-toolkit: useStageSize, solveGridFit, useGameLoop, usePointerStroke
 │   ├── games/
-│   │   ├── registry.ts         # Hub game catalog
+│   │   ├── registry.ts         # Hub game catalog, Hub shelves, and GameId allow-list
+│   │   ├── gameConfigs.ts      # Pure config validators & defaults (no heavy component imports)
+│   │   ├── plugins.tsx         # Lazy React.lazy game plugin registry & chunk preloader
 │   │   ├── letter-river/       # riverData.ts, riverSounds.ts, LetterRiverSetup.tsx, LetterRiverBoard.tsx
 │   │   ├── letter-train/       # letterData.ts, WordIllustration.tsx, trainSounds.ts, LetterTrainSetup.tsx, LetterTrainBoard.tsx
 │   │   ├── memory-match/       # themes.ts, memoryStats.ts, soundEffects.ts, MemorySetup.tsx, MemoryBoard.tsx, MemoryRecordsModal.tsx
 │   │   ├── number-safari/      # safariData.ts, safariSounds.ts, SafariSetup.tsx, SafariBoard.tsx
+│   │   ├── picture-sudoku/     # sudokuEngine.ts, sudokuSounds.ts, PictureSudokuSetup.tsx, PictureSudokuBoard.tsx
 │   │   └── word-fun/           # wordBank.ts, WordFunArt.tsx, wordSounds.ts, WordFunSetup.tsx, WordFunBoard.tsx
-│   ├── pages/                  # GameHubPage.tsx, FamilyProfilesPage.tsx
+│   ├── pages/                  # ActivityBookPage, GameHubPage, FamilyProfilesPage, ParentInsightsPage, ParentJourneySettingsPage
 │   ├── styles/tokens.css
 │   └── utils/                  # assets.ts (BASE_URL-aware), wordAudio.ts (MP3 playback & prefetcher)
 ├── AGENTS.md                   # Auto-discovered workspace instructions
@@ -91,7 +95,11 @@ This allows tall playing cards for `4 × 4`, `4 × 5` (default), and `5 × 6` gr
 ## Adding a New Theme or Game
 
 1. **New Memory Theme:** Add 16 PNGs (`512 × 512`) under `public/themes/<theme-id>/` and register a `ThemeSpec` entry in `CARD_THEMES` (`src/games/memory-match/themes.ts`).
-2. **New Game Module:** Add files under `src/games/<game-id>/`, add metadata to `GAME_REGISTRY` (`src/games/registry.ts`), and wire the screen route in `src/App.tsx`.
+2. **New Game Module (Plugin Flow — Zero `src/App.tsx` Edits):**
+   1. Create Setup and Board components under `src/games/<game-id>/`, reusing Pebble's shared micro-toolkit (`src/engine/useStageSize.ts` + `solveGridFit`, `src/engine/useGameLoop.ts`, `src/engine/usePointerStroke.ts`, and `src/components/GameStage.tsx`).
+   2. Add the new `GameId`, metadata, and `shelf` (`letters-words`, `numbers-logic`, `draw-create`, or `fun-rewards`) to `GAME_REGISTRY` in `src/games/registry.ts`.
+   3. Add the game's pure config validator and default builder to `src/games/gameConfigs.ts` (keeping imports type-only for TSX files so Vite splits every Setup/Board into independent lazy chunks).
+   4. Register the lazy `Setup`/`Board` plugin, `activeSessionStorageKey`, and `leaveCopy` in `GAME_PLUGINS` inside `src/games/plugins.tsx` (plus a Guided Activity Book adapter in `src/journey/lessonRegistry.ts` when included in the curriculum).
 
 ## Security Controls
 

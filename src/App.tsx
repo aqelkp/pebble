@@ -1,53 +1,30 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { ActivityCompleteModal } from './components/ActivityCompleteModal';
 import { ActivityIntroModal } from './components/ActivityIntroModal';
+import { GameLoadingFallback } from './components/GameLoadingFallback';
+import { LeaveGameModal } from './components/LeaveGameModal';
 import { ParentGateModal } from './components/ParentGateModal';
 import { FamilyProfilesProvider, useFamilyProfiles } from './context/FamilyProfilesContext';
+import { isValidGameConfig, type GameConfigMap, type SavedGameConfigs } from './games/gameConfigs';
 import {
-  clearSavedLetterRiverGame,
-  LetterRiverBoard,
-} from './games/letter-river/LetterRiverBoard';
-import {
-  getDefaultLetterRiverConfig,
-  isValidLetterRiverConfig,
-  LetterRiverSetup,
-  type LetterRiverConfig,
-} from './games/letter-river/LetterRiverSetup';
-import {
-  clearSavedLetterTrainGame,
-  LetterTrainBoard,
-} from './games/letter-train/LetterTrainBoard';
-import {
-  getDefaultLetterTrainConfig,
-  isValidLetterTrainConfig,
-  LetterTrainSetup,
-  type LetterTrainConfig,
-} from './games/letter-train/LetterTrainSetup';
-import { clearSavedMemoryGame, MemoryBoard } from './games/memory-match/MemoryBoard';
-import { MemorySetup, type MemoryGameConfig } from './games/memory-match/MemorySetup';
-import { clearSavedSafariGame, SafariBoard } from './games/number-safari/SafariBoard';
-import {
-  isValidSafariLengthId,
-  isValidSafariModeId,
-} from './games/number-safari/safariData';
-import { SafariSetup, type SafariGameConfig } from './games/number-safari/SafariSetup';
-import {
-  clearSavedSudokuGame,
-  PictureSudokuBoard,
-} from './games/picture-sudoku/PictureSudokuBoard';
-import {
-  getDefaultPictureSudokuConfig,
-  isValidPictureSudokuConfig,
-  PictureSudokuSetup,
-  type PictureSudokuConfig,
-} from './games/picture-sudoku/PictureSudokuSetup';
-import type { GameRegistryEntry } from './games/registry';
-import { clearSavedWordGame, WordFunBoard } from './games/word-fun/WordFunBoard';
-import {
-  isValidWordGameConfig,
-  WordFunSetup,
-  type WordGameConfig,
-} from './games/word-fun/WordFunSetup';
+  clearAllSavedGames,
+  clearSavedGameById,
+  getGamePlugin,
+  preloadGamePlugin,
+  renderPluginBoard,
+  renderPluginSetup,
+  scheduleIdleGamePreload,
+} from './games/plugins';
+import { isValidGameId, type GameId } from './games/registry';
 import { buildJourneyCurriculum } from './journey/curriculum';
 import {
   getDefaultJourneyState,
@@ -64,10 +41,30 @@ import {
   type JourneySettings,
 } from './journey/journeyTypes';
 import { ActivityBookPage } from './pages/ActivityBookPage';
-import { FamilyProfilesPage } from './pages/FamilyProfilesPage';
 import { GameHubPage } from './pages/GameHubPage';
-import { ParentInsightsPage } from './pages/ParentInsightsPage';
-import { ParentJourneySettingsPage } from './pages/ParentJourneySettingsPage';
+
+const FamilyProfilesPage = lazy(() =>
+  import('./pages/FamilyProfilesPage').then((m) => ({ default: m.FamilyProfilesPage })),
+);
+const ParentInsightsPage = lazy(() =>
+  import('./pages/ParentInsightsPage').then((m) => ({ default: m.ParentInsightsPage })),
+);
+const ParentJourneySettingsPage = lazy(() =>
+  import('./pages/ParentJourneySettingsPage').then((m) => ({
+    default: m.ParentJourneySettingsPage,
+  })),
+);
+
+// TODO(security): Pebble runs 100% locally in the browser with no backend server, authentication,
+// or database. Navigation state and last game configurations restored from sessionStorage are
+// treated as untrusted input, validated against strict allow-lists and integer bounds, and fail
+// closed back to { view: 'hub' } if malformed.
+
+type ProfilesReturnTarget =
+  | { view: 'hub' }
+  | { view: 'free-play-hub' }
+  | { view: 'parent-settings' }
+  | { view: 'game-setup'; gameId: GameId };
 
 type Screen =
   | { view: 'hub' }
@@ -75,230 +72,203 @@ type Screen =
   | { view: 'parent-settings' }
   | { view: 'parent-insights' }
   | { view: 'journey-play'; activityIndex: number; gameKey: number }
-  | {
-      view: 'profiles';
-      returnTo:
-        | 'hub'
-        | 'free-play-hub'
-        | 'parent-settings'
-        | 'memory-setup'
-        | 'letter-train-setup'
-        | 'letter-river-setup'
-        | 'safari-setup'
-        | 'word-setup'
-        | 'sudoku-setup';
-    }
-  | { view: 'memory-setup' }
-  | { view: 'memory-play'; gameKey: number }
-  | { view: 'letter-train-setup' }
-  | { view: 'letter-train-play'; gameKey: number }
-  | { view: 'letter-river-setup' }
-  | { view: 'letter-river-play'; gameKey: number }
-  | { view: 'safari-setup' }
-  | { view: 'safari-play'; gameKey: number }
-  | { view: 'word-setup' }
-  | { view: 'word-play'; gameKey: number }
-  | { view: 'sudoku-setup' }
-  | { view: 'sudoku-play'; gameKey: number };
+  | { view: 'profiles'; returnTo: ProfilesReturnTarget }
+  | { view: 'game-setup'; gameId: GameId }
+  | { view: 'game-play'; gameId: GameId; gameKey: number };
 
 const NAV_STORAGE_KEY = 'pebble.nav.v1';
 
 interface SavedNavState {
   screen: Screen;
-  lastMemoryConfig: MemoryGameConfig | null;
-  lastLetterTrainConfig: LetterTrainConfig | null;
-  lastLetterRiverConfig: LetterRiverConfig | null;
-  lastSafariConfig: SafariGameConfig | null;
-  lastWordConfig: WordGameConfig | null;
-  lastSudokuConfig: PictureSudokuConfig | null;
+  gameConfigs: SavedGameConfigs;
 }
+
+const LEGACY_SETUP_VIEW_TO_GAME: Record<string, GameId> = {
+  'memory-setup': 'memory-match',
+  'letter-train-setup': 'letter-train',
+  'letter-river-setup': 'letter-river',
+  'safari-setup': 'number-safari',
+  'word-setup': 'word-fun',
+  'sudoku-setup': 'picture-sudoku',
+};
+
+const LEGACY_PLAY_VIEW_TO_GAME: Record<string, GameId> = {
+  'memory-play': 'memory-match',
+  'letter-train-play': 'letter-train',
+  'letter-river-play': 'letter-river',
+  'safari-play': 'number-safari',
+  'word-play': 'word-fun',
+  'sudoku-play': 'picture-sudoku',
+};
+
+const LEGACY_CONFIG_KEYS: ReadonlyArray<readonly [string, GameId]> = [
+  ['lastMemoryConfig', 'memory-match'],
+  ['lastLetterTrainConfig', 'letter-train'],
+  ['lastLetterRiverConfig', 'letter-river'],
+  ['lastSafariConfig', 'number-safari'],
+  ['lastWordConfig', 'word-fun'],
+  ['lastSudokuConfig', 'picture-sudoku'],
+];
 
 function isPlayScreen(screen: Screen): boolean {
-  return (
-    screen.view === 'journey-play' ||
-    screen.view === 'memory-play' ||
-    screen.view === 'letter-train-play' ||
-    screen.view === 'letter-river-play' ||
-    screen.view === 'safari-play' ||
-    screen.view === 'word-play' ||
-    screen.view === 'sudoku-play'
-  );
+  return screen.view === 'journey-play' || screen.view === 'game-play';
 }
 
-function clearAllSavedGames() {
-  clearSavedMemoryGame();
-  clearSavedLetterTrainGame();
-  clearSavedLetterRiverGame();
-  clearSavedSafariGame();
-  clearSavedWordGame();
-  clearSavedSudokuGame();
+function parseProfilesReturnTarget(raw: unknown): ProfilesReturnTarget | null {
+  if (typeof raw === 'string') {
+    if (raw === 'hub' || raw === 'free-play-hub' || raw === 'parent-settings') {
+      return { view: raw };
+    }
+    const legacyGameId = LEGACY_SETUP_VIEW_TO_GAME[raw];
+    if (legacyGameId) {
+      return { view: 'game-setup', gameId: legacyGameId };
+    }
+    return null;
+  }
+  if (typeof raw !== 'object' || raw === null) return null;
+  const candidate = raw as { view?: unknown; gameId?: unknown };
+  if (
+    candidate.view === 'hub' ||
+    candidate.view === 'free-play-hub' ||
+    candidate.view === 'parent-settings'
+  ) {
+    return { view: candidate.view };
+  }
+  if (candidate.view === 'game-setup' && isValidGameId(candidate.gameId)) {
+    return { view: 'game-setup', gameId: candidate.gameId };
+  }
+  return null;
 }
 
-function clearSavedGameById(gameId: GameRegistryEntry['id']) {
-  if (gameId === 'memory-match') clearSavedMemoryGame();
-  else if (gameId === 'letter-train') clearSavedLetterTrainGame();
-  else if (gameId === 'letter-river') clearSavedLetterRiverGame();
-  else if (gameId === 'number-safari') clearSavedSafariGame();
-  else if (gameId === 'word-fun') clearSavedWordGame();
-  else if (gameId === 'picture-sudoku') clearSavedSudokuGame();
-}
-
-function isValidScreen(value: unknown): value is Screen {
-  if (typeof value !== 'object' || value === null) return false;
-  const candidate = value as Partial<Screen> & {
-    returnTo?: unknown;
+function parseScreen(value: unknown): Screen | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const candidate = value as {
+    view?: unknown;
+    gameId?: unknown;
     gameKey?: unknown;
     activityIndex?: unknown;
+    returnTo?: unknown;
   };
+
   if (
     candidate.view === 'hub' ||
     candidate.view === 'free-play-hub' ||
     candidate.view === 'parent-settings' ||
-    candidate.view === 'parent-insights' ||
-    candidate.view === 'memory-setup' ||
-    candidate.view === 'letter-train-setup' ||
-    candidate.view === 'letter-river-setup' ||
-    candidate.view === 'safari-setup' ||
-    candidate.view === 'word-setup' ||
-    candidate.view === 'sudoku-setup'
+    candidate.view === 'parent-insights'
   ) {
-    return true;
+    return { view: candidate.view };
   }
+
   if (
     candidate.view === 'journey-play' &&
     typeof candidate.activityIndex === 'number' &&
     Number.isInteger(candidate.activityIndex) &&
     candidate.activityIndex >= 0 &&
     candidate.activityIndex < TOTAL_ACTIVITIES &&
-    typeof candidate.gameKey === 'number'
+    typeof candidate.gameKey === 'number' &&
+    Number.isFinite(candidate.gameKey)
   ) {
-    return true;
+    return {
+      view: 'journey-play',
+      activityIndex: candidate.activityIndex,
+      gameKey: candidate.gameKey,
+    };
   }
+
+  if (candidate.view === 'profiles') {
+    const returnTo = parseProfilesReturnTarget(candidate.returnTo);
+    if (returnTo) {
+      return { view: 'profiles', returnTo };
+    }
+    return null;
+  }
+
+  if (candidate.view === 'game-setup' && isValidGameId(candidate.gameId)) {
+    return { view: 'game-setup', gameId: candidate.gameId };
+  }
+
   if (
-    candidate.view === 'profiles' &&
-    (candidate.returnTo === 'hub' ||
-      candidate.returnTo === 'free-play-hub' ||
-      candidate.returnTo === 'parent-settings' ||
-      candidate.returnTo === 'memory-setup' ||
-      candidate.returnTo === 'letter-train-setup' ||
-      candidate.returnTo === 'letter-river-setup' ||
-      candidate.returnTo === 'safari-setup' ||
-      candidate.returnTo === 'word-setup' ||
-      candidate.returnTo === 'sudoku-setup')
+    candidate.view === 'game-play' &&
+    isValidGameId(candidate.gameId) &&
+    typeof candidate.gameKey === 'number' &&
+    Number.isFinite(candidate.gameKey)
   ) {
-    return true;
+    return {
+      view: 'game-play',
+      gameId: candidate.gameId,
+      gameKey: candidate.gameKey,
+    };
   }
-  if (
-    (candidate.view === 'memory-play' ||
-      candidate.view === 'letter-train-play' ||
-      candidate.view === 'letter-river-play' ||
-      candidate.view === 'safari-play' ||
-      candidate.view === 'word-play' ||
-      candidate.view === 'sudoku-play') &&
-    typeof candidate.gameKey === 'number'
-  ) {
-    return true;
+
+  if (typeof candidate.view === 'string') {
+    const legacySetupId = LEGACY_SETUP_VIEW_TO_GAME[candidate.view];
+    if (legacySetupId) {
+      return { view: 'game-setup', gameId: legacySetupId };
+    }
+    const legacyPlayId = LEGACY_PLAY_VIEW_TO_GAME[candidate.view];
+    if (
+      legacyPlayId &&
+      typeof candidate.gameKey === 'number' &&
+      Number.isFinite(candidate.gameKey)
+    ) {
+      return { view: 'game-play', gameId: legacyPlayId, gameKey: candidate.gameKey };
+    }
   }
-  return false;
+
+  return null;
 }
 
-function isValidMemoryConfig(value: unknown): value is MemoryGameConfig {
-  if (typeof value !== 'object' || value === null) return false;
-  const c = value as Partial<MemoryGameConfig>;
-  return (
-    typeof c.themeId === 'string' &&
-    typeof c.boardSizeId === 'string' &&
-    Array.isArray(c.playerIds) &&
-    c.playerIds.every((id) => typeof id === 'string')
-  );
+function setSavedConfig<K extends GameId>(
+  configs: SavedGameConfigs,
+  gameId: K,
+  value: GameConfigMap[K],
+): void {
+  configs[gameId] = value;
 }
 
-function isValidSafariConfig(value: unknown): value is SafariGameConfig {
-  if (typeof value !== 'object' || value === null) return false;
-  const c = value as Partial<SafariGameConfig>;
-  return (
-    isValidSafariModeId(c.modeId) &&
-    isValidSafariLengthId(c.lengthId) &&
-    Array.isArray(c.playerIds) &&
-    c.playerIds.length <= 6 &&
-    c.playerIds.every((id) => typeof id === 'string')
-  );
+function parseSavedConfigs(candidate: Record<string, unknown>): SavedGameConfigs {
+  const result: SavedGameConfigs = {};
+
+  if (typeof candidate.gameConfigs === 'object' && candidate.gameConfigs !== null) {
+    const rawMap = candidate.gameConfigs as Record<string, unknown>;
+    for (const [key, rawCfg] of Object.entries(rawMap)) {
+      if (isValidGameId(key) && isValidGameConfig(key, rawCfg)) {
+        setSavedConfig(result, key, rawCfg);
+      }
+    }
+  }
+
+  for (const [legacyKey, gameId] of LEGACY_CONFIG_KEYS) {
+    if (!result[gameId] && isValidGameConfig(gameId, candidate[legacyKey])) {
+      setSavedConfig(result, gameId, candidate[legacyKey]);
+    }
+  }
+
+  return result;
 }
 
 function loadSavedNavState(): SavedNavState {
   const emptyState: SavedNavState = {
     screen: { view: 'hub' },
-    lastMemoryConfig: null,
-    lastLetterTrainConfig: null,
-    lastLetterRiverConfig: null,
-    lastSafariConfig: null,
-    lastWordConfig: null,
-    lastSudokuConfig: null,
+    gameConfigs: {},
   };
   try {
     const raw = window.sessionStorage.getItem(NAV_STORAGE_KEY);
-    if (!raw) {
-      return emptyState;
-    }
+    if (!raw) return emptyState;
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== 'object' || parsed === null) {
       return emptyState;
     }
-    const candidate = parsed as {
-      screen?: unknown;
-      lastMemoryConfig?: unknown;
-      lastLetterTrainConfig?: unknown;
-      lastLetterRiverConfig?: unknown;
-      lastSafariConfig?: unknown;
-      lastWordConfig?: unknown;
-      lastSudokuConfig?: unknown;
-    };
-    const lastMemoryConfig = isValidMemoryConfig(candidate.lastMemoryConfig)
-      ? candidate.lastMemoryConfig
-      : null;
-    const lastLetterTrainConfig = isValidLetterTrainConfig(candidate.lastLetterTrainConfig)
-      ? candidate.lastLetterTrainConfig
-      : null;
-    const lastLetterRiverConfig = isValidLetterRiverConfig(candidate.lastLetterRiverConfig)
-      ? candidate.lastLetterRiverConfig
-      : null;
-    const lastSafariConfig = isValidSafariConfig(candidate.lastSafariConfig)
-      ? candidate.lastSafariConfig
-      : null;
-    const lastWordConfig = isValidWordGameConfig(candidate.lastWordConfig)
-      ? candidate.lastWordConfig
-      : null;
-    const lastSudokuConfig = isValidPictureSudokuConfig(candidate.lastSudokuConfig)
-      ? candidate.lastSudokuConfig
-      : null;
-    let screen: Screen = isValidScreen(candidate.screen) ? candidate.screen : { view: 'hub' };
-    if (screen.view === 'memory-play' && !lastMemoryConfig) {
+
+    const candidate = parsed as Record<string, unknown>;
+    const gameConfigs = parseSavedConfigs(candidate);
+    let screen = parseScreen(candidate.screen) ?? { view: 'hub' };
+
+    if (screen.view === 'game-play' && !gameConfigs[screen.gameId]) {
       screen = { view: 'hub' };
     }
-    if (screen.view === 'letter-train-play' && !lastLetterTrainConfig) {
-      screen = { view: 'hub' };
-    }
-    if (screen.view === 'letter-river-play' && !lastLetterRiverConfig) {
-      screen = { view: 'hub' };
-    }
-    if (screen.view === 'safari-play' && !lastSafariConfig) {
-      screen = { view: 'hub' };
-    }
-    if (screen.view === 'word-play' && !lastWordConfig) {
-      screen = { view: 'hub' };
-    }
-    if (screen.view === 'sudoku-play' && !lastSudokuConfig) {
-      screen = { view: 'hub' };
-    }
-    return {
-      screen,
-      lastMemoryConfig,
-      lastLetterTrainConfig,
-      lastLetterRiverConfig,
-      lastSafariConfig,
-      lastWordConfig,
-      lastSudokuConfig,
-    };
+
+    return { screen, gameConfigs };
   } catch {
     return emptyState;
   }
@@ -308,24 +278,7 @@ function PebbleRouter() {
   const { profiles, soundEnabled, toggleSound, updateProfile } = useFamilyProfiles();
   const [initialNav] = useState<SavedNavState>(() => loadSavedNavState());
   const [screen, setScreen] = useState<Screen>(initialNav.screen);
-  const [lastMemoryConfig, setLastMemoryConfig] = useState<MemoryGameConfig | null>(
-    initialNav.lastMemoryConfig,
-  );
-  const [lastLetterTrainConfig, setLastLetterTrainConfig] = useState<LetterTrainConfig | null>(
-    initialNav.lastLetterTrainConfig,
-  );
-  const [lastLetterRiverConfig, setLastLetterRiverConfig] = useState<LetterRiverConfig | null>(
-    initialNav.lastLetterRiverConfig,
-  );
-  const [lastSafariConfig, setLastSafariConfig] = useState<SafariGameConfig | null>(
-    initialNav.lastSafariConfig,
-  );
-  const [lastWordConfig, setLastWordConfig] = useState<WordGameConfig | null>(
-    initialNav.lastWordConfig,
-  );
-  const [lastSudokuConfig, setLastSudokuConfig] = useState<PictureSudokuConfig | null>(
-    initialNav.lastSudokuConfig,
-  );
+  const [gameConfigs, setGameConfigs] = useState<SavedGameConfigs>(initialNav.gameConfigs);
   const [journeyState, setJourneyState] = useState<JourneyProgressState>(() => loadJourneyState());
   const [showParentGate, setShowParentGate] = useState(false);
   const [introActivity, setIntroActivity] = useState<JourneyActivity | null>(null);
@@ -341,42 +294,45 @@ function PebbleRouter() {
     saveJourneyState(journeyState);
   }, [journeyState]);
 
+  // Gently pre-warm lazy game bundles during idle time after initial paint
+  useEffect(() => scheduleIdleGamePreload(), []);
+
+  // Pre-warm the selected activity's chunk while the intro modal is open
+  useEffect(() => {
+    if (introActivity) {
+      preloadGamePlugin(introActivity.gameId);
+    }
+  }, [introActivity]);
+
   const screenRef = useRef<Screen>(screen);
   screenRef.current = screen;
   const isGameActiveRef = useRef(false);
   const historyDepthRef = useRef(0);
   const bypassGuardRef = useRef(false);
 
-  // Persist current screen & config in sessionStorage so PWA reloads restore mid-session state
+  // Persist current screen & configs in sessionStorage so PWA reloads restore mid-session state
   useEffect(() => {
     try {
       const payload: SavedNavState = {
         screen,
-        lastMemoryConfig,
-        lastLetterTrainConfig,
-        lastLetterRiverConfig,
-        lastSafariConfig,
-        lastWordConfig,
-        lastSudokuConfig,
+        gameConfigs,
       };
       window.sessionStorage.setItem(NAV_STORAGE_KEY, JSON.stringify(payload));
     } catch {
       // Ignore storage errors in restricted environments
     }
-  }, [
-    lastLetterRiverConfig,
-    lastLetterTrainConfig,
-    lastMemoryConfig,
-    lastSafariConfig,
-    lastSudokuConfig,
-    lastWordConfig,
-    screen,
-  ]);
+  }, [gameConfigs, screen]);
+
+  // Reset scroll offset on top-level view transitions so long pages never strand the next screen scrolled down
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [screen]);
 
   // Sync in-app navigation with browser history so Android Back navigates within Pebble
   // instead of exiting the installed PWA, and guards active games from accidental exits.
   useEffect(() => {
-    if (!isValidScreen(window.history.state?.pebbleScreen)) {
+    const currentHistoryScreen = parseScreen(window.history.state?.pebbleScreen);
+    if (!currentHistoryScreen) {
       window.history.replaceState({ pebbleScreen: screenRef.current }, '');
     }
 
@@ -398,46 +354,24 @@ function PebbleRouter() {
       setShowLeaveConfirm(false);
 
       const stateObj = event.state as { pebbleScreen?: unknown } | null;
-      const targetScreen = isValidScreen(stateObj?.pebbleScreen)
-        ? stateObj.pebbleScreen
-        : { view: 'hub' as const };
+      const targetScreen = parseScreen(stateObj?.pebbleScreen) ?? { view: 'hub' as const };
+      const prevScreen = screenRef.current;
 
-      if (screenRef.current.view === 'journey-play' && targetScreen.view !== 'journey-play') {
+      if (prevScreen.view === 'journey-play' && targetScreen.view !== 'journey-play') {
         clearAllSavedGames();
         isGameActiveRef.current = false;
         setCompletedActivity(null);
         setIntroActivity(null);
       }
-      if (screenRef.current.view === 'memory-play' && targetScreen.view !== 'memory-play') {
-        clearSavedMemoryGame();
-        isGameActiveRef.current = false;
-      }
+
       if (
-        screenRef.current.view === 'letter-train-play' &&
-        targetScreen.view !== 'letter-train-play'
+        prevScreen.view === 'game-play' &&
+        (targetScreen.view !== 'game-play' || targetScreen.gameId !== prevScreen.gameId)
       ) {
-        clearSavedLetterTrainGame();
+        clearSavedGameById(prevScreen.gameId);
         isGameActiveRef.current = false;
       }
-      if (
-        screenRef.current.view === 'letter-river-play' &&
-        targetScreen.view !== 'letter-river-play'
-      ) {
-        clearSavedLetterRiverGame();
-        isGameActiveRef.current = false;
-      }
-      if (screenRef.current.view === 'safari-play' && targetScreen.view !== 'safari-play') {
-        clearSavedSafariGame();
-        isGameActiveRef.current = false;
-      }
-      if (screenRef.current.view === 'word-play' && targetScreen.view !== 'word-play') {
-        clearSavedWordGame();
-        isGameActiveRef.current = false;
-      }
-      if (screenRef.current.view === 'sudoku-play' && targetScreen.view !== 'sudoku-play') {
-        clearSavedSudokuGame();
-        isGameActiveRef.current = false;
-      }
+
       setScreen(targetScreen);
     };
 
@@ -452,18 +386,20 @@ function PebbleRouter() {
   }, []);
 
   const navigateBack = useCallback((fallbackScreen: Screen, bypassGameGuard = false) => {
-    if (fallbackScreen.view !== 'journey-play') {
-      if (fallbackScreen.view !== 'memory-play') clearSavedMemoryGame();
-      if (fallbackScreen.view !== 'letter-train-play') clearSavedLetterTrainGame();
-      if (fallbackScreen.view !== 'letter-river-play') clearSavedLetterRiverGame();
-      if (fallbackScreen.view !== 'safari-play') clearSavedSafariGame();
-      if (fallbackScreen.view !== 'word-play') clearSavedWordGame();
-      if (fallbackScreen.view !== 'sudoku-play') clearSavedSudokuGame();
+    if (fallbackScreen.view === 'game-play') {
+      const current = screenRef.current;
+      if (current.view === 'game-play' && current.gameId !== fallbackScreen.gameId) {
+        clearSavedGameById(current.gameId);
+      }
+    } else if (fallbackScreen.view !== 'journey-play') {
+      clearAllSavedGames();
     }
+
     if (!isPlayScreen(fallbackScreen)) {
       isGameActiveRef.current = false;
       setCompletedActivity(null);
     }
+
     if (historyDepthRef.current > 0) {
       if (bypassGameGuard) {
         bypassGuardRef.current = true;
@@ -471,12 +407,13 @@ function PebbleRouter() {
       window.history.back();
       return;
     }
+
     window.history.replaceState({ pebbleScreen: fallbackScreen }, '');
     setScreen(fallbackScreen);
   }, []);
 
-  const navigateToHub = useCallback(() => {
-    if (isPlayScreen(screenRef.current) && isGameActiveRef.current) {
+  const leaveToHub = useCallback((skipGuard: boolean) => {
+    if (!skipGuard && isPlayScreen(screenRef.current) && isGameActiveRef.current) {
       setShowLeaveConfirm(true);
       return;
     }
@@ -485,6 +422,7 @@ function PebbleRouter() {
     setCompletedActivity(null);
     setIntroActivity(null);
     setShowLeaveConfirm(false);
+
     if (historyDepthRef.current > 0) {
       bypassGuardRef.current = true;
       const steps = historyDepthRef.current;
@@ -492,46 +430,25 @@ function PebbleRouter() {
       window.history.go(-steps);
       return;
     }
+
     window.history.replaceState({ pebbleScreen: { view: 'hub' } }, '');
     setScreen({ view: 'hub' });
   }, []);
 
-  const forceLeaveToHub = useCallback(() => {
-    clearAllSavedGames();
-    isGameActiveRef.current = false;
-    setCompletedActivity(null);
-    setIntroActivity(null);
-    setShowLeaveConfirm(false);
-    if (historyDepthRef.current > 0) {
-      bypassGuardRef.current = true;
-      const steps = historyDepthRef.current;
-      historyDepthRef.current = 0;
-      window.history.go(-steps);
-      return;
-    }
-    window.history.replaceState({ pebbleScreen: { view: 'hub' } }, '');
-    setScreen({ view: 'hub' });
-  }, []);
+  const navigateToHub = useCallback(() => leaveToHub(false), [leaveToHub]);
+  const forceLeaveToHub = useCallback(() => leaveToHub(true), [leaveToHub]);
 
   const handleGameActiveChange = useCallback((active: boolean) => {
     isGameActiveRef.current = active;
   }, []);
 
-  const handleOpenGame = (gameId: GameRegistryEntry['id']) => {
-    if (gameId === 'memory-match') {
-      navigateTo({ view: 'memory-setup' });
-    } else if (gameId === 'letter-train') {
-      navigateTo({ view: 'letter-train-setup' });
-    } else if (gameId === 'letter-river') {
-      navigateTo({ view: 'letter-river-setup' });
-    } else if (gameId === 'number-safari') {
-      navigateTo({ view: 'safari-setup' });
-    } else if (gameId === 'word-fun') {
-      navigateTo({ view: 'word-setup' });
-    } else if (gameId === 'picture-sudoku') {
-      navigateTo({ view: 'sudoku-setup' });
-    }
-  };
+  const handleOpenGame = useCallback(
+    (gameId: GameId) => {
+      preloadGamePlugin(gameId);
+      navigateTo({ view: 'game-setup', gameId });
+    },
+    [navigateTo],
+  );
 
   const handleUpdateJourneySettings = useCallback((patch: Partial<JourneySettings>) => {
     setJourneyState((prev) => ({
@@ -565,25 +482,7 @@ function PebbleRouter() {
 
   const renderScreen = (): ReactNode => {
     if (screen.view === 'profiles') {
-      const fallback: Screen =
-        screen.returnTo === 'free-play-hub'
-          ? { view: 'free-play-hub' }
-          : screen.returnTo === 'parent-settings'
-            ? { view: 'parent-settings' }
-            : screen.returnTo === 'memory-setup'
-              ? { view: 'memory-setup' }
-              : screen.returnTo === 'letter-train-setup'
-                ? { view: 'letter-train-setup' }
-                : screen.returnTo === 'letter-river-setup'
-                  ? { view: 'letter-river-setup' }
-                  : screen.returnTo === 'safari-setup'
-                    ? { view: 'safari-setup' }
-                    : screen.returnTo === 'word-setup'
-                      ? { view: 'word-setup' }
-                      : screen.returnTo === 'sudoku-setup'
-                        ? { view: 'sudoku-setup' }
-                        : { view: 'hub' };
-      return <FamilyProfilesPage onBack={() => navigateBack(fallback)} />;
+      return <FamilyProfilesPage onBack={() => navigateBack(screen.returnTo)} />;
     }
 
     if (screen.view === 'parent-settings') {
@@ -607,7 +506,9 @@ function PebbleRouter() {
           onTestIndividualGame={handleOpenGame}
           onOpenFreePlayHub={() => navigateTo({ view: 'free-play-hub' })}
           onOpenParentInsights={() => navigateTo({ view: 'parent-insights' })}
-          onOpenProfiles={() => navigateTo({ view: 'profiles', returnTo: 'parent-settings' })}
+          onOpenProfiles={() =>
+            navigateTo({ view: 'profiles', returnTo: { view: 'parent-settings' } })
+          }
           onBack={navigateToHub}
         />
       );
@@ -620,8 +521,21 @@ function PebbleRouter() {
           isFreePlayPreview
           onBackToActivityBook={navigateToHub}
           onOpenGame={handleOpenGame}
-          onOpenProfiles={() => navigateTo({ view: 'profiles', returnTo: 'free-play-hub' })}
+          onOpenProfiles={() =>
+            navigateTo({ view: 'profiles', returnTo: { view: 'free-play-hub' } })
+          }
           onOpenParentInsights={() => navigateTo({ view: 'parent-insights' })}
+        />
+      );
+    }
+
+    if (screen.view === 'parent-insights') {
+      return (
+        <ParentInsightsPage
+          profiles={profiles}
+          onUpdateProfile={updateProfile}
+          onOpenGame={handleOpenGame}
+          onBackToHub={() => navigateBack({ view: 'hub' })}
         />
       );
     }
@@ -641,527 +555,52 @@ function PebbleRouter() {
         },
       };
 
-      const { payload } = activeActivity;
-      if (payload.gameId === 'memory-match') {
-        return (
-          <MemoryBoard
-            key={screen.gameKey}
-            gameKey={screen.gameKey}
-            config={payload.config}
-            profiles={profiles}
-            soundEnabled={soundEnabled}
-            onToggleSound={toggleSound}
-            onChangeSetup={() => undefined}
-            onBackToHub={navigateToHub}
-            onGameActiveChange={handleGameActiveChange}
-            journeyContext={journeyContext}
-          />
-        );
-      }
-      if (payload.gameId === 'letter-train') {
-        return (
-          <LetterTrainBoard
-            key={screen.gameKey}
-            gameKey={screen.gameKey}
-            config={payload.config}
-            childProfile={profiles[0]}
-            soundEnabled={soundEnabled}
-            onToggleSound={toggleSound}
-            onChangeSetup={() => undefined}
-            onBackToHub={navigateToHub}
-            onGameActiveChange={handleGameActiveChange}
-            journeyContext={journeyContext}
-          />
-        );
-      }
-      if (payload.gameId === 'letter-river') {
-        return (
-          <LetterRiverBoard
-            key={screen.gameKey}
-            gameKey={screen.gameKey}
-            config={payload.config}
-            childProfile={profiles[0]}
-            soundEnabled={soundEnabled}
-            onToggleSound={toggleSound}
-            onChangeSetup={() => undefined}
-            onBackToHub={navigateToHub}
-            onGameActiveChange={handleGameActiveChange}
-            journeyContext={journeyContext}
-          />
-        );
-      }
-      if (payload.gameId === 'picture-sudoku') {
-        return (
-          <PictureSudokuBoard
-            key={screen.gameKey}
-            gameKey={screen.gameKey}
-            config={payload.config}
-            childProfile={profiles[0]}
-            soundEnabled={soundEnabled}
-            onToggleSound={toggleSound}
-            onChangeSetup={() => undefined}
-            onBackToHub={navigateToHub}
-            onGameActiveChange={handleGameActiveChange}
-            journeyContext={journeyContext}
-          />
-        );
-      }
-      if (payload.gameId === 'word-fun') {
-        return (
-          <WordFunBoard
-            key={screen.gameKey}
-            gameKey={screen.gameKey}
-            config={payload.config}
-            profiles={profiles}
-            soundEnabled={soundEnabled}
-            onToggleSound={toggleSound}
-            onChangeSetup={() => undefined}
-            onBackToHub={navigateToHub}
-            onGameActiveChange={handleGameActiveChange}
-            journeyContext={journeyContext}
-          />
-        );
-      }
-      return (
-        <SafariBoard
-          key={screen.gameKey}
-          gameKey={screen.gameKey}
-          config={payload.config}
-          profiles={profiles}
-          soundEnabled={soundEnabled}
-          onToggleSound={toggleSound}
-          onChangeSetup={() => undefined}
-          onBackToHub={navigateToHub}
-          onGameActiveChange={handleGameActiveChange}
-          journeyContext={journeyContext}
-        />
-      );
+      return renderPluginBoard(activeActivity.gameId, activeActivity.payload.config, {
+        gameKey: screen.gameKey,
+        profiles,
+        soundEnabled,
+        onToggleSound: toggleSound,
+        onChangeSetup: () => undefined,
+        onBackToHub: navigateToHub,
+        onGameActiveChange: handleGameActiveChange,
+        journeyContext,
+      });
     }
 
-    if (screen.view === 'parent-insights') {
-      return (
-        <ParentInsightsPage
-          profiles={profiles}
-          onUpdateProfile={updateProfile}
-          onOpenGame={handleOpenGame}
-          onBackToHub={() => navigateBack({ view: 'hub' })}
-        />
-      );
+    if (screen.view === 'game-setup') {
+      const { gameId } = screen;
+      return renderPluginSetup(gameId, {
+        profiles,
+        initialConfig: gameConfigs[gameId] ?? null,
+        onBackToHub: () => navigateBack({ view: 'hub' }),
+        onEditProfiles: () =>
+          navigateTo({ view: 'profiles', returnTo: { view: 'game-setup', gameId } }),
+        onStartGame: (config) => {
+          clearSavedGameById(gameId);
+          setGameConfigs((prev) => {
+            const next: SavedGameConfigs = { ...prev };
+            if (isValidGameConfig(gameId, config)) {
+              setSavedConfig(next, gameId, config);
+            }
+            return next;
+          });
+          navigateTo({ view: 'game-play', gameId, gameKey: Date.now() });
+        },
+      });
     }
 
-  if (screen.view === 'memory-setup') {
-    return (
-      <MemorySetup
-        profiles={profiles}
-        initialConfig={lastMemoryConfig}
-        onBackToHub={() => navigateBack({ view: 'hub' })}
-        onEditProfiles={() => navigateTo({ view: 'profiles', returnTo: 'memory-setup' })}
-        onStartGame={(config) => {
-          clearSavedMemoryGame();
-          setLastMemoryConfig(config);
-          navigateTo({ view: 'memory-play', gameKey: Date.now() });
-        }}
-      />
-    );
-  }
-
-  if (screen.view === 'letter-train-setup') {
-    const childProfile = profiles[0];
-    return (
-      <LetterTrainSetup
-        childProfile={childProfile}
-        initialConfig={lastLetterTrainConfig ?? getDefaultLetterTrainConfig()}
-        onBackToHub={() => navigateBack({ view: 'hub' })}
-        onEditProfiles={() => navigateTo({ view: 'profiles', returnTo: 'letter-train-setup' })}
-        onStartGame={(config) => {
-          clearSavedLetterTrainGame();
-          setLastLetterTrainConfig(config);
-          navigateTo({ view: 'letter-train-play', gameKey: Date.now() });
-        }}
-      />
-    );
-  }
-
-  if (screen.view === 'letter-river-setup') {
-    const childProfile = profiles[0];
-    return (
-      <LetterRiverSetup
-        childProfile={childProfile}
-        initialConfig={lastLetterRiverConfig ?? getDefaultLetterRiverConfig()}
-        onBackToHub={() => navigateBack({ view: 'hub' })}
-        onEditProfiles={() => navigateTo({ view: 'profiles', returnTo: 'letter-river-setup' })}
-        onStartGame={(config) => {
-          clearSavedLetterRiverGame();
-          setLastLetterRiverConfig(config);
-          navigateTo({ view: 'letter-river-play', gameKey: Date.now() });
-        }}
-      />
-    );
-  }
-
-  if (screen.view === 'safari-setup') {
-    return (
-      <SafariSetup
-        profiles={profiles}
-        initialConfig={lastSafariConfig}
-        onBackToHub={() => navigateBack({ view: 'hub' })}
-        onEditProfiles={() => navigateTo({ view: 'profiles', returnTo: 'safari-setup' })}
-        onStartGame={(config) => {
-          clearSavedSafariGame();
-          setLastSafariConfig(config);
-          navigateTo({ view: 'safari-play', gameKey: Date.now() });
-        }}
-      />
-    );
-  }
-
-  if (screen.view === 'word-setup') {
-    return (
-      <WordFunSetup
-        profiles={profiles}
-        initialConfig={lastWordConfig}
-        onBackToHub={() => navigateBack({ view: 'hub' })}
-        onEditProfiles={() => navigateTo({ view: 'profiles', returnTo: 'word-setup' })}
-        onStartGame={(config) => {
-          clearSavedWordGame();
-          setLastWordConfig(config);
-          navigateTo({ view: 'word-play', gameKey: Date.now() });
-        }}
-      />
-    );
-  }
-
-  if (screen.view === 'memory-play' && lastMemoryConfig) {
-    return (
-      <>
-        <MemoryBoard
-          key={screen.gameKey}
-          gameKey={screen.gameKey}
-          config={lastMemoryConfig}
-          profiles={profiles}
-          soundEnabled={soundEnabled}
-          onToggleSound={toggleSound}
-          onChangeSetup={() => navigateBack({ view: 'memory-setup' }, true)}
-          onBackToHub={navigateToHub}
-          onGameActiveChange={handleGameActiveChange}
-        />
-
-        {showLeaveConfirm && (
-          <div
-            className="modal-backdrop"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="leave-game-headline"
-          >
-            <div className="winner-modal">
-              <h2 id="leave-game-headline">Leave current game?</h2>
-              <p className="winner-subtitle">
-                Your current match progress and scores will be lost.
-              </p>
-              <div className="winner-actions">
-                <button
-                  type="button"
-                  className="btn-primary"
-                  style={{ width: '100%' }}
-                  onClick={() => setShowLeaveConfirm(false)}
-                >
-                  Keep Playing
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  style={{ width: '100%' }}
-                  onClick={forceLeaveToHub}
-                >
-                  Back to Games
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  if (screen.view === 'letter-train-play') {
-    const activeTrainConfig = lastLetterTrainConfig ?? getDefaultLetterTrainConfig();
-    return (
-      <>
-        <LetterTrainBoard
-          key={screen.gameKey}
-          gameKey={screen.gameKey}
-          config={activeTrainConfig}
-          childProfile={profiles[0]}
-          soundEnabled={soundEnabled}
-          onToggleSound={toggleSound}
-          onChangeSetup={() => navigateBack({ view: 'letter-train-setup' }, true)}
-          onBackToHub={navigateToHub}
-          onGameActiveChange={handleGameActiveChange}
-        />
-
-        {showLeaveConfirm && (
-          <div
-            className="modal-backdrop"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="leave-train-headline"
-          >
-            <div className="winner-modal">
-              <h2 id="leave-train-headline">Leave the Letter Train?</h2>
-              <p className="winner-subtitle">
-                Mastered A–Z badges are saved, but your current trip score will reset.
-              </p>
-              <div className="winner-actions">
-                <button
-                  type="button"
-                  className="btn-primary"
-                  style={{ width: '100%' }}
-                  onClick={() => setShowLeaveConfirm(false)}
-                >
-                  Keep Riding
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  style={{ width: '100%' }}
-                  onClick={forceLeaveToHub}
-                >
-                  Back to Games
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  if (screen.view === 'letter-river-play') {
-    const activeRiverConfig = lastLetterRiverConfig ?? getDefaultLetterRiverConfig();
-    return (
-      <>
-        <LetterRiverBoard
-          key={screen.gameKey}
-          gameKey={screen.gameKey}
-          config={activeRiverConfig}
-          childProfile={profiles[0]}
-          soundEnabled={soundEnabled}
-          onToggleSound={toggleSound}
-          onChangeSetup={() => navigateBack({ view: 'letter-river-setup' }, true)}
-          onBackToHub={navigateToHub}
-          onGameActiveChange={handleGameActiveChange}
-        />
-
-        {showLeaveConfirm && (
-          <div
-            className="modal-backdrop"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="leave-river-headline"
-          >
-            <div className="winner-modal">
-              <h2 id="leave-river-headline">Leave Letter River?</h2>
-              <p className="winner-subtitle">
-                Earned A–Z river badges are saved, but your current catch score will reset.
-              </p>
-              <div className="winner-actions">
-                <button
-                  type="button"
-                  className="btn-primary"
-                  style={{ width: '100%' }}
-                  onClick={() => setShowLeaveConfirm(false)}
-                >
-                  Keep Fishing
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  style={{ width: '100%' }}
-                  onClick={forceLeaveToHub}
-                >
-                  Back to Games
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  if (screen.view === 'safari-play' && lastSafariConfig) {
-    return (
-      <>
-        <SafariBoard
-          key={screen.gameKey}
-          gameKey={screen.gameKey}
-          config={lastSafariConfig}
-          profiles={profiles}
-          soundEnabled={soundEnabled}
-          onToggleSound={toggleSound}
-          onChangeSetup={() => navigateBack({ view: 'safari-setup' }, true)}
-          onBackToHub={navigateToHub}
-          onGameActiveChange={handleGameActiveChange}
-        />
-
-        {showLeaveConfirm && (
-          <div
-            className="modal-backdrop"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="leave-safari-headline"
-          >
-            <div className="winner-modal">
-              <h2 id="leave-safari-headline">Leave current safari?</h2>
-              <p className="winner-subtitle">
-                Your current safari progress and scores will be lost.
-              </p>
-              <div className="winner-actions">
-                <button
-                  type="button"
-                  className="btn-primary"
-                  style={{ width: '100%' }}
-                  onClick={() => setShowLeaveConfirm(false)}
-                >
-                  Keep Playing
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  style={{ width: '100%' }}
-                  onClick={forceLeaveToHub}
-                >
-                  Back to Games
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  if (screen.view === 'word-play' && lastWordConfig) {
-    return (
-      <>
-        <WordFunBoard
-          key={screen.gameKey}
-          gameKey={screen.gameKey}
-          config={lastWordConfig}
-          profiles={profiles}
-          soundEnabled={soundEnabled}
-          onToggleSound={toggleSound}
-          onChangeSetup={() => navigateBack({ view: 'word-setup' }, true)}
-          onBackToHub={navigateToHub}
-          onGameActiveChange={handleGameActiveChange}
-        />
-
-        {showLeaveConfirm && (
-          <div
-            className="modal-backdrop"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="leave-word-headline"
-          >
-            <div className="winner-modal">
-              <h2 id="leave-word-headline">Leave Word Fun?</h2>
-              <p className="winner-subtitle">
-                Your current word progress and scores will be lost.
-              </p>
-              <div className="winner-actions">
-                <button
-                  type="button"
-                  className="btn-primary"
-                  style={{ width: '100%' }}
-                  onClick={() => setShowLeaveConfirm(false)}
-                >
-                  Keep Playing
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  style={{ width: '100%' }}
-                  onClick={forceLeaveToHub}
-                >
-                  Back to Games
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  if (screen.view === 'sudoku-setup') {
-    const childProfile = profiles[0];
-    return (
-      <PictureSudokuSetup
-        childProfile={childProfile}
-        initialConfig={lastSudokuConfig ?? getDefaultPictureSudokuConfig()}
-        onBackToHub={() => navigateBack({ view: 'hub' })}
-        onEditProfiles={() => navigateTo({ view: 'profiles', returnTo: 'sudoku-setup' })}
-        onStartGame={(config) => {
-          clearSavedSudokuGame();
-          setLastSudokuConfig(config);
-          navigateTo({ view: 'sudoku-play', gameKey: Date.now() });
-        }}
-      />
-    );
-  }
-
-  if (screen.view === 'sudoku-play') {
-    const activeSudokuConfig = lastSudokuConfig ?? getDefaultPictureSudokuConfig();
-    return (
-      <>
-        <PictureSudokuBoard
-          key={screen.gameKey}
-          gameKey={screen.gameKey}
-          config={activeSudokuConfig}
-          childProfile={profiles[0]}
-          soundEnabled={soundEnabled}
-          onToggleSound={toggleSound}
-          onChangeSetup={() => navigateBack({ view: 'sudoku-setup' }, true)}
-          onBackToHub={navigateToHub}
-          onGameActiveChange={handleGameActiveChange}
-        />
-
-        {showLeaveConfirm && (
-          <div
-            className="modal-backdrop"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="leave-sudoku-headline"
-          >
-            <div className="winner-modal">
-              <h2 id="leave-sudoku-headline">Leave this puzzle?</h2>
-              <p className="winner-subtitle">
-                Your current Picture Sudoku progress will be cleared.
-              </p>
-              <div className="winner-actions">
-                <button
-                  type="button"
-                  className="btn-primary"
-                  style={{ width: '100%' }}
-                  onClick={() => setShowLeaveConfirm(false)}
-                >
-                  Keep Solving
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  style={{ width: '100%' }}
-                  onClick={forceLeaveToHub}
-                >
-                  Back to Games
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
+    if (screen.view === 'game-play') {
+      const { gameId, gameKey } = screen;
+      return renderPluginBoard(gameId, gameConfigs[gameId], {
+        gameKey,
+        profiles,
+        soundEnabled,
+        onToggleSound: toggleSound,
+        onChangeSetup: () => navigateBack({ view: 'game-setup', gameId }, true),
+        onBackToHub: navigateToHub,
+        onGameActiveChange: handleGameActiveChange,
+      });
+    }
 
     if (journeyState.settings.guidedModeEnabled) {
       return (
@@ -1179,7 +618,7 @@ function PebbleRouter() {
       <GameHubPage
         profiles={profiles}
         onOpenGame={handleOpenGame}
-        onOpenProfiles={() => navigateTo({ view: 'profiles', returnTo: 'hub' })}
+        onOpenProfiles={() => navigateTo({ view: 'profiles', returnTo: { view: 'hub' } })}
         onOpenParentInsights={() => navigateTo({ view: 'parent-insights' })}
         onOpenJourneySettings={() => setShowParentGate(true)}
       />
@@ -1197,42 +636,35 @@ function PebbleRouter() {
       ).length
     : 0;
 
+  const leaveModalCopy =
+    screen.view === 'journey-play'
+      ? {
+          headline: 'Leave current activity?',
+          subtitle: 'Your current activity progress will reset so you can start fresh next time.',
+          keepPlayingLabel: 'Keep Playing',
+          leaveLabel: 'Back to Activity Book',
+        }
+      : screen.view === 'game-play'
+        ? {
+            ...getGamePlugin(screen.gameId).leaveCopy,
+            leaveLabel: 'Back to Games',
+          }
+        : null;
+
   return (
     <>
-      {renderScreen()}
+      <Suspense fallback={<GameLoadingFallback />}>{renderScreen()}</Suspense>
 
-      {showLeaveConfirm && screen.view === 'journey-play' && (
-        <div
-          className="modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="leave-journey-headline"
-        >
-          <div className="winner-modal">
-            <h2 id="leave-journey-headline">Leave current activity?</h2>
-            <p className="winner-subtitle">
-              Your current activity progress will reset so you can start fresh next time.
-            </p>
-            <div className="winner-actions">
-              <button
-                type="button"
-                className="btn-primary"
-                style={{ width: '100%' }}
-                onClick={() => setShowLeaveConfirm(false)}
-              >
-                Keep Playing
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                style={{ width: '100%' }}
-                onClick={forceLeaveToHub}
-              >
-                Back to Activity Book
-              </button>
-            </div>
-          </div>
-        </div>
+      {leaveModalCopy && (
+        <LeaveGameModal
+          open={showLeaveConfirm}
+          headline={leaveModalCopy.headline}
+          subtitle={leaveModalCopy.subtitle}
+          keepPlayingLabel={leaveModalCopy.keepPlayingLabel}
+          leaveLabel={leaveModalCopy.leaveLabel}
+          onKeepPlaying={() => setShowLeaveConfirm(false)}
+          onConfirmLeave={forceLeaveToHub}
+        />
       )}
 
       {completedActivity && screen.view === 'journey-play' && (
