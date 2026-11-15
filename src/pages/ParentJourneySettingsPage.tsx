@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PebbleMark } from '../components/BrandLogo';
+import { DailyLimitParentControl } from '../components/DailyLimitParentControl';
 import type { LetterId } from '../data/wordBank';
 import { ALL_LETTERS } from '../games/letter-train/letterData';
 import { GAME_REGISTRY, type GameRegistryEntry } from '../games/registry';
@@ -14,18 +15,13 @@ import {
   type LettersPerLesson,
 } from '../journey/journeyTypes';
 import { assetUrl } from '../utils/assets';
-import {
-  DAILY_LIMIT_OPTIONS,
-  isDailyLimitReached,
-  type DailyLimitMinutesOption,
-  type DailyPlayLimitState,
-} from '../utils/dailyPlayLimit';
+import type { DailyPlayLimitState } from '../utils/dailyPlayLimit';
 
 interface ParentJourneySettingsPageProps {
   journeyState: JourneyProgressState;
   curriculum: JourneyActivity[];
   dailyLimit: DailyPlayLimitState;
-  onChangeDailyLimitMinutes: (minutes: DailyLimitMinutesOption) => void;
+  onChangeDailyLimitMinutes: (minutes: number) => void;
   onResetDailyTimeToday: () => void;
   onUpdateSettings: (patch: Partial<JourneySettings>) => void;
   onJumpToActivityIndex: (index: number) => void;
@@ -66,13 +62,6 @@ export function ParentJourneySettingsPage({
 }: ParentJourneySettingsPageProps) {
   const { settings } = journeyState;
   const [confirmReset, setConfirmReset] = useState(false);
-
-  const usedMinutesToday = Math.floor(dailyLimit.usedSeconds / 60);
-  const dailyLimitReachedToday = isDailyLimitReached(dailyLimit);
-  const dailyUsageLabel =
-    usedMinutesToday === 0 && dailyLimit.usedSeconds > 0
-      ? 'Under 1 min used today'
-      : `${usedMinutesToday} min used today`;
 
   const currentAct =
     curriculum[journeyState.currentActivityIndex] ?? curriculum[0];
@@ -160,58 +149,11 @@ export function ParentJourneySettingsPage({
           </div>
         </section>
 
-        <section className="pjs-card" aria-labelledby="pjs-daily-limit-title">
-          <div className="pjs-card__head">
-            <div>
-              <h2 id="pjs-daily-limit-title">Daily Screen Time Limit</h2>
-              <p>
-                Quietly caps daily play with no distracting timer on your child&apos;s screen, then
-                speaks a gentle &ldquo;Time is over for today! See you tomorrow!&rdquo; message.
-              </p>
-            </div>
-            <span
-              className={`badge-pill ${
-                dailyLimit.limitMinutes > 0 ? 'badge-pill--mint' : 'badge-pill--muted'
-              }`}
-            >
-              {dailyLimit.limitMinutes > 0 ? `${dailyLimit.limitMinutes} min / day` : 'Off'}
-            </span>
-          </div>
-
-          <div className="pjs-pill-group" role="group" aria-label="Daily screen time limit">
-            {DAILY_LIMIT_OPTIONS.map((minutes) => (
-              <button
-                key={minutes}
-                type="button"
-                className={`pjs-pill ${
-                  dailyLimit.limitMinutes === minutes ? 'pjs-pill--active' : ''
-                }`}
-                aria-pressed={dailyLimit.limitMinutes === minutes}
-                onClick={() => onChangeDailyLimitMinutes(minutes)}
-              >
-                {minutes === 0 ? 'Off' : `${minutes} min`}
-              </button>
-            ))}
-          </div>
-
-          <div className="pjs-daily-usage-row">
-            <div className="pjs-daily-usage-meta">
-              <strong>Today&apos;s Active Play</strong>
-              <span>
-                {dailyUsageLabel}
-                {dailyLimitReachedToday ? ' • Daily limit reached' : ''}
-              </span>
-            </div>
-            <button
-              type="button"
-              className="btn-secondary"
-              disabled={dailyLimit.usedSeconds === 0}
-              onClick={onResetDailyTimeToday}
-            >
-              Reset Today&apos;s Time
-            </button>
-          </div>
-        </section>
+        <DailyLimitParentControl
+          dailyLimit={dailyLimit}
+          onChangeDailyLimitMinutes={onChangeDailyLimitMinutes}
+          onResetDailyTimeToday={onResetDailyTimeToday}
+        />
 
         <section className="pjs-card" aria-labelledby="pjs-pacing-title">
           <div className="pjs-card__head">

@@ -6,11 +6,10 @@
 
 export const DAILY_LIMIT_STORAGE_KEY = 'pebble.daily-limit.v1';
 
-export type DailyLimitMinutesOption = 15 | 20 | 30 | 0;
-
-export const DAILY_LIMIT_OPTIONS: readonly DailyLimitMinutesOption[] = [15, 20, 30, 0];
-
-export const DEFAULT_DAILY_LIMIT_MINUTES: DailyLimitMinutesOption = 20;
+export const MIN_DAILY_LIMIT_MINUTES = 1;
+export const MAX_DAILY_LIMIT_MINUTES = 180;
+export const DEFAULT_DAILY_LIMIT_MINUTES = 20;
+export const DAILY_LIMIT_PRESETS = [10, 15, 20, 30, 45, 60, 0] as const;
 
 const MAX_DAILY_SECONDS = 86_400;
 const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -19,7 +18,8 @@ export interface DailyPlayLimitState {
   version: 1;
   dateKey: string;
   usedSeconds: number;
-  limitMinutes: DailyLimitMinutesOption;
+  /** Daily cap in minutes (1–180), or 0 when disabled (Off). */
+  limitMinutes: number;
 }
 
 /**
@@ -33,11 +33,18 @@ export function getLocalDateKey(now: Date = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
-export function sanitizeLimitMinutes(raw: unknown): DailyLimitMinutesOption {
-  if (raw === 15 || raw === 20 || raw === 30 || raw === 0) {
-    return raw;
+export function sanitizeLimitMinutes(raw: unknown): number {
+  if (raw === 0) {
+    return 0;
   }
-  return DEFAULT_DAILY_LIMIT_MINUTES;
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) {
+    return DEFAULT_DAILY_LIMIT_MINUTES;
+  }
+  const rounded = Math.round(raw);
+  if (rounded <= 0) {
+    return DEFAULT_DAILY_LIMIT_MINUTES;
+  }
+  return Math.min(MAX_DAILY_LIMIT_MINUTES, Math.max(MIN_DAILY_LIMIT_MINUTES, rounded));
 }
 
 export function sanitizeUsedSeconds(raw: unknown): number {
@@ -123,6 +130,23 @@ export function saveDailyPlayLimitState(state: DailyPlayLimitState): void {
 
 export function isDailyLimitReached(state: DailyPlayLimitState): boolean {
   return state.limitMinutes > 0 && state.usedSeconds >= state.limitMinutes * 60;
+}
+
+/**
+ * Formats today's active play summary for Grown-Ups Only parent screens.
+ */
+export function formatDailyUsageLabel(state: DailyPlayLimitState): string {
+  const usedMinutes = Math.floor(state.usedSeconds / 60);
+  const reachedSuffix = isDailyLimitReached(state) ? ' • Daily limit reached' : '';
+  if (usedMinutes === 0 && state.usedSeconds > 0) {
+    return state.limitMinutes > 0
+      ? `Under 1 min of ${state.limitMinutes} min used today${reachedSuffix}`
+      : `Under 1 min used today${reachedSuffix}`;
+  }
+  if (state.limitMinutes > 0) {
+    return `${usedMinutes} min of ${state.limitMinutes} min used today${reachedSuffix}`;
+  }
+  return `${usedMinutes} min used today`;
 }
 
 let chimeAudioCtx: AudioContext | null = null;

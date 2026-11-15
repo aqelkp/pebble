@@ -20,8 +20,8 @@ import {
   getLocalDateKey,
   isDailyLimitReached,
   loadDailyPlayLimitState,
+  sanitizeLimitMinutes,
   saveDailyPlayLimitState,
-  type DailyLimitMinutesOption,
   type DailyPlayLimitState,
 } from './utils/dailyPlayLimit';
 import { preloadDailyTimeOverVoice, stopAllSpokenAudio } from './utils/wordAudio';
@@ -294,7 +294,10 @@ function PebbleRouter() {
   const [dailyLimit, setDailyLimit] = useState<DailyPlayLimitState>(() =>
     loadDailyPlayLimitState(),
   );
-  const [showParentGate, setShowParentGate] = useState(false);
+  const [parentGateTarget, setParentGateTarget] = useState<
+    'parent-settings' | 'parent-insights' | null
+  >(null);
+  const showParentGate = parentGateTarget !== null;
   const [introActivity, setIntroActivity] = useState<JourneyActivity | null>(null);
   const [completedActivity, setCompletedActivity] = useState<JourneyActivity | null>(null);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
@@ -609,11 +612,11 @@ function PebbleRouter() {
     [navigateTo],
   );
 
-  const handleChangeDailyLimitMinutes = useCallback((limitMinutes: DailyLimitMinutesOption) => {
+  const handleChangeDailyLimitMinutes = useCallback((limitMinutes: number) => {
     setDailyLimit((prev) => ({
       ...prev,
       dateKey: getLocalDateKey(),
-      limitMinutes,
+      limitMinutes: sanitizeLimitMinutes(limitMinutes),
     }));
   }, []);
 
@@ -631,7 +634,7 @@ function PebbleRouter() {
         <DailyTimeOverScreen
           childProfile={profiles[0]}
           soundEnabled={soundEnabled}
-          onOpenParentGate={() => setShowParentGate(true)}
+          onOpenParentGate={() => setParentGateTarget('parent-settings')}
         />
       );
     }
@@ -691,6 +694,10 @@ function PebbleRouter() {
       return (
         <ParentInsightsPage
           profiles={profiles}
+          dailyLimit={dailyLimit}
+          onChangeDailyLimitMinutes={handleChangeDailyLimitMinutes}
+          onResetDailyTimeToday={handleResetDailyTimeToday}
+          onOpenJourneySettings={() => navigateTo({ view: 'parent-settings' })}
           onUpdateProfile={updateProfile}
           onOpenGame={handleOpenGame}
           onBackToHub={() => navigateBack({ view: 'hub' })}
@@ -767,7 +774,7 @@ function PebbleRouter() {
           curriculum={curriculum}
           journeyState={journeyState}
           onStartActivity={(act) => setIntroActivity(act)}
-          onOpenParentGate={() => setShowParentGate(true)}
+          onOpenParentGate={() => setParentGateTarget('parent-settings')}
         />
       );
     }
@@ -777,8 +784,8 @@ function PebbleRouter() {
         profiles={profiles}
         onOpenGame={handleOpenGame}
         onOpenProfiles={() => navigateTo({ view: 'profiles', returnTo: { view: 'hub' } })}
-        onOpenParentInsights={() => navigateTo({ view: 'parent-insights' })}
-        onOpenJourneySettings={() => setShowParentGate(true)}
+        onOpenParentInsights={() => setParentGateTarget('parent-insights')}
+        onOpenJourneySettings={() => setParentGateTarget('parent-settings')}
       />
     );
   };
@@ -860,13 +867,14 @@ function PebbleRouter() {
         />
       )}
 
-      {showParentGate && (
+      {parentGateTarget && (
         <ParentGateModal
           onSuccess={() => {
-            setShowParentGate(false);
-            navigateTo({ view: 'parent-settings' });
+            const target = parentGateTarget;
+            setParentGateTarget(null);
+            navigateTo({ view: target });
           }}
-          onCancel={() => setShowParentGate(false)}
+          onCancel={() => setParentGateTarget(null)}
         />
       )}
     </>

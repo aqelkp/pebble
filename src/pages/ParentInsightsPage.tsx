@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { DailyLimitParentControl } from '../components/DailyLimitParentControl';
 import { getAvatarSrc, type FamilyProfile } from '../context/FamilyProfilesContext';
 import {
   CLASS_LEVEL_OPTIONS,
@@ -29,10 +30,15 @@ import {
   saveLearningSettings,
   type MasteryTier,
 } from '../learning/learningStore';
+import { formatDailyUsageLabel, type DailyPlayLimitState } from '../utils/dailyPlayLimit';
 import './ParentInsightsPage.css';
 
 interface ParentInsightsPageProps {
   profiles: FamilyProfile[];
+  dailyLimit: DailyPlayLimitState;
+  onChangeDailyLimitMinutes: (minutes: number) => void;
+  onResetDailyTimeToday: () => void;
+  onOpenJourneySettings?: () => void;
   onUpdateProfile: (
     id: string,
     patch: Partial<Pick<FamilyProfile, 'name' | 'avatar' | 'accentColor' | 'classLevel'>>,
@@ -58,6 +64,10 @@ const TIER_LABELS: Record<MasteryTier, string> = {
 
 export function ParentInsightsPage({
   profiles,
+  dailyLimit,
+  onChangeDailyLimitMinutes,
+  onResetDailyTimeToday,
+  onOpenJourneySettings,
   onUpdateProfile,
   onOpenGame,
   onBackToHub,
@@ -486,12 +496,24 @@ export function ParentInsightsPage({
           </div>
         </div>
 
-        {childProfile && (
-          <div className="pi-child-pill">
-            <img src={getAvatarSrc(childProfile.avatar)} alt="" />
-            <span>{childProfile.name}</span>
-          </div>
-        )}
+        <div className="pi-topbar__right">
+          {onOpenJourneySettings && (
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ minHeight: 42, padding: '0 16px', fontSize: '0.92rem' }}
+              onClick={onOpenJourneySettings}
+            >
+              Journey Settings
+            </button>
+          )}
+          {childProfile && (
+            <div className="pi-child-pill">
+              <img src={getAvatarSrc(childProfile.avatar)} alt="" />
+              <span>{childProfile.name}</span>
+            </div>
+          )}
+        </div>
       </header>
 
       <nav className="pi-tabs" aria-label="Parent sections">
@@ -516,6 +538,30 @@ export function ParentInsightsPage({
 
       {tab === 'overview' && (
         <>
+          <section className="pi-card pi-daily-summary-card" aria-label="Daily screen time summary">
+            <div className="pi-daily-summary-card__meta">
+              <div className="pi-daily-summary-card__title-row">
+                <strong>Daily Screen Time Limit</strong>
+                <span
+                  className={`badge-pill ${
+                    dailyLimit.limitMinutes > 0 ? 'badge-pill--mint' : 'badge-pill--muted'
+                  }`}
+                >
+                  {dailyLimit.limitMinutes > 0 ? `${dailyLimit.limitMinutes} min / day` : 'Off'}
+                </span>
+              </div>
+              <span className="pi-stat-sub">{formatDailyUsageLabel(dailyLimit)}</span>
+            </div>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ minHeight: 42, padding: '0 16px', fontSize: '0.92rem' }}
+              onClick={() => setTab('settings')}
+            >
+              Update Time Limit
+            </button>
+          </section>
+
           <div className="pi-grid-4">
             <button
               type="button"
@@ -834,7 +880,14 @@ export function ParentInsightsPage({
       )}
 
       {tab === 'settings' && (
-        <section className="pi-card">
+        <>
+          <DailyLimitParentControl
+            dailyLimit={dailyLimit}
+            onChangeDailyLimitMinutes={onChangeDailyLimitMinutes}
+            onResetDailyTimeToday={onResetDailyTimeToday}
+          />
+
+          <section className="pi-card">
           <div className="pi-setting-row">
             <div>
               <div style={{ fontWeight: 700 }}>Child Class / Grade Level</div>
@@ -937,6 +990,7 @@ export function ParentInsightsPage({
             )}
           </div>
         </section>
+        </>
       )}
     </div>
   );
