@@ -43,7 +43,7 @@ import {
   playGentleWrongBucketSound,
   playNewBucketSlideSound,
   playRiverCompleteSound,
-  speakRiverPhrase,
+  speakRiverLetter,
   speakRiverWord,
   stopRiverSpeech,
 } from './riverSounds';
@@ -1017,10 +1017,11 @@ export function LetterRiverBoard({
       });
 
       if (!isNowFull) {
-        // Playful catch splash + word reveal
+        // Playful catch splash + AI letter confirmation (TTS only if MP3 missing)
         playCorrectCatchSound(fillStep, fish.isGolden, soundEnabled);
-        speakRiverPhrase(
-          `${fish.spec.word}! ${station.phonicsHint}, ${targetBucket.letter}!`,
+        speakRiverLetter(
+          targetBucket.letter,
+          `Letter ${targetBucket.letter}`,
           soundEnabled,
         );
         setBannerTone(fish.isGolden ? 'golden' : 'mint');
@@ -1077,9 +1078,9 @@ export function LetterRiverBoard({
         conceptsTested: [`letter:${targetBucket.letter}`, `word:${fish.spec.id}`],
       });
 
+      stopRiverSpeech();
       playCorrectCatchSound(3, fish.isGolden, soundEnabled);
       playBucketFullSound(soundEnabled);
-      speakRiverPhrase(`Splash! Bucket ${targetBucket.letter} is full!`, soundEnabled);
 
       setConfettiMode('match');
       setConfettiKey((k) => k + 1);
@@ -1140,11 +1141,8 @@ export function LetterRiverBoard({
           setConfettiKey((k) => k + 1);
           setBannerTone('mint');
           setBannerText(`Amazing fishing, ${childProfile.name}! All river buckets caught!`);
+          stopRiverSpeech();
           playRiverCompleteSound(soundEnabled);
-          speakRiverPhrase(
-            `Amazing fishing, ${childProfile.name}! You filled every bucket!`,
-            soundEnabled,
-          );
           fishListRef.current = [];
           setFishList([]);
         } else {
@@ -1277,10 +1275,10 @@ export function LetterRiverBoard({
       setHookedFishId(null);
     }
 
-    // No fish hooked: speak the bucket's letter + phonics cue to assist the child!
+    // No fish hooked: speak the bucket's letter via AI MP3 (TTS only as fallback)
     const station = getStationSpec(targetBucket.letter);
     playFishPlopSound(soundEnabled);
-    speakRiverPhrase(`Bucket ${targetBucket.letter}! ${station.phonicsHint}!`, soundEnabled);
+    speakRiverLetter(targetBucket.letter, `Letter ${targetBucket.letter}`, soundEnabled);
     setBannerTone('neutral');
     setBannerText(
       `Bucket ${targetBucket.letter}${targetBucket.letter.toLowerCase()} catches "${station.phonicsHint}" words! Grab a fish!`,
