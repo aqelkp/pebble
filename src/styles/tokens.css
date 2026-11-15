@@ -8145,6 +8145,19 @@ h3,
   align-items: center;
 }
 
+.rr-connected-actions {
+  min-height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.rr-fallback-next-btn {
+  min-width: 196px;
+}
+
 .rr-tray-btn {
   width: 96px;
   height: 86px;

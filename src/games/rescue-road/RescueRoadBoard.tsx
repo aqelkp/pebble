@@ -24,10 +24,12 @@ import {
   getVehicleSpec,
   roadCellKey,
   SEGMENT_LABELS,
+  traceConnectedRoadPath,
   type CardinalDir,
   type RescueRoadConfig,
   type RescueRoadPuzzle,
   type RoadCell,
+  type RoadPathStep,
   type RoadSegmentType,
   type RoadTrayTile,
   type VehicleSpec,
@@ -42,6 +44,8 @@ import {
 const RESCUE_ROAD_STORAGE_KEY = 'pebble.rescueRoad.v1';
 const TEACH_BEFORE_PAUSE_MS = 1900;
 const DRIVE_ANIMATION_MS = 1450;
+const DRIVE_WATCHDOG_MS = DRIVE_ANIMATION_MS + 650;
+const FALLBACK_EMPHASIS_MS = DRIVE_ANIMATION_MS + 1050;
 
 export function clearSavedRescueRoadGame(): void {
   try {
@@ -324,19 +328,64 @@ export function RescueRoadBoard({
   const [confettiKey, setConfettiKey] = useState(0);
   const [confettiMode, setConfettiMode] = useState<'match' | 'win'>('match');
   const [roundWon, setRoundWon] = useState(false);
+  const [fallbackEmphasized, setFallbackEmphasized] = useState(false);
 
   const [movesCount, setMovesCount] = useState(initialRestored?.movesCount ?? 0);
   const [mistakesCount, setMistakesCount] = useState(initialRestored?.mistakesCount ?? 0);
   const startedAtRef = useRef<number>(initialRestored?.startedAt ?? Date.now());
   const loggedSessionRef = useRef(false);
 
+  // Keep latest journeyContext in a ref so parent daily-limit re-renders don't recreate timers/callbacks
+  const journeyContextRef = useRef(journeyContext);
+  journeyContextRef.current = journeyContext;
+
   const stageRef = useRef<HTMLDivElement | null>(null);
   const slotRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const teachTimerRef = useRef<number | null>(null);
   const driveRafRef = useRef<number | null>(null);
+  const driveWatchdogTimerRef = useRef<number | null>(null);
   const nextRoadTimerRef = useRef<number | null>(null);
+  const fallbackTimerRef = useRef<number | null>(null);
+  const autoDrivenPuzzleIdRef = useRef<string | null>(null);
+  const advancedPuzzleIdRef = useRef<string | null>(null);
+  const completedJourneyRef = useRef(false);
 
   const [tileSize, setTileSize] = useState(96);
+
+  const placedSegmentMap = useMemo<Record<string, RoadSegmentType>>(() => {
+    const map: Record<string, RoadSegmentType> = {};
+    for (const [key, tile] of Object.entries(placedSlots)) {
+      map[key] = tile.segment;
+    }
+    return map;
+  }, [placedSlots]);
+
+  const connectedRoadPath = useMemo(
+    () => traceConnectedRoadPath(puzzle, placedSegmentMap),
+    [puzzle, placedSegmentMap],
+  );
+
+  const isRoadConnected =
+    connectedRoadPath !== null || Object.keys(placedSlots).length >= puzzle.missingCount;
+
+  const clearMotionTimers = useCallback(() => {
+    if (driveRafRef.current) {
+      window.cancelAnimationFrame(driveRafRef.current);
+      driveRafRef.current = null;
+    }
+    if (driveWatchdogTimerRef.current) {
+      window.clearTimeout(driveWatchdogTimerRef.current);
+      driveWatchdogTimerRef.current = null;
+    }
+    if (nextRoadTimerRef.current) {
+      window.clearTimeout(nextRoadTimerRef.current);
+      nextRoadTimerRef.current = null;
+    }
+    if (fallbackTimerRef.current) {
+      window.clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+  }, []);
 
   // Measure portrait stage height/width so the entire board + tray fit with zero scroll
   useLayoutEffect(() => {
@@ -368,10 +417,9 @@ export function RescueRoadBoard({
   useEffect(() => {
     return () => {
       if (teachTimerRef.current) window.clearTimeout(teachTimerRef.current);
-      if (driveRafRef.current) window.cancelAnimationFrame(driveRafRef.current);
-      if (nextRoadTimerRef.current) window.clearTimeout(nextRoadTimerRef.current);
+      clearMotionTimers();
     };
-  }, []);
+  }, [clearMotionTimers]);
 
   // Persist standalone progress in sessionStorage
   useEffect(() => {
@@ -403,9 +451,10 @@ export function RescueRoadBoard({
     tray,
   ]);
 
-  // Reset vehicle position when puzzle changes
+  // Reset vehicle position and fallback highlight when puzzle changes
   useEffect(() => {
     setDrivingPhase('idle');
+    setFallbackEmphasized(false);
     setDriveCoord({
       x: puzzle.startCol + 0.5,
       y: -0.2,
@@ -414,9 +463,14 @@ export function RescueRoadBoard({
   }, [puzzle]);
 
   const startNewRound = useCallback(() => {
-    if (teachTimerRef.current) window.clearTimeout(teachTimerRef.current);
-    if (driveRafRef.current) window.cancelAnimationFrame(driveRafRef.current);
-    if (nextRoadTimerRef.current) window.clearTimeout(nextRoadTimerRef.current);
+    if (teachTimerRef.current) {
+      window.clearTimeout(teachTimerRef.current);
+      teachTimerRef.current = null;
+    }
+    clearMotionTimers();
+    autoDrivenPuzzleIdRef.current = null;
+    advancedPuzzleIdRef.current = null;
+    completedJourneyRef.current = false;
 
     clearSavedRescueRoadGame();
     const first = generateRescueRoadPuzzle(config.size, 0);
@@ -429,6 +483,7 @@ export function RescueRoadBoard({
     setTeachFeedback(null);
     setPauseActive(false);
     setRoundWon(false);
+    setFallbackEmphasized(false);
     setMovesCount(0);
     setMistakesCount(0);
     startedAtRef.current = Date.now();
@@ -437,11 +492,27 @@ export function RescueRoadBoard({
       tone: 'neutral',
       text: 'Tap or drag road tiles into empty spots to join the path!',
     });
-  }, [config.size]);
+  }, [clearMotionTimers, config.size]);
+
+  const triggerJourneyComplete = useCallback(() => {
+    if (completedJourneyRef.current) return;
+    completedJourneyRef.current = true;
+    journeyContextRef.current?.onActivityComplete();
+  }, []);
 
   const advanceToNextPuzzle = useCallback(
-    (nextIdx: number, finalMoves: number, finalMistakes: number) => {
+    (
+      expectedPuzzleId: string,
+      nextIdx: number,
+      finalMoves: number,
+      finalMistakes: number,
+      immediateJourneyComplete = false,
+    ) => {
       if (nextIdx >= totalRoads) {
+        if (advancedPuzzleIdRef.current === expectedPuzzleId && !immediateJourneyComplete) {
+          return;
+        }
+        advancedPuzzleIdRef.current = expectedPuzzleId;
         clearSavedRescueRoadGame();
         setRoundWon(true);
         setConfettiMode('win');
@@ -463,13 +534,25 @@ export function RescueRoadBoard({
           });
         }
 
-        if (journeyContext) {
-          nextRoadTimerRef.current = window.setTimeout(() => {
-            journeyContext.onActivityComplete();
-          }, 950);
+        if (journeyContextRef.current) {
+          if (immediateJourneyComplete) {
+            triggerJourneyComplete();
+          } else {
+            if (nextRoadTimerRef.current) window.clearTimeout(nextRoadTimerRef.current);
+            nextRoadTimerRef.current = window.setTimeout(() => {
+              triggerJourneyComplete();
+            }, 950);
+            if (fallbackTimerRef.current) window.clearTimeout(fallbackTimerRef.current);
+            fallbackTimerRef.current = window.setTimeout(() => {
+              setFallbackEmphasized(true);
+            }, 1100);
+          }
         }
         return;
       }
+
+      if (advancedPuzzleIdRef.current === expectedPuzzleId) return;
+      advancedPuzzleIdRef.current = expectedPuzzleId;
 
       const nextPuzzle = generateRescueRoadPuzzle(config.size, nextIdx);
       setPuzzleIndex(nextIdx);
@@ -477,16 +560,26 @@ export function RescueRoadBoard({
       setPlacedSlots({});
       setTray(nextPuzzle.initialTray);
       setSelectedTileUid(null);
+      setFallbackEmphasized(false);
       setBanner({
         tone: 'neutral',
         text: `Road ${nextIdx + 1} of ${totalRoads}: Join the garage to the finish flag!`,
       });
     },
-    [childProfile.id, config.roundSize, config.size, journeyContext, totalRoads],
+    [childProfile.id, config.roundSize, config.size, totalRoads, triggerJourneyComplete],
   );
 
   const launchTruckDrive = useCallback(
-    (currentPuzzle: RescueRoadPuzzle, nextIdx: number, finalMoves: number, finalMistakes: number) => {
+    (
+      currentPuzzle: RescueRoadPuzzle,
+      nextIdx: number,
+      finalMoves: number,
+      finalMistakes: number,
+      connectedPathOverride?: RoadPathStep[] | null,
+    ) => {
+      clearMotionTimers();
+      autoDrivenPuzzleIdRef.current = currentPuzzle.id;
+      setFallbackEmphasized(false);
       setDrivingPhase('driving');
       playRescueHonkFanfare(soundEnabled);
       setBanner({
@@ -494,45 +587,121 @@ export function RescueRoadBoard({
         text: 'Beep beep! Road complete — watch the rescue truck drive!',
       });
 
+      const drivePath = connectedPathOverride ?? currentPuzzle.path;
       const waypoints = [
         { x: currentPuzzle.startCol + 0.5, y: -0.2 },
-        ...currentPuzzle.path.map((s) => ({ x: s.col + 0.5, y: s.row + 0.5 })),
+        ...drivePath.map((s) => ({ x: s.col + 0.5, y: s.row + 0.5 })),
         { x: currentPuzzle.finishCol + 0.5, y: currentPuzzle.rows + 0.22 },
       ];
 
-      const startTime = performance.now();
       const totalSegments = Math.max(1, waypoints.length - 1);
+      // Latch startTime on the first rAF callback rather than before scheduling:
+      // input handlers can see a higher performance.now() than the frame's document.timeline timestamp.
+      let startTime: number | null = null;
+      let arrived = false;
+
+      const finishTruckArrival = () => {
+        if (arrived) return;
+        arrived = true;
+        if (driveRafRef.current) {
+          window.cancelAnimationFrame(driveRafRef.current);
+          driveRafRef.current = null;
+        }
+        if (driveWatchdogTimerRef.current) {
+          window.clearTimeout(driveWatchdogTimerRef.current);
+          driveWatchdogTimerRef.current = null;
+        }
+
+        const lastPt = waypoints[waypoints.length - 1] ?? {
+          x: currentPuzzle.finishCol + 0.5,
+          y: currentPuzzle.rows + 0.22,
+        };
+        setDriveCoord({
+          x: lastPt.x,
+          y: lastPt.y,
+          angle: 90,
+        });
+        setDrivingPhase('arrived');
+        setConfettiMode('match');
+        setConfettiKey((k) => k + 1);
+
+        nextRoadTimerRef.current = window.setTimeout(() => {
+          advanceToNextPuzzle(currentPuzzle.id, nextIdx, finalMoves, finalMistakes, false);
+        }, 700);
+      };
 
       const stepFrame = (now: number) => {
-        const t = Math.min(1, (now - startTime) / DRIVE_ANIMATION_MS);
-        const scaled = t * totalSegments;
-        const segIdx = Math.min(totalSegments - 1, Math.floor(scaled));
-        const localT = scaled - segIdx;
-        const fromPt = waypoints[segIdx];
-        const toPt = waypoints[segIdx + 1];
+        if (arrived) return;
+        try {
+          if (startTime === null) {
+            startTime = now;
+          }
+          const elapsed = Math.max(0, now - startTime);
+          const t = Math.max(0, Math.min(1, elapsed / DRIVE_ANIMATION_MS));
+          const scaled = t * totalSegments;
+          const segIdx = Math.max(0, Math.min(totalSegments - 1, Math.floor(scaled)));
+          const localT = Math.max(0, Math.min(1, scaled - segIdx));
+          const fromPt = waypoints[segIdx] ?? waypoints[0];
+          const toPt = waypoints[segIdx + 1] ?? waypoints[waypoints.length - 1];
 
-        setDriveCoord({
-          x: fromPt.x + (toPt.x - fromPt.x) * localT,
-          y: fromPt.y + (toPt.y - fromPt.y) * localT,
-          angle: directionAngleDeg(fromPt, toPt),
-        });
+          setDriveCoord({
+            x: fromPt.x + (toPt.x - fromPt.x) * localT,
+            y: fromPt.y + (toPt.y - fromPt.y) * localT,
+            angle: directionAngleDeg(fromPt, toPt),
+          });
 
-        if (t < 1) {
-          driveRafRef.current = window.requestAnimationFrame(stepFrame);
-        } else {
-          setDrivingPhase('arrived');
-          setConfettiMode('match');
-          setConfettiKey((k) => k + 1);
-          nextRoadTimerRef.current = window.setTimeout(() => {
-            advanceToNextPuzzle(nextIdx, finalMoves, finalMistakes);
-          }, 700);
+          if (t < 1) {
+            driveRafRef.current = window.requestAnimationFrame(stepFrame);
+          } else {
+            finishTruckArrival();
+          }
+        } catch {
+          finishTruckArrival();
         }
       };
 
       driveRafRef.current = window.requestAnimationFrame(stepFrame);
+      driveWatchdogTimerRef.current = window.setTimeout(
+        finishTruckArrival,
+        DRIVE_WATCHDOG_MS,
+      );
+      fallbackTimerRef.current = window.setTimeout(() => {
+        setFallbackEmphasized(true);
+      }, FALLBACK_EMPHASIS_MS);
     },
-    [advanceToNextPuzzle, soundEnabled],
+    [advanceToNextPuzzle, clearMotionTimers, soundEnabled],
   );
+
+  // Safety net: if a connected board ever sits idle (e.g. restored from sessionStorage), auto-launch drive
+  useEffect(() => {
+    if (
+      isRoadConnected &&
+      drivingPhase === 'idle' &&
+      !roundWon &&
+      !teachFeedback &&
+      !pauseActive &&
+      autoDrivenPuzzleIdRef.current !== puzzle.id
+    ) {
+      launchTruckDrive(puzzle, puzzleIndex + 1, movesCount, mistakesCount, connectedRoadPath);
+    }
+  }, [
+    connectedRoadPath,
+    drivingPhase,
+    isRoadConnected,
+    launchTruckDrive,
+    mistakesCount,
+    movesCount,
+    pauseActive,
+    puzzle,
+    puzzleIndex,
+    roundWon,
+    teachFeedback,
+  ]);
+
+  const handleManualAdvance = useCallback(() => {
+    clearMotionTimers();
+    advanceToNextPuzzle(puzzle.id, puzzleIndex + 1, movesCount, mistakesCount, true);
+  }, [advanceToNextPuzzle, clearMotionTimers, mistakesCount, movesCount, puzzle.id, puzzleIndex]);
 
   const handlePlaceTileInSlot = useCallback(
     (slotKey: string, tile: RoadTrayTile) => {
@@ -545,7 +714,10 @@ export function RescueRoadBoard({
       setMovesCount(nextMoves);
       setSelectedTileUid(null);
 
-      if (tile.segment === expectedSegment) {
+      const candidateSegments = { ...placedSegmentMap, [slotKey]: tile.segment };
+      const candidateConnected = traceConnectedRoadPath(puzzle, candidateSegments);
+
+      if (tile.segment === expectedSegment || candidateConnected !== null) {
         playRoadSnapSound(soundEnabled);
         const nextPlaced = { ...placedSlots, [slotKey]: tile };
         const nextTray = tray.filter((t) => t.uid !== tile.uid);
@@ -553,8 +725,14 @@ export function RescueRoadBoard({
         setTray(nextTray);
 
         const placedCount = Object.keys(nextPlaced).length;
-        if (placedCount >= puzzle.missingCount) {
-          launchTruckDrive(puzzle, puzzleIndex + 1, nextMoves, mistakesCount);
+        if (candidateConnected !== null || placedCount >= puzzle.missingCount) {
+          launchTruckDrive(
+            puzzle,
+            puzzleIndex + 1,
+            nextMoves,
+            mistakesCount,
+            candidateConnected,
+          );
         } else {
           setBanner({
             tone: 'success',
@@ -593,6 +771,7 @@ export function RescueRoadBoard({
       mistakesCount,
       movesCount,
       pauseActive,
+      placedSegmentMap,
       placedSlots,
       puzzle,
       puzzleIndex,
@@ -700,6 +879,13 @@ export function RescueRoadBoard({
   };
 
   const draggedTile = dragState?.tile ?? null;
+  const showFallbackControls = isRoadConnected || (roundWon && Boolean(journeyContext));
+  const nextStepLabel =
+    puzzleIndex + 1 < totalRoads
+      ? 'Next Road →'
+      : journeyContext
+        ? 'Finish Activity →'
+        : 'See Celebration →';
   const gridWidthPx = puzzle.cols * tileSize + (puzzle.cols - 1) * 10;
   const gridHeightPx = puzzle.rows * tileSize + (puzzle.rows - 1) * 10;
   const totalGridW = gridWidthPx;
@@ -915,39 +1101,80 @@ export function RescueRoadBoard({
       {/* Road Tile Tray Dock */}
       <section className="rr-tray-dock" aria-label="Road tiles tray">
         <div className="rr-tray-dock__head">
-          <span className="rr-tray-dock__title">Road Tiles ({sizeSpec.label})</span>
+          <span className="rr-tray-dock__title">
+            {showFallbackControls ? 'Road Connected!' : `Road Tiles (${sizeSpec.label})`}
+          </span>
           <span className="rr-tray-dock__hint">
-            {selectedTileUid
-              ? 'Now tap an empty Road spot above!'
-              : 'Tap or drag a road piece into an empty spot'}
+            {showFallbackControls
+              ? roundWon
+                ? 'All rescue roads complete!'
+                : drivingPhase === 'driving'
+                  ? `${vehicle.label} is driving to the finish flag…`
+                  : 'Tap below to continue!'
+              : selectedTileUid
+                ? 'Now tap an empty Road spot above!'
+                : 'Tap or drag a road piece into an empty spot'}
           </span>
         </div>
 
-        <div className="rr-tray-tiles">
-          {tray.map((tile) => {
-            const isSelected = selectedTileUid === tile.uid;
-            const isDraggingThis = dragState?.isDragging && dragState.tile.uid === tile.uid;
-            return (
+        {showFallbackControls ? (
+          <div className="rr-connected-actions">
+            {drivingPhase === 'idle' && !roundWon && (
               <button
-                key={tile.uid}
                 type="button"
-                className={`rr-tray-btn ${isSelected ? 'rr-tray-btn--selected' : ''} ${
-                  isDraggingThis ? 'rr-tray-btn--ghosted' : ''
-                }`}
-                onPointerDown={(e) => handleTrayPointerDown(e, tile)}
-                onPointerMove={handleTrayPointerMove}
-                onPointerUp={handleTrayPointerUp}
-                onPointerCancel={handleTrayPointerCancel}
-                disabled={Boolean(teachFeedback) || pauseActive || drivingPhase !== 'idle'}
-                aria-pressed={isSelected}
-                aria-label={SEGMENT_LABELS[tile.segment]}
+                className="btn-primary rr-fallback-next-btn"
+                onClick={() =>
+                  launchTruckDrive(
+                    puzzle,
+                    puzzleIndex + 1,
+                    movesCount,
+                    mistakesCount,
+                    connectedRoadPath,
+                  )
+                }
               >
-                <RoadTileSvg segment={tile.segment} />
-                <span className="rr-tray-btn__label">{SEGMENT_LABELS[tile.segment]}</span>
+                Drive {vehicle.label}!
               </button>
-            );
-          })}
-        </div>
+            )}
+            <button
+              type="button"
+              className={`${
+                fallbackEmphasized && !(drivingPhase === 'idle' && !roundWon)
+                  ? 'btn-primary'
+                  : 'btn-secondary'
+              } rr-fallback-next-btn`}
+              onClick={handleManualAdvance}
+            >
+              {nextStepLabel}
+            </button>
+          </div>
+        ) : (
+          <div className="rr-tray-tiles">
+            {tray.map((tile) => {
+              const isSelected = selectedTileUid === tile.uid;
+              const isDraggingThis = dragState?.isDragging && dragState.tile.uid === tile.uid;
+              return (
+                <button
+                  key={tile.uid}
+                  type="button"
+                  className={`rr-tray-btn ${isSelected ? 'rr-tray-btn--selected' : ''} ${
+                    isDraggingThis ? 'rr-tray-btn--ghosted' : ''
+                  }`}
+                  onPointerDown={(e) => handleTrayPointerDown(e, tile)}
+                  onPointerMove={handleTrayPointerMove}
+                  onPointerUp={handleTrayPointerUp}
+                  onPointerCancel={handleTrayPointerCancel}
+                  disabled={Boolean(teachFeedback) || pauseActive || drivingPhase !== 'idle'}
+                  aria-pressed={isSelected}
+                  aria-label={SEGMENT_LABELS[tile.segment]}
+                >
+                  <RoadTileSvg segment={tile.segment} />
+                  <span className="rr-tray-btn__label">{SEGMENT_LABELS[tile.segment]}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {dragState?.isDragging && draggedTile && (

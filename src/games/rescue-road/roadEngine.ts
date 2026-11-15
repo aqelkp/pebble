@@ -158,6 +158,20 @@ const DIR_LABELS: Record<CardinalDir, string> = {
   W: 'left',
 };
 
+const OPPOSITE_DIR: Record<CardinalDir, CardinalDir> = {
+  N: 'S',
+  E: 'W',
+  S: 'N',
+  W: 'E',
+};
+
+const DIR_DELTA: Record<CardinalDir, readonly [number, number]> = {
+  N: [-1, 0],
+  E: [0, 1],
+  S: [1, 0],
+  W: [0, -1],
+};
+
 export function getSegmentPorts(segment: RoadSegmentType): [CardinalDir, CardinalDir] {
   return SEGMENT_PORTS[segment];
 }
@@ -169,6 +183,57 @@ export function portsToSegment(a: CardinalDir, b: CardinalDir): RoadSegmentType 
     if (pair.has(p1) && pair.has(p2)) return seg;
   }
   return 'NS';
+}
+
+/**
+ * Traces whether placed + fixed road tiles form one continuous path from the top
+ * garage entry `(row 0, startCol, 'N')` to the bottom finish exit `(rows - 1, finishCol, 'S')`.
+ * Uses only `placedSegments` for `'slot'` cells (ignoring `cell.segment` target metadata).
+ */
+export function traceConnectedRoadPath(
+  puzzle: Pick<RescueRoadPuzzle, 'rows' | 'cols' | 'startCol' | 'finishCol' | 'cells'>,
+  placedSegments: Readonly<Record<string, RoadSegmentType>>,
+): RoadPathStep[] | null {
+  let row = 0;
+  let col = puzzle.startCol;
+  let enterFrom: CardinalDir = 'N';
+  const visited = new Set<string>();
+  const steps: RoadPathStep[] = [];
+
+  while (row >= 0 && row < puzzle.rows && col >= 0 && col < puzzle.cols) {
+    const key = roadCellKey(row, col);
+    if (visited.has(key)) return null;
+    visited.add(key);
+
+    const cell = puzzle.cells[row]?.[col];
+    if (!cell || cell.kind === 'scenery') return null;
+
+    const segment = cell.kind === 'fixed' ? cell.segment : placedSegments[key];
+    if (!segment) return null;
+
+    const [p1, p2] = SEGMENT_PORTS[segment];
+    if (p1 !== enterFrom && p2 !== enterFrom) return null;
+
+    const exitDir: CardinalDir = p1 === enterFrom ? p2 : p1;
+    steps.push({
+      row,
+      col,
+      segment,
+      entryDir: enterFrom,
+      exitDir,
+    });
+
+    if (row === puzzle.rows - 1 && col === puzzle.finishCol && exitDir === 'S') {
+      return steps;
+    }
+
+    const [dr, dc] = DIR_DELTA[exitDir];
+    row += dr;
+    col += dc;
+    enterFrom = OPPOSITE_DIR[exitDir];
+  }
+
+  return null;
 }
 
 export interface RoadPathStep {
@@ -293,16 +358,19 @@ function generateWindingPath(
     }
   }
 
-  // Deterministic fallback guaranteed valid
+  // Deterministic fallback guaranteed valid across both 3x3 (rows=3) and 3x4 (rows=4)
+  const fallbackPath: RoadPathStep[] = [
+    { row: 0, col: 0, segment: 'NS', entryDir: 'N', exitDir: 'S' },
+    { row: 1, col: 0, segment: 'NE', entryDir: 'N', exitDir: 'E' },
+    { row: 1, col: 1, segment: 'SW', entryDir: 'W', exitDir: 'S' },
+  ];
+  for (let r = 2; r < rows; r += 1) {
+    fallbackPath.push({ row: r, col: 1, segment: 'NS', entryDir: 'N', exitDir: 'S' });
+  }
   return {
     startCol: 0,
     finishCol: 1,
-    path: [
-      { row: 0, col: 0, segment: 'NS', entryDir: 'N', exitDir: 'S' },
-      { row: 1, col: 0, segment: 'NE', entryDir: 'N', exitDir: 'E' },
-      { row: 1, col: 1, segment: 'SW', entryDir: 'W', exitDir: 'S' },
-      { row: 2, col: 1, segment: 'NS', entryDir: 'N', exitDir: 'S' },
-    ],
+    path: fallbackPath,
   };
 }
 
@@ -313,30 +381,81 @@ const SCENERY_VARIANTS: readonly NonNullable<RoadCell['sceneryVariant']>[] = [
   'pond',
 ];
 
-export function generateRescueRoadPuzzle(
-  size: RoadBoardSize,
+function hasAmbiguousTraySolution(
+  cells: RoadCell[][],
+  rows: number,
+  cols: number,
+  startCol: number,
+  finishCol: number,
+  slotKeys: readonly string[],
+  slotTargets: Readonly<Record<string, RoadSegmentType>>,
+  traySegments: readonly RoadSegmentType[],
+): boolean {
+  const placed: Record<string, RoadSegmentType> = {};
+  const used = new Array<boolean>(traySegments.length).fill(false);
+
+  const search = (
+    slotIdx: number,
+    placedCount: number,
+    matchesAllTargets: boolean,
+  ): boolean => {
+    if (slotIdx === slotKeys.length) {
+      if (placedCount < slotKeys.length || !matchesAllTargets) {
+        return (
+          traceConnectedRoadPath({ rows, cols, startCol, finishCol, cells }, placed) !== null
+        );
+      }
+      return false;
+    }
+
+    const slotKey = slotKeys[slotIdx];
+    const targetSegment = slotTargets[slotKey];
+
+    // Option A: leave this slot empty (catches shortcuts bypassing open slots)
+    if (search(slotIdx + 1, placedCount, false)) {
+      return true;
+    }
+
+    // Option B: place each distinct unused tray tile into this slot
+    const triedAtSlot = new Set<RoadSegmentType>();
+    for (let t = 0; t < traySegments.length; t += 1) {
+      if (used[t]) continue;
+      const seg = traySegments[t];
+      if (triedAtSlot.has(seg)) continue;
+      triedAtSlot.add(seg);
+
+      used[t] = true;
+      placed[slotKey] = seg;
+      const found = search(
+        slotIdx + 1,
+        placedCount + 1,
+        matchesAllTargets && seg === targetSegment,
+      );
+      delete placed[slotKey];
+      used[t] = false;
+      if (found) return true;
+    }
+
+    return false;
+  };
+
+  return search(0, 0, true);
+}
+
+function buildPuzzleCellsAndTray(
+  rows: number,
+  cols: number,
   puzzleIndex: number,
-  seed?: number,
-): RescueRoadPuzzle {
-  const spec = getRoadSizeSpec(size);
-  const effectiveSeed =
-    seed ?? ((Date.now() ^ ((puzzleIndex + 1) * 0x9e3779b1)) >>> 0);
-  const rng = createMulberry32(effectiveSeed);
-
-  const { startCol, finishCol, path } = generateWindingPath(spec.rows, spec.cols, rng);
-  const targetMissing =
-    size === '3x3'
-      ? puzzleIndex === 0
-        ? 2
-        : Math.min(3, Math.max(2, path.length - 1))
-      : puzzleIndex === 0
-        ? 2
-        : Math.min(4, Math.max(3, path.length - 2));
-
-  // Prefer mixing turns and straights; keep at least 1 anchor fixed cell
-  const stepIndices = path.map((_, idx) => idx);
-  const pickedIndices = new Set(shuffleWithRng(stepIndices, rng).slice(0, targetMissing));
-
+  path: RoadPathStep[],
+  pickedIndices: ReadonlySet<number>,
+  rng: () => number,
+  forcedDistractor?: RoadSegmentType,
+): {
+  cells: RoadCell[][];
+  slotTargets: Record<string, RoadSegmentType>;
+  initialTray: RoadTrayTile[];
+  missingCount: number;
+} {
   const pathByKey = new Map<string, RoadPathStep>();
   const slotTargets: Record<string, RoadSegmentType> = {};
   const neededSegments: RoadSegmentType[] = [];
@@ -350,21 +469,23 @@ export function generateRescueRoadPuzzle(
     }
   });
 
-  // Add 1 distractor road tile different from most needed segment so child must inspect shape
   const neededSet = new Set(neededSegments);
   const distinctPool = ALL_SEGMENTS.filter((seg) => !neededSet.has(seg));
   const distractorPool = distinctPool.length > 0 ? distinctPool : ALL_SEGMENTS;
-  const distractorSeg = distractorPool[Math.floor(rng() * distractorPool.length)];
+  const distractorSeg =
+    forcedDistractor ?? distractorPool[Math.floor(rng() * distractorPool.length)];
 
-  const trayRaw = shuffleWithRng([...neededSegments, distractorSeg], rng).map((segment, i) => ({
-    uid: `tile-${puzzleIndex}-${i}-${segment}-${Math.floor(rng() * 10000)}`,
-    segment,
-  }));
+  const initialTray = shuffleWithRng([...neededSegments, distractorSeg], rng).map(
+    (segment, i) => ({
+      uid: `tile-${puzzleIndex}-${i}-${segment}-${Math.floor(rng() * 10000)}`,
+      segment,
+    }),
+  );
 
   const cells: RoadCell[][] = [];
-  for (let r = 0; r < spec.rows; r += 1) {
+  for (let r = 0; r < rows; r += 1) {
     const rowCells: RoadCell[] = [];
-    for (let c = 0; c < spec.cols; c += 1) {
+    for (let c = 0; c < cols; c += 1) {
       const key = roadCellKey(r, c);
       const step = pathByKey.get(key);
       if (!step) {
@@ -395,16 +516,107 @@ export function generateRescueRoadPuzzle(
   }
 
   return {
+    cells,
+    slotTargets,
+    initialTray,
+    missingCount: neededSegments.length,
+  };
+}
+
+export function generateRescueRoadPuzzle(
+  size: RoadBoardSize,
+  puzzleIndex: number,
+  seed?: number,
+): RescueRoadPuzzle {
+  const spec = getRoadSizeSpec(size);
+  const effectiveSeed =
+    seed ?? ((Date.now() ^ ((puzzleIndex + 1) * 0x9e3779b1)) >>> 0);
+  const rng = createMulberry32(effectiveSeed);
+
+  for (let candidateAttempt = 0; candidateAttempt < 32; candidateAttempt += 1) {
+    const { startCol, finishCol, path } = generateWindingPath(spec.rows, spec.cols, rng);
+    const targetMissing =
+      size === '3x3'
+        ? puzzleIndex === 0
+          ? 2
+          : Math.min(3, Math.max(2, path.length - 1))
+        : puzzleIndex === 0
+          ? 2
+          : Math.min(4, Math.max(3, path.length - 2));
+
+    // Prefer mixing turns and straights; keep at least 1 anchor fixed cell
+    const stepIndices = path.map((_, idx) => idx);
+    const pickedIndices = new Set(shuffleWithRng(stepIndices, rng).slice(0, targetMissing));
+    const { cells, slotTargets, initialTray, missingCount } = buildPuzzleCellsAndTray(
+      spec.rows,
+      spec.cols,
+      puzzleIndex,
+      path,
+      pickedIndices,
+      rng,
+    );
+
+    const slotKeys = Object.keys(slotTargets);
+    if (
+      !hasAmbiguousTraySolution(
+        cells,
+        spec.rows,
+        spec.cols,
+        startCol,
+        finishCol,
+        slotKeys,
+        slotTargets,
+        initialTray.map((t) => t.segment),
+      )
+    ) {
+      return {
+        id: `road-${effectiveSeed}-${puzzleIndex}`,
+        rows: spec.rows,
+        cols: spec.cols,
+        startCol,
+        finishCol,
+        path,
+        cells,
+        slotTargets,
+        initialTray,
+        missingCount,
+      };
+    }
+  }
+
+  // Deterministic unambiguous fallback: NE at (0,0) -> SW at (0,1) -> NS down col 1
+  const fallbackPath: RoadPathStep[] = [
+    { row: 0, col: 0, segment: 'NE', entryDir: 'N', exitDir: 'E' },
+    { row: 0, col: 1, segment: 'SW', entryDir: 'W', exitDir: 'S' },
+  ];
+  for (let r = 1; r < spec.rows; r += 1) {
+    fallbackPath.push({ row: r, col: 1, segment: 'NS', entryDir: 'N', exitDir: 'S' });
+  }
+  const fallbackMissing = Math.min(puzzleIndex === 0 ? 2 : 3, fallbackPath.length - 1);
+  const pickedFallback = new Set(
+    Array.from({ length: fallbackMissing }, (_, idx) => idx),
+  );
+  const layout = buildPuzzleCellsAndTray(
+    spec.rows,
+    spec.cols,
+    puzzleIndex,
+    fallbackPath,
+    pickedFallback,
+    rng,
+    'NW',
+  );
+
+  return {
     id: `road-${effectiveSeed}-${puzzleIndex}`,
     rows: spec.rows,
     cols: spec.cols,
-    startCol,
-    finishCol,
-    path,
-    cells,
-    slotTargets,
-    initialTray: trayRaw,
-    missingCount: neededSegments.length,
+    startCol: 0,
+    finishCol: 1,
+    path: fallbackPath,
+    cells: layout.cells,
+    slotTargets: layout.slotTargets,
+    initialTray: layout.initialTray,
+    missingCount: layout.missingCount,
   };
 }
 
