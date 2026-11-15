@@ -129,6 +129,24 @@ export function preloadLettersAudio(letters: readonly LetterId[]): void {
   preloadAudioPaths(letters.map((letter) => getLetterAudioPath(letter)));
 }
 
+const THINK_AGAIN_AUDIO_PATH = 'audio/ui/think-again.mp3';
+
+/**
+ * Plays the Kokoro-generated calm prompt for the Think Again pause overlay,
+ * falling back to Web Speech only if static audio cannot play.
+ */
+export function playThinkAgainVoice(enabled: boolean): void {
+  playStaticClip(
+    THINK_AGAIN_AUDIO_PATH,
+    'Hey, do you want to take some time to think again?',
+    enabled,
+  );
+}
+
+export function preloadThinkAgainVoice(): void {
+  preloadAudioPaths([THINK_AGAIN_AUDIO_PATH]);
+}
+
 /**
  * Quietly pre-warms browser & Service Worker cache for theme images during Setup.
  */

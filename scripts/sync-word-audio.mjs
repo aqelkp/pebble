@@ -25,6 +25,7 @@ const repoRoot = path.resolve(__dirname, '..');
 const catalogPath = path.join(repoRoot, 'src', 'data', 'wordCatalog.json');
 const wordsOutDir = path.join(repoRoot, 'public', 'audio', 'words');
 const lettersOutDir = path.join(repoRoot, 'public', 'audio', 'letters');
+const uiOutDir = path.join(repoRoot, 'public', 'audio', 'ui');
 
 const forceRegen = process.argv.includes('--force');
 
@@ -103,8 +104,26 @@ async function main() {
   const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
   fs.mkdirSync(wordsOutDir, { recursive: true });
   fs.mkdirSync(lettersOutDir, { recursive: true });
+  fs.mkdirSync(uiOutDir, { recursive: true });
 
   const jobs = [];
+  const uiPrompts = [
+    {
+      id: 'think-again',
+      text: 'Hey, do you want to take some time to think again?',
+    },
+  ];
+  for (const prompt of uiPrompts) {
+    const outPath = path.join(uiOutDir, `${prompt.id}.mp3`);
+    if (forceRegen || !fs.existsSync(outPath)) {
+      jobs.push({
+        kind: 'ui',
+        id: prompt.id,
+        text: prompt.text,
+        outPath,
+      });
+    }
+  }
   for (const letterSpec of catalog.letters) {
     const outPath = path.join(lettersOutDir, `${letterSpec.letter.toLowerCase()}.mp3`);
     if (forceRegen || !fs.existsSync(outPath)) {
