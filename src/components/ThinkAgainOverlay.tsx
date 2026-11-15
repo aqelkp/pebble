@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { playThinkAgainVoice, preloadThinkAgainVoice } from '../utils/wordAudio';
 import { PebbleMark } from './BrandLogo';
 
 export interface ThinkAgainOverlayProps {
   open: boolean;
   hint?: string;
+  soundEnabled?: boolean;
   durationSeconds?: number;
   onReady: () => void;
 }
@@ -16,10 +18,15 @@ export interface ThinkAgainOverlayProps {
 export function ThinkAgainOverlay({
   open,
   hint,
+  soundEnabled = true,
   durationSeconds = 2,
   onReady,
 }: ThinkAgainOverlayProps) {
   const [secondsLeft, setSecondsLeft] = useState(durationSeconds);
+
+  useEffect(() => {
+    preloadThinkAgainVoice();
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -27,6 +34,7 @@ export function ThinkAgainOverlay({
       return;
     }
 
+    playThinkAgainVoice(soundEnabled);
     setSecondsLeft(durationSeconds);
     if (durationSeconds <= 0) return;
 
@@ -41,7 +49,7 @@ export function ThinkAgainOverlay({
     }, 1000);
 
     return () => window.clearInterval(intervalId);
-  }, [open, durationSeconds]);
+  }, [open, durationSeconds, soundEnabled]);
 
   if (!open) return null;
 

@@ -782,6 +782,7 @@ export function SafariBoard({
       <ThinkAgainOverlay
         open={thinkAgainHint !== null}
         hint={thinkAgainHint ?? undefined}
+        soundEnabled={soundEnabled}
         onReady={() => {
           setThinkAgainHint(null);
           setLastWrongNumber(null);

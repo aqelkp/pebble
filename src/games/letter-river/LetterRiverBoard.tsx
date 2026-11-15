@@ -868,12 +868,6 @@ export function LetterRiverBoard({
 
         setBannerTone('calm-hint');
         setBannerText(hintLine);
-        speakRiverPhrase(
-          correctBucketOnDock
-            ? `${fish.spec.word} starts with ${station.phonicsHint}. Try ${fish.spec.letter}.`
-            : `${fish.spec.word} starts with ${fish.spec.letter}.`,
-          soundEnabled,
-        );
 
         const fbKey = Date.now();
         setBucketFeedback({ slotIndex, kind: 'gentle-nope', key: fbKey });
@@ -1731,6 +1725,7 @@ export function LetterRiverBoard({
       <ThinkAgainOverlay
         open={thinkAgainHint !== null}
         hint={thinkAgainHint ?? undefined}
+        soundEnabled={soundEnabled}
         onReady={() => setThinkAgainHint(null)}
       />
     </div>

@@ -549,10 +549,6 @@ export function LetterTrainBoard({
         setBannerText(hintMsg);
         setThinkAgainHint(hintMsg);
         playCalmWrongHintSound(soundEnabled);
-        speakPhrase(
-          `${card.spec.word} starts with ${card.spec.letter}. Pick a word starting with ${currentLetter}.`,
-          soundEnabled,
-        );
       }
     },
     [
@@ -1241,6 +1237,7 @@ export function LetterTrainBoard({
       <ThinkAgainOverlay
         open={thinkAgainHint !== null}
         hint={thinkAgainHint ?? undefined}
+        soundEnabled={soundEnabled}
         onReady={() => setThinkAgainHint(null)}
       />
     </div>

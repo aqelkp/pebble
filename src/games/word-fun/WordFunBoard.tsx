@@ -721,6 +721,7 @@ export function WordFunBoard({
       <ThinkAgainOverlay
         open={thinkAgainHint !== null}
         hint={thinkAgainHint ?? undefined}
+        soundEnabled={soundEnabled}
         onReady={() => {
           setThinkAgainHint(null);
           setWrongTileUid(null);
