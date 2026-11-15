@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BrandLogo } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
+import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import {
@@ -242,6 +243,7 @@ export function SafariBoard({
   const [trail, setTrail] = useState<SafariStop[]>(
     () => savedState?.trail ?? buildSafariTrail(config.modeId, config.lengthId),
   );
+  const [thinkAgainHint, setThinkAgainHint] = useState<string | null>(null);
   const [currentStopIdx, setCurrentStopIdx] = useState<number>(
     () => savedState?.currentStopIdx ?? 0,
   );
@@ -449,10 +451,9 @@ export function SafariBoard({
         setPhase('idle');
       }, 920);
     } else {
-      timeoutRef.current = window.setTimeout(() => {
-        setLastWrongNumber(null);
-        setPhase('idle');
-      }, 760);
+      setThinkAgainHint(
+        'Tap each animal on the clearing to count 1, 2, 3… then pick the matching number!',
+      );
     }
   };
 
@@ -476,7 +477,10 @@ export function SafariBoard({
 
   if (phase === 'resolving-correct' && currentStop) {
     bannerClass = 'status-banner status-banner--match';
-    bannerText = `SPOT ON! +1 POINT — ${currentStop.celebrationDetail}`;
+    bannerText =
+      players.length === 1
+        ? `SPOT ON! ${currentStop.celebrationDetail}`
+        : `SPOT ON! +1 POINT — ${currentStop.celebrationDetail}`;
   } else if (phase === 'resolving-wrong') {
     bannerClass = 'status-banner status-banner--mismatch';
     bannerText =
@@ -629,7 +633,9 @@ export function SafariBoard({
                 <div className="player-score-card__meta">
                   <span className="player-score-card__name">{player.name}</span>
                   {isCelebrating ? (
-                    <span className="turn-badge turn-badge--match">+1 Point!</span>
+                    <span className="turn-badge turn-badge--match">
+                      {players.length === 1 ? 'Great Count!' : '+1 Point!'}
+                    </span>
                   ) : isTurn ? (
                     <span className="turn-badge">Your Turn</span>
                   ) : (
@@ -638,9 +644,20 @@ export function SafariBoard({
                 </div>
               </div>
 
-              <div className="pts-tile" aria-label={`${player.name} ${score} points`}>
-                <span className="pts-tile__value">{score}</span>
-                <span className="pts-tile__label">PTS</span>
+              <div
+                className="pts-tile"
+                aria-label={
+                  players.length === 1
+                    ? `${score} of ${trail.length} stops`
+                    : `${player.name} ${score} points`
+                }
+              >
+                <span className="pts-tile__value">
+                  {players.length === 1 ? `${score}/${trail.length}` : score}
+                </span>
+                <span className="pts-tile__label">
+                  {players.length === 1 ? 'STOPS' : 'PTS'}
+                </span>
               </div>
             </div>
           );
@@ -761,6 +778,16 @@ export function SafariBoard({
           onBackToHub={onBackToHub}
         />
       )}
+
+      <ThinkAgainOverlay
+        open={thinkAgainHint !== null}
+        hint={thinkAgainHint ?? undefined}
+        onReady={() => {
+          setThinkAgainHint(null);
+          setLastWrongNumber(null);
+          setPhase('idle');
+        }}
+      />
     </div>
   );
 }

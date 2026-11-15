@@ -487,7 +487,9 @@ export function MemoryBoard({
                   <span className="player-score-card__name">{player.name}</span>
                   <div className="player-score-card__badge-row">
                     {isCelebrating ? (
-                      <span className="turn-badge turn-badge--match">+1 Point!</span>
+                      <span className="turn-badge turn-badge--match">
+                        {players.length === 1 ? 'Match!' : '+1 Point!'}
+                      </span>
                     ) : isTurn ? (
                       <span className="turn-badge">Your Turn</span>
                     ) : (
@@ -502,9 +504,20 @@ export function MemoryBoard({
                 </div>
               </div>
 
-              <div className="pts-tile" aria-label={`${player.name} ${score} points`}>
-                <span className="pts-tile__value">{score}</span>
-                <span className="pts-tile__label">PTS</span>
+              <div
+                className="pts-tile"
+                aria-label={
+                  players.length === 1
+                    ? `${score} of ${boardSize.pairs} pairs`
+                    : `${player.name} ${score} points`
+                }
+              >
+                <span className="pts-tile__value">
+                  {players.length === 1 ? `${score}/${boardSize.pairs}` : score}
+                </span>
+                <span className="pts-tile__label">
+                  {players.length === 1 ? 'PAIRS' : 'PTS'}
+                </span>
               </div>
             </div>
           );

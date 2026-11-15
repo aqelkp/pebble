@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
+import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import {
   ALL_LETTERS,
@@ -316,6 +317,7 @@ export function LetterTrainBoard({
   const [confettiMode, setConfettiMode] = useState<'match' | 'win'>('match');
   const [showDepartureConfetti, setShowDepartureConfetti] = useState<boolean>(false);
   const [dragState, setDragState] = useState<DragState | null>(null);
+  const [thinkAgainHint, setThinkAgainHint] = useState<string | null>(null);
 
   const dropZoneRef = useRef<HTMLDivElement | null>(null);
   const timersRef = useRef<number[]>([]);
@@ -435,6 +437,7 @@ export function LetterTrainBoard({
 
   const attemptBoardCard = useCallback(
     (card: PlatformCardItem) => {
+      if (thinkAgainHint !== null) return;
       if (phase !== 'idle' && phase !== 'arriving') return;
       if (loadedUids.includes(card.uid)) return;
 
@@ -531,10 +534,10 @@ export function LetterTrainBoard({
         setMistakes((prev) => prev + 1);
         setPerfectStreak(0);
         setTriedWrongUids((prev) => ({ ...prev, [card.uid]: true }));
+        const hintMsg = `${card.spec.word} starts with ${card.spec.letter} — listen and pick a word starting with ${currentLetter}.`;
         setBannerTone('muted');
-        setBannerText(
-          `${card.spec.word} starts with ${card.spec.letter} — listen and pick a word starting with ${currentLetter}.`,
-        );
+        setBannerText(hintMsg);
+        setThinkAgainHint(hintMsg);
         playCalmWrongHintSound(soundEnabled);
         speakPhrase(
           `${card.spec.word} starts with ${card.spec.letter}. Pick a word starting with ${currentLetter}.`,
@@ -555,6 +558,7 @@ export function LetterTrainBoard({
       soundEnabled,
       stationIdx,
       stationQueue,
+      thinkAgainHint,
     ],
   );
 
@@ -575,6 +579,7 @@ export function LetterTrainBoard({
     e: ReactPointerEvent<HTMLDivElement>,
     card: PlatformCardItem,
   ) => {
+    if (thinkAgainHint !== null) return;
     if (phase !== 'idle' && phase !== 'arriving') return;
     if (loadedUids.includes(card.uid)) return;
     if (triedWrongUids[card.uid]) return;
@@ -795,9 +800,11 @@ export function LetterTrainBoard({
             </div>
           </div>
 
-          <div className="lt-conductor-card__pts">
-            <strong>{totalScore}</strong>
-            <span>PTS</span>
+          <div className="lt-conductor-card__pts" aria-label={`Train cars cleared: ${carsCleared} of ${stationQueue.length}`}>
+            <strong>
+              {carsCleared}/{stationQueue.length}
+            </strong>
+            <span>CARS</span>
           </div>
         </div>
 
@@ -1183,8 +1190,10 @@ export function LetterTrainBoard({
                   <span className="standing-row__name">{childProfile.name}</span>
                 </div>
                 <div className="standing-row__pts">
-                  <strong>{totalScore}</strong>
-                  <span>PTS</span>
+                  <strong>
+                    {carsCleared}/{stationQueue.length}
+                  </strong>
+                  <span>CARS</span>
                 </div>
               </div>
             </div>
@@ -1218,6 +1227,12 @@ export function LetterTrainBoard({
           </div>
         </div>
       )}
+
+      <ThinkAgainOverlay
+        open={thinkAgainHint !== null}
+        hint={thinkAgainHint ?? undefined}
+        onReady={() => setThinkAgainHint(null)}
+      />
     </div>
   );
 }

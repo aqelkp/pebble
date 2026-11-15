@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BrandLogo } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
+import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { WordFunArt } from './WordFunArt';
@@ -200,6 +201,7 @@ export function WordFunBoard({
   const [hintTileUid, setHintTileUid] = useState<string | null>(null);
   const [nextPlayerName, setNextPlayerName] = useState<string | null>(null);
   const [burstCount, setBurstCount] = useState<number>(0);
+  const [thinkAgainHint, setThinkAgainHint] = useState<string | null>(null);
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
@@ -384,11 +386,9 @@ export function WordFunBoard({
         }, 860);
       } else {
         setPhase('resolving-miss');
-        timeoutRef.current = window.setTimeout(() => {
-          setWrongTileUid(null);
-          setWrongLetter(null);
-          setPhase('idle');
-        }, 620);
+        setThinkAgainHint(
+          `Not "${tile.letter}" — listen to the word and pick the next letter!`,
+        );
       }
     },
     [
@@ -546,7 +546,9 @@ export function WordFunBoard({
                 <div className="player-score-card__meta">
                   <span className="player-score-card__name">{player.name}</span>
                   {isCelebrating ? (
-                    <span className="turn-badge turn-badge--match">+1 Point!</span>
+                    <span className="turn-badge turn-badge--match">
+                      {players.length === 1 ? 'Word Built!' : '+1 Point!'}
+                    </span>
                   ) : isTurn ? (
                     <span className="turn-badge">Your Turn</span>
                   ) : (
@@ -555,9 +557,20 @@ export function WordFunBoard({
                 </div>
               </div>
 
-              <div className="pts-tile" aria-label={`${player.name} ${score} points`}>
-                <span className="pts-tile__value">{score}</span>
-                <span className="pts-tile__label">PTS</span>
+              <div
+                className="pts-tile"
+                aria-label={
+                  players.length === 1
+                    ? `${score} of ${words.length} words`
+                    : `${player.name} ${score} points`
+                }
+              >
+                <span className="pts-tile__value">
+                  {players.length === 1 ? `${score}/${words.length}` : score}
+                </span>
+                <span className="pts-tile__label">
+                  {players.length === 1 ? 'WORDS' : 'PTS'}
+                </span>
               </div>
             </div>
           );
@@ -697,6 +710,17 @@ export function WordFunBoard({
           onBackToHub={onBackToHub}
         />
       )}
+
+      <ThinkAgainOverlay
+        open={thinkAgainHint !== null}
+        hint={thinkAgainHint ?? undefined}
+        onReady={() => {
+          setThinkAgainHint(null);
+          setWrongTileUid(null);
+          setWrongLetter(null);
+          setPhase('idle');
+        }}
+      />
     </div>
   );
 }
