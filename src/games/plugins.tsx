@@ -72,6 +72,28 @@ const StickerJigsawBoard = lazy(() =>
   })),
 );
 
+const StickerSceneSetup = lazy(() =>
+  import('./sticker-scene/StickerSceneSetup').then((m) => ({
+    default: m.StickerSceneSetup,
+  })),
+);
+const StickerSceneBoard = lazy(() =>
+  import('./sticker-scene/StickerSceneBoard').then((m) => ({
+    default: m.StickerSceneBoard,
+  })),
+);
+
+const SpotTheTwinSetup = lazy(() =>
+  import('./spot-the-twin/SpotTheTwinSetup').then((m) => ({
+    default: m.SpotTheTwinSetup,
+  })),
+);
+const SpotTheTwinBoard = lazy(() =>
+  import('./spot-the-twin/SpotTheTwinBoard').then((m) => ({
+    default: m.SpotTheTwinBoard,
+  })),
+);
+
 export interface LeaveGameCopy {
   headline: string;
   subtitle: string;
@@ -94,6 +116,7 @@ export interface PluginBoardRenderProps<K extends GameId> {
   onToggleSound: () => void;
   onChangeSetup: () => void;
   onBackToHub: () => void;
+  onRequestHelp?: () => void;
   onGameActiveChange: (active: boolean) => void;
   journeyContext?: JourneyBoardContext;
 }
@@ -113,6 +136,7 @@ export interface PluginBoardHostProps {
   onToggleSound: () => void;
   onChangeSetup: () => void;
   onBackToHub: () => void;
+  onRequestHelp?: () => void;
   onGameActiveChange: (active: boolean) => void;
   journeyContext?: JourneyBoardContext;
 }
@@ -173,6 +197,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
       onToggleSound,
       onChangeSetup,
       onBackToHub,
+      onRequestHelp,
       onGameActiveChange,
       journeyContext,
     }) => (
@@ -185,6 +210,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
         onToggleSound={onToggleSound}
         onChangeSetup={onChangeSetup}
         onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
         onGameActiveChange={onGameActiveChange}
         journeyContext={journeyContext}
       />
@@ -222,6 +248,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
       onToggleSound,
       onChangeSetup,
       onBackToHub,
+      onRequestHelp,
       onGameActiveChange,
       journeyContext,
     }) => (
@@ -234,6 +261,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
         onToggleSound={onToggleSound}
         onChangeSetup={onChangeSetup}
         onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
         onGameActiveChange={onGameActiveChange}
         journeyContext={journeyContext}
       />
@@ -271,6 +299,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
       onToggleSound,
       onChangeSetup,
       onBackToHub,
+      onRequestHelp,
       onGameActiveChange,
       journeyContext,
     }) => (
@@ -283,6 +312,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
         onToggleSound={onToggleSound}
         onChangeSetup={onChangeSetup}
         onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
         onGameActiveChange={onGameActiveChange}
         journeyContext={journeyContext}
       />
@@ -320,6 +350,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
       onToggleSound,
       onChangeSetup,
       onBackToHub,
+      onRequestHelp,
       onGameActiveChange,
       journeyContext,
     }) => (
@@ -332,6 +363,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
         onToggleSound={onToggleSound}
         onChangeSetup={onChangeSetup}
         onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
         onGameActiveChange={onGameActiveChange}
         journeyContext={journeyContext}
       />
@@ -366,6 +398,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
       onToggleSound,
       onChangeSetup,
       onBackToHub,
+      onRequestHelp,
       onGameActiveChange,
       journeyContext,
     }) => (
@@ -378,6 +411,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
         onToggleSound={onToggleSound}
         onChangeSetup={onChangeSetup}
         onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
         onGameActiveChange={onGameActiveChange}
         journeyContext={journeyContext}
       />
@@ -412,6 +446,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
       onToggleSound,
       onChangeSetup,
       onBackToHub,
+      onRequestHelp,
       onGameActiveChange,
       journeyContext,
     }) => (
@@ -424,6 +459,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
         onToggleSound={onToggleSound}
         onChangeSetup={onChangeSetup}
         onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
         onGameActiveChange={onGameActiveChange}
         journeyContext={journeyContext}
       />
@@ -456,6 +492,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
       onToggleSound,
       onChangeSetup,
       onBackToHub,
+      onRequestHelp,
       onGameActiveChange,
       journeyContext,
     }) => (
@@ -468,6 +505,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
         onToggleSound={onToggleSound}
         onChangeSetup={onChangeSetup}
         onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
         onGameActiveChange={onGameActiveChange}
         journeyContext={journeyContext}
       />
@@ -503,6 +541,7 @@ const GAME_PLUGINS: GamePluginRegistry = {
       onToggleSound,
       onChangeSetup,
       onBackToHub,
+      onRequestHelp,
       onGameActiveChange,
       journeyContext,
     }) => (
@@ -515,6 +554,105 @@ const GAME_PLUGINS: GamePluginRegistry = {
         onToggleSound={onToggleSound}
         onChangeSetup={onChangeSetup}
         onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'sticker-scene': {
+    id: 'sticker-scene',
+    activeSessionStorageKey: 'pebble.stickerScene.v1',
+    leaveCopy: {
+      headline: 'Leave Sticker Scene?',
+      subtitle: 'Your current sticker scene progress will reset.',
+      keepPlayingLabel: 'Keep Decorating',
+    },
+    ...makeConfigAccessors('sticker-scene'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./sticker-scene/StickerSceneSetup'),
+        import('./sticker-scene/StickerSceneBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onStartGame }) => (
+      <StickerSceneSetup
+        initialConfig={initialConfig ?? getDefaultGameConfig('sticker-scene', profiles)}
+        onBackToHub={onBackToHub}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <StickerSceneBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'spot-the-twin': {
+    id: 'spot-the-twin',
+    activeSessionStorageKey: 'pebble.spotTheTwin.v1',
+    leaveCopy: {
+      headline: 'Leave Spot the Twin?',
+      subtitle: 'Your current twin spotting round will reset.',
+      keepPlayingLabel: 'Keep Spotting',
+    },
+    ...makeConfigAccessors('spot-the-twin'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./spot-the-twin/SpotTheTwinSetup'),
+        import('./spot-the-twin/SpotTheTwinBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onStartGame }) => (
+      <SpotTheTwinSetup
+        initialConfig={initialConfig ?? getDefaultGameConfig('spot-the-twin', profiles)}
+        onBackToHub={onBackToHub}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <SpotTheTwinBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
         onGameActiveChange={onGameActiveChange}
         journeyContext={journeyContext}
       />
@@ -642,6 +780,7 @@ function renderTypedBoard<K extends GameId>(
     onToggleSound: hostProps.onToggleSound,
     onChangeSetup: hostProps.onChangeSetup,
     onBackToHub: hostProps.onBackToHub,
+    onRequestHelp: hostProps.onRequestHelp,
     onGameActiveChange: hostProps.onGameActiveChange,
     journeyContext: hostProps.journeyContext,
   });

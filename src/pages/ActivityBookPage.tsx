@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CrownIcon, PebbleMark } from '../components/BrandLogo';
 import { getAvatarSrc, type FamilyProfile } from '../context/FamilyProfilesContext';
 import { getChapterSpec } from '../journey/curriculum';
+import { preloadJourneyVoiceClip } from '../journey/voiceInstructions';
 import {
   ACTIVITIES_PER_CHAPTER,
   TOTAL_CHAPTERS,
@@ -35,8 +36,9 @@ export function ActivityBookPage({
   useEffect(() => {
     if (currentActivity) {
       setViewedChapter(currentActivity.chapterNumber);
+      preloadJourneyVoiceClip(currentActivity.voiceClipId);
     }
-  }, [currentActivity?.chapterNumber]);
+  }, [currentActivity?.chapterNumber, currentActivity?.voiceClipId]);
 
   const completedSet = useMemo(
     () => new Set<number>(journeyState.completedActivityIndices),

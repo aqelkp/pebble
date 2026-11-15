@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
+import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import type { JourneyBoardContext } from '../../journey/journeyTypes';
@@ -53,6 +54,7 @@ interface StickerJigsawBoardProps {
   onChangeSetup: () => void;
   onBackToHub: () => void;
   onGameActiveChange: (active: boolean) => void;
+  onRequestHelp?: () => void;
   journeyContext?: JourneyBoardContext;
 }
 
@@ -132,6 +134,7 @@ export function StickerJigsawBoard({
   onChangeSetup,
   onBackToHub,
   onGameActiveChange,
+  onRequestHelp,
   journeyContext,
 }: StickerJigsawBoardProps) {
   const sizeSpec = getJigsawSizeSpec(config.size);
@@ -538,6 +541,7 @@ export function StickerJigsawBoard({
           <span className="badge-pill badge-pill--mint">
             {puzzle.rows * puzzle.cols - tray.length}/{puzzle.rows * puzzle.cols} Pieces
           </span>
+          <GameHelpButton onClick={onRequestHelp} />
           <button
             type="button"
             className="btn-icon-pill"

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BrandLogo } from '../components/BrandLogo';
+import { normalizeSpokenName, speakChildNamePhrase } from '../utils/childNameTts';
 import {
   ACCENT_COLORS,
   AVATAR_OPTIONS,
@@ -136,15 +137,34 @@ export function FamilyProfilesPage({ onBack }: FamilyProfilesPageProps) {
                     <label htmlFor={`name-input-${profile.id}`}>
                       {idx === 0 ? 'Child / Player 1' : `Player ${idx + 1}`}
                     </label>
-                    {profiles.length > 2 && idx >= 2 && (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                       <button
                         type="button"
-                        style={{ color: '#a13a23', fontSize: '0.78rem', fontWeight: 600 }}
-                        onClick={() => removeProfile(profile.id)}
+                        className="profile-hear-btn"
+                        data-testid={`hear-name-btn-${idx}`}
+                        onClick={() => {
+                          const spoken =
+                            normalizeSpokenName(inputValue, { allowGenericDefault: true }) ??
+                            (idx === 0 ? 'Child' : `Player ${idx + 1}`);
+                          speakChildNamePhrase(`Hello, ${spoken}!`, {
+                            enabled: true,
+                            soundEnabled: true,
+                          });
+                        }}
                       >
-                        Remove
+                        <span aria-hidden="true">🔊</span>
+                        <span>Hear Name</span>
                       </button>
-                    )}
+                      {profiles.length > 2 && idx >= 2 && (
+                        <button
+                          type="button"
+                          style={{ color: '#a13a23', fontSize: '0.78rem', fontWeight: 600 }}
+                          onClick={() => removeProfile(profile.id)}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <input
                     id={`name-input-${profile.id}`}

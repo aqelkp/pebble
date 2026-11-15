@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
+import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { useGameLoop } from '../../engine';
@@ -56,6 +57,7 @@ interface LetterRiverBoardProps {
   onToggleSound: () => void;
   onChangeSetup: () => void;
   onBackToHub: () => void;
+  onRequestHelp?: () => void;
   onGameActiveChange?: (active: boolean) => void;
   journeyContext?: JourneyBoardContext;
 }
@@ -589,6 +591,7 @@ export function LetterRiverBoard({
   onToggleSound,
   onChangeSetup,
   onBackToHub,
+  onRequestHelp,
   onGameActiveChange,
   journeyContext,
 }: LetterRiverBoardProps) {
@@ -1412,6 +1415,7 @@ export function LetterRiverBoard({
         </div>
 
         <div className="top-bar__right">
+          <GameHelpButton onClick={onRequestHelp} />
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--square icon-pill-btn--compact"

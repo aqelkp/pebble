@@ -1,8 +1,15 @@
 import { CARD_THEMES, type ThemeId } from '../memory-match/themes';
 
-export type RoadBoardSize = '3x3' | '3x4';
+export type RoadBoardSize = '3x3' | '3x4' | '4x4';
 export type RoadRoundSize = '2-roads' | '3-roads' | '5-roads';
-export type VehicleId = 'fire-truck' | 'police-cruiser' | 'ambulance' | 'safari-jeep';
+export type VehicleId =
+  | 'fire-truck'
+  | 'police-cruiser'
+  | 'ambulance'
+  | 'safari-jeep'
+  | 'tow-truck'
+  | 'school-bus';
+export type RoadBiomeId = 'sunny-town' | 'river-bridge' | 'canyon-pass';
 
 export type CardinalDir = 'N' | 'E' | 'S' | 'W';
 export type RoadSegmentType = 'NS' | 'EW' | 'NE' | 'NW' | 'SE' | 'SW';
@@ -39,7 +46,50 @@ export const ROAD_SIZE_SPECS: readonly RoadSizeSpec[] = [
     cols: 3,
     description: '12 tiles · Longer winding rescues',
   },
+  {
+    id: '4x4',
+    label: '4 × 4',
+    rows: 4,
+    cols: 4,
+    description: '16 tiles · Big town adventure',
+  },
 ];
+
+export interface RoadBiomeSpec {
+  id: RoadBiomeId;
+  label: string;
+  boardTint: string;
+  sceneryBg: string;
+  shoulderColor: string;
+}
+
+export const ROAD_BIOMES: readonly RoadBiomeSpec[] = [
+  {
+    id: 'sunny-town',
+    label: 'Sunny Town',
+    boardTint: '#F2F9F4',
+    sceneryBg: '#E3F2EA',
+    shoulderColor: '#D5C39D',
+  },
+  {
+    id: 'river-bridge',
+    label: 'River Valley',
+    boardTint: '#EEF8FA',
+    sceneryBg: '#DDF0F5',
+    shoulderColor: '#98CDD6',
+  },
+  {
+    id: 'canyon-pass',
+    label: 'Honey Canyon',
+    boardTint: '#FDF6EC',
+    sceneryBg: '#F9EAD4',
+    shoulderColor: '#E5B47A',
+  },
+];
+
+export function getRoadBiomeSpec(biome: RoadBiomeId): RoadBiomeSpec {
+  return ROAD_BIOMES.find((b) => b.id === biome) ?? ROAD_BIOMES[0];
+}
 
 export const ROAD_ROUND_OPTIONS: readonly {
   id: RoadRoundSize;
@@ -96,6 +146,20 @@ export const RESCUE_VEHICLES: readonly VehicleSpec[] = [
     accentColor: '#3BA99C',
     roofColor: '#5B5BD6',
   },
+  {
+    id: 'tow-truck',
+    label: 'Tow Truck',
+    bodyColor: '#5B5BD6',
+    accentColor: '#F2B84B',
+    roofColor: '#F27A5E',
+  },
+  {
+    id: 'school-bus',
+    label: 'Sunny Bus',
+    bodyColor: '#F2B84B',
+    accentColor: '#5B5BD6',
+    roofColor: '#FFFFFF',
+  },
 ];
 
 export function getRoadSizeSpec(size: RoadBoardSize): RoadSizeSpec {
@@ -123,7 +187,7 @@ export function isValidRescueRoadConfig(value: unknown): value is RescueRoadConf
   if (typeof value !== 'object' || value === null) return false;
   const c = value as Partial<RescueRoadConfig>;
   return (
-    (c.size === '3x3' || c.size === '3x4') &&
+    (c.size === '3x3' || c.size === '3x4' || c.size === '4x4') &&
     (c.roundSize === '2-roads' || c.roundSize === '3-roads' || c.roundSize === '5-roads') &&
     RESCUE_VEHICLES.some((v) => v.id === c.vehicleId) &&
     typeof c.themeId === 'string' &&
@@ -261,8 +325,10 @@ export interface RescueRoadPuzzle {
   id: string;
   rows: number;
   cols: number;
+  biome: RoadBiomeId;
   startCol: number;
   finishCol: number;
+  bonusCellKey: string | null;
   path: RoadPathStep[];
   cells: RoadCell[][];
   slotTargets: Record<string, RoadSegmentType>;
@@ -532,6 +598,7 @@ export function generateRescueRoadPuzzle(
   const effectiveSeed =
     seed ?? ((Date.now() ^ ((puzzleIndex + 1) * 0x9e3779b1)) >>> 0);
   const rng = createMulberry32(effectiveSeed);
+  const biome = ROAD_BIOMES[puzzleIndex % ROAD_BIOMES.length].id;
 
   for (let candidateAttempt = 0; candidateAttempt < 32; candidateAttempt += 1) {
     const { startCol, finishCol, path } = generateWindingPath(spec.rows, spec.cols, rng);
@@ -540,9 +607,13 @@ export function generateRescueRoadPuzzle(
         ? puzzleIndex === 0
           ? 2
           : Math.min(3, Math.max(2, path.length - 1))
-        : puzzleIndex === 0
-          ? 2
-          : Math.min(4, Math.max(3, path.length - 2));
+        : size === '4x4'
+          ? puzzleIndex === 0
+            ? 3
+            : Math.min(4, Math.max(3, path.length - 3))
+          : puzzleIndex === 0
+            ? 2
+            : Math.min(4, Math.max(3, path.length - 2));
 
     // Prefer mixing turns and straights; keep at least 1 anchor fixed cell
     const stepIndices = path.map((_, idx) => idx);
@@ -569,12 +640,17 @@ export function generateRescueRoadPuzzle(
         initialTray.map((t) => t.segment),
       )
     ) {
+      const bonusIdx = path.length >= 3 ? Math.floor(path.length / 2) : -1;
+      const bonusCellKey =
+        bonusIdx >= 0 ? roadCellKey(path[bonusIdx].row, path[bonusIdx].col) : null;
       return {
         id: `road-${effectiveSeed}-${puzzleIndex}`,
         rows: spec.rows,
         cols: spec.cols,
+        biome,
         startCol,
         finishCol,
+        bonusCellKey,
         path,
         cells,
         slotTargets,
@@ -605,13 +681,20 @@ export function generateRescueRoadPuzzle(
     rng,
     'NW',
   );
+  const fallbackBonusIdx = fallbackPath.length >= 3 ? Math.floor(fallbackPath.length / 2) : -1;
+  const fallbackBonusKey =
+    fallbackBonusIdx >= 0
+      ? roadCellKey(fallbackPath[fallbackBonusIdx].row, fallbackPath[fallbackBonusIdx].col)
+      : null;
 
   return {
     id: `road-${effectiveSeed}-${puzzleIndex}`,
     rows: spec.rows,
     cols: spec.cols,
+    biome,
     startCol: 0,
     finishCol: 1,
+    bonusCellKey: fallbackBonusKey,
     path: fallbackPath,
     cells: layout.cells,
     slotTargets: layout.slotTargets,

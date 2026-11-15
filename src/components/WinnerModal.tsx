@@ -1,5 +1,12 @@
-import { getAvatarSrc, type FamilyProfile } from '../context/FamilyProfilesContext';
+import { useEffect } from 'react';
+import {
+  getAvatarSrc,
+  useFamilyProfiles,
+  type FamilyProfile,
+} from '../context/FamilyProfilesContext';
 import type { RecordCompletionOutcome } from '../games/memory-match/memoryStats';
+import { loadJourneyState } from '../journey/journeyStorage';
+import { normalizeSpokenName, speakChildNamePhrase, stopChildNameTts } from '../utils/childNameTts';
 import { CrownIcon } from './BrandLogo';
 import { ConfettiBurst } from './ConfettiBurst';
 
@@ -17,6 +24,8 @@ interface WinnerModalProps {
   completionOutcome?: RecordCompletionOutcome | null;
   unitLabel?: string;
   soloVerb?: string;
+  soundEnabled?: boolean;
+  speakChildName?: boolean;
   onPlayAgain: () => void;
   onChangeSetup: () => void;
   onBackToHub: () => void;
@@ -77,15 +86,32 @@ export function WinnerModal({
   completionOutcome,
   unitLabel = 'pairs',
   soloVerb = 'found',
+  soundEnabled,
+  speakChildName,
   onPlayAgain,
   onChangeSetup,
   onBackToHub,
 }: WinnerModalProps) {
+  const { soundEnabled: ctxSoundEnabled } = useFamilyProfiles();
+  const effectiveSound = soundEnabled ?? ctxSoundEnabled;
+  const effectiveSpeakName = speakChildName ?? loadJourneyState().settings.speakChildName;
+
   const sorted = [...standings].sort((a, b) => b.score - a.score);
   const topScore = sorted[0]?.score ?? 0;
   const winners = sorted.filter((entry) => entry.score === topScore);
   const isSolo = sorted.length === 1;
   const isTie = !isSolo && winners.length > 1;
+  const winnerSpokenName = !isTie ? normalizeSpokenName(winners[0]?.profile.name) : null;
+
+  useEffect(() => {
+    if (!effectiveSound || !effectiveSpeakName || !winnerSpokenName) return;
+    const phrase = isSolo ? `Great job, ${winnerSpokenName}!` : `${winnerSpokenName} wins!`;
+    const cancel = speakChildNamePhrase(phrase, { enabled: true, soundEnabled: true });
+    return () => {
+      cancel();
+      stopChildNameTts();
+    };
+  }, [effectiveSound, effectiveSpeakName, isSolo, winnerSpokenName]);
 
   let headline = 'Game Complete!';
   let subtitle =

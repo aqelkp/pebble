@@ -51,6 +51,8 @@ import {
   type JourneyProgressState,
   type JourneySettings,
 } from './journey/journeyTypes';
+import { buildStandaloneHelpActivity } from './journey/standaloneHelpActivity';
+import { preloadAllJourneyVoiceClips, preloadJourneyVoiceClip } from './journey/voiceInstructions';
 import { ActivityBookPage } from './pages/ActivityBookPage';
 import { GameHubPage } from './pages/GameHubPage';
 
@@ -299,6 +301,7 @@ function PebbleRouter() {
   >(null);
   const showParentGate = parentGateTarget !== null;
   const [introActivity, setIntroActivity] = useState<JourneyActivity | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [completedActivity, setCompletedActivity] = useState<JourneyActivity | null>(null);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
@@ -311,11 +314,26 @@ function PebbleRouter() {
     saveJourneyState(journeyState);
   }, [journeyState]);
 
-  // Gently pre-warm lazy game bundles and daily wind-down voice during idle time after initial paint
+  // Gently pre-warm lazy game bundles, journey voice clips, and daily wind-down voice after initial paint
   useEffect(() => {
     preloadDailyTimeOverVoice();
-    return scheduleIdleGamePreload();
+    const voiceWarmupTimer = window.setTimeout(() => {
+      preloadAllJourneyVoiceClips();
+    }, 300);
+    const stopIdleGames = scheduleIdleGamePreload();
+    return () => {
+      window.clearTimeout(voiceWarmupTimer);
+      stopIdleGames();
+    };
   }, []);
+
+  // Keep the current and next activity voice instructions preloaded as the child progresses
+  useEffect(() => {
+    const current = curriculum[journeyState.currentActivityIndex];
+    const next = curriculum[journeyState.currentActivityIndex + 1];
+    if (current) preloadJourneyVoiceClip(current.voiceClipId);
+    if (next) preloadJourneyVoiceClip(next.voiceClipId);
+  }, [curriculum, journeyState.currentActivityIndex]);
 
   useEffect(() => {
     saveDailyPlayLimitState(dailyLimit);
@@ -330,12 +348,17 @@ function PebbleRouter() {
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  // Pre-warm the selected activity's chunk while the intro modal is open
+  // Pre-warm the selected activity's chunk and voice clip while the intro modal is open
   useEffect(() => {
     if (introActivity) {
       preloadGamePlugin(introActivity.gameId);
+      preloadJourneyVoiceClip(introActivity.voiceClipId);
     }
   }, [introActivity]);
+
+  useEffect(() => {
+    setHelpOpen(false);
+  }, [screen]);
 
   const screenRef = useRef<Screen>(screen);
   screenRef.current = screen;
@@ -432,6 +455,7 @@ function PebbleRouter() {
     clearAllSavedGames();
     isGameActiveRef.current = false;
     setIntroActivity(null);
+    setHelpOpen(false);
     setCompletedActivity(null);
     setShowLeaveConfirm(false);
 
@@ -553,6 +577,7 @@ function PebbleRouter() {
     isGameActiveRef.current = false;
     setCompletedActivity(null);
     setIntroActivity(null);
+    setHelpOpen(false);
     setShowLeaveConfirm(false);
 
     if (historyDepthRef.current > 0) {
@@ -634,6 +659,7 @@ function PebbleRouter() {
         <DailyTimeOverScreen
           childProfile={profiles[0]}
           soundEnabled={soundEnabled}
+          speakChildName={journeyState.settings.speakChildName}
           onOpenParentGate={() => setParentGateTarget('parent-settings')}
         />
       );
@@ -727,6 +753,7 @@ function PebbleRouter() {
         onToggleSound: toggleSound,
         onChangeSetup: () => undefined,
         onBackToHub: navigateToHub,
+        onRequestHelp: () => setHelpOpen(true),
         onGameActiveChange: handleGameActiveChange,
         journeyContext,
       });
@@ -763,6 +790,7 @@ function PebbleRouter() {
         onToggleSound: toggleSound,
         onChangeSetup: () => navigateBack({ view: 'game-setup', gameId }, true),
         onBackToHub: navigateToHub,
+        onRequestHelp: () => setHelpOpen(true),
         onGameActiveChange: handleGameActiveChange,
       });
     }
@@ -801,6 +829,17 @@ function PebbleRouter() {
       ).length
     : 0;
 
+  const helpActivity = useMemo<JourneyActivity | null>(() => {
+    if (!helpOpen) return null;
+    if (screen.view === 'journey-play') {
+      return curriculum[screen.activityIndex] ?? curriculum[0] ?? null;
+    }
+    if (screen.view === 'game-play') {
+      return buildStandaloneHelpActivity(screen.gameId, gameConfigs[screen.gameId], profiles);
+    }
+    return null;
+  }, [curriculum, gameConfigs, helpOpen, profiles, screen]);
+
   const leaveModalCopy =
     screen.view === 'journey-play'
       ? {
@@ -838,6 +877,8 @@ function PebbleRouter() {
           nextActivity={nextCompletedActivity}
           completedInChapter={completedInChapterCount}
           childProfile={profiles[0]}
+          soundEnabled={soundEnabled}
+          speakChildName={journeyState.settings.speakChildName}
           onNextActivity={() => {
             setCompletedActivity(null);
             if (nextCompletedActivity) {
@@ -851,12 +892,28 @@ function PebbleRouter() {
         />
       )}
 
+      {helpActivity && !introActivity && (
+        <ActivityIntroModal
+          key={`help-${helpActivity.gameId}-${helpActivity.index}`}
+          mode="help"
+          activity={helpActivity}
+          soundEnabled={soundEnabled}
+          waitForVoiceIntro={false}
+          childName={profiles[0]?.name}
+          speakChildName={false}
+          onConfirmStart={() => setHelpOpen(false)}
+          onCancel={() => setHelpOpen(false)}
+        />
+      )}
+
       {introActivity && (
         <ActivityIntroModal
           key={introActivity.index}
           activity={introActivity}
           soundEnabled={soundEnabled}
           waitForVoiceIntro={journeyState.settings.waitForVoiceIntro}
+          childName={profiles[0]?.name}
+          speakChildName={journeyState.settings.speakChildName}
           onConfirmStart={() => handleConfirmStartActivity(introActivity)}
           onCancel={() => {
             setIntroActivity(null);

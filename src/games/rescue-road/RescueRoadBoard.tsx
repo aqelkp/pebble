@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
+import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import type { JourneyBoardContext } from '../../journey/journeyTypes';
@@ -19,6 +20,7 @@ import { getThemeSpec } from '../memory-match/themes';
 import {
   buildRoadMismatchLesson,
   generateRescueRoadPuzzle,
+  getRoadBiomeSpec,
   getRoadsCount,
   getRoadSizeSpec,
   getVehicleSpec,
@@ -36,6 +38,7 @@ import {
 } from './roadEngine';
 import {
   playRescueHonkFanfare,
+  playRoadCheckpointChime,
   playRoadMismatchSound,
   playRoadPickupSound,
   playRoadSnapSound,
@@ -64,6 +67,7 @@ interface RescueRoadBoardProps {
   onChangeSetup: () => void;
   onBackToHub: () => void;
   onGameActiveChange: (active: boolean) => void;
+  onRequestHelp?: () => void;
   journeyContext?: JourneyBoardContext;
 }
 
@@ -120,11 +124,15 @@ function RoadTileSvg({
   isMismatch = false,
   wrongDirs = [],
   neededDirs = [],
+  shoulderColor = '#D5C39D',
+  tileBg = '#EAF5EF',
 }: {
   segment: RoadSegmentType;
   isMismatch?: boolean;
   wrongDirs?: CardinalDir[];
   neededDirs?: CardinalDir[];
+  shoulderColor?: string;
+  tileBg?: string;
 }) {
   const pathD = SEGMENT_SVG_PATHS[segment];
   return (
@@ -135,12 +143,12 @@ function RoadTileSvg({
         width="96"
         height="96"
         rx="16"
-        fill={isMismatch ? '#FDECE7' : '#EAF5EF'}
+        fill={isMismatch ? '#FDECE7' : tileBg}
       />
       <path
         d={pathD}
         fill="none"
-        stroke={isMismatch ? '#F27A5E' : '#D5C39D'}
+        stroke={isMismatch ? '#F27A5E' : shoulderColor}
         strokeWidth="46"
         strokeLinecap="butt"
       />
@@ -191,10 +199,16 @@ function RoadTileSvg({
   );
 }
 
-function SceneryTileSvg({ variant }: { variant?: RoadCell['sceneryVariant'] }) {
+function SceneryTileSvg({
+  variant,
+  bgColor = '#E3F2EA',
+}: {
+  variant?: RoadCell['sceneryVariant'];
+  bgColor?: string;
+}) {
   return (
     <svg viewBox="0 0 100 100" className="rr-tile-svg" aria-hidden="true">
-      <rect x="2" y="2" width="96" height="96" rx="16" fill="#E3F2EA" />
+      <rect x="2" y="2" width="96" height="96" rx="16" fill={bgColor} />
       {variant === 'pond' ? (
         <>
           <ellipse cx="52" cy="54" rx="28" ry="20" fill="#BEE5E0" />
@@ -245,7 +259,23 @@ function RescueVehicleSvg({
       <rect x="8" y="16" width="44" height="32" rx="11" fill={vehicle.bodyColor} />
       <rect x="33" y="20" width="15" height="24" rx="6" fill="#FFF8EB" opacity="0.92" />
       <rect x="13" y="21" width="16" height="22" rx="5" fill={vehicle.accentColor} opacity="0.88" />
-      <rect x="24" y="24" width="8" height="16" rx="4" fill={vehicle.roofColor} />
+      {vehicle.id === 'tow-truck' ? (
+        <path
+          d="M 10 32 L 23 32 M 12 27 L 20 32 L 12 37"
+          stroke={vehicle.roofColor}
+          strokeWidth="3.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+      ) : vehicle.id === 'school-bus' ? (
+        <>
+          <rect x="15" y="24" width="6" height="16" rx="2" fill={vehicle.roofColor} />
+          <rect x="24" y="24" width="6" height="16" rx="2" fill={vehicle.roofColor} />
+        </>
+      ) : (
+        <rect x="24" y="24" width="8" height="16" rx="4" fill={vehicle.roofColor} />
+      )}
       <circle cx="19" cy="14" r="5" fill="#2F374B" />
       <circle cx="41" cy="14" r="5" fill="#2F374B" />
       <circle cx="19" cy="50" r="5" fill="#2F374B" />
@@ -272,13 +302,13 @@ export function RescueRoadBoard({
   onChangeSetup,
   onBackToHub,
   onGameActiveChange,
+  onRequestHelp,
   journeyContext,
 }: RescueRoadBoardProps) {
   const totalRoads = getRoadsCount(config.roundSize);
   const sizeSpec = getRoadSizeSpec(config.size);
   const vehicle = getVehicleSpec(config.vehicleId);
   const theme = getThemeSpec(config.themeId);
-  const finishFriend = theme.characters[0];
 
   const configKey = useMemo(
     () => `${config.size}:${config.roundSize}:${config.vehicleId}:${config.themeId}:${gameKey}`,
@@ -291,7 +321,7 @@ export function RescueRoadBoard({
       const raw = window.sessionStorage.getItem(RESCUE_ROAD_STORAGE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw) as SavedRescueRoadState;
-      if (parsed && parsed.configKey === configKey && parsed.puzzle?.cells?.length) {
+      if (parsed && parsed.configKey === configKey && parsed.puzzle?.cells?.length && parsed.puzzle?.biome) {
         return parsed;
       }
     } catch {
@@ -304,6 +334,8 @@ export function RescueRoadBoard({
   const [puzzle, setPuzzle] = useState<RescueRoadPuzzle>(
     () => initialRestored?.puzzle ?? generateRescueRoadPuzzle(config.size, 0),
   );
+  const biomeSpec = getRoadBiomeSpec(puzzle.biome ?? 'sunny-town');
+  const finishFriend = theme.characters[puzzleIndex % theme.characters.length] ?? theme.characters[0];
   const [placedSlots, setPlacedSlots] = useState<Record<string, RoadTrayTile>>(
     () => initialRestored?.placedSlots ?? {},
   );
@@ -320,6 +352,8 @@ export function RescueRoadBoard({
   });
 
   const [drivingPhase, setDrivingPhase] = useState<'idle' | 'driving' | 'arrived'>('idle');
+  const [bonusCollected, setBonusCollected] = useState(false);
+  const bonusPlayedRef = useRef(false);
   const [driveCoord, setDriveCoord] = useState<{ x: number; y: number; angle: number }>({
     x: 0.5,
     y: -0.2,
@@ -398,7 +432,7 @@ export function RescueRoadBoard({
       const availH = Math.max(220, rect.height - 160); // room for top garage + truck bay & bottom finish row
       const maxByWidth = Math.floor((availW - (puzzle.cols - 1) * 10) / puzzle.cols);
       const maxByHeight = Math.floor((availH - (puzzle.rows - 1) * 10) / puzzle.rows);
-      const clamped = Math.max(66, Math.min(122, maxByWidth, maxByHeight));
+      const clamped = Math.max(58, Math.min(118, maxByWidth, maxByHeight));
       setTileSize(clamped);
     };
 
@@ -455,6 +489,8 @@ export function RescueRoadBoard({
   useEffect(() => {
     setDrivingPhase('idle');
     setFallbackEmphasized(false);
+    setBonusCollected(false);
+    bonusPlayedRef.current = false;
     setDriveCoord({
       x: puzzle.startCol + 0.5,
       y: -0.2,
@@ -595,6 +631,12 @@ export function RescueRoadBoard({
       ];
 
       const totalSegments = Math.max(1, waypoints.length - 1);
+      const bonusStepIdx = currentPuzzle.bonusCellKey
+        ? drivePath.findIndex(
+            (s) => roadCellKey(s.row, s.col) === currentPuzzle.bonusCellKey,
+          )
+        : -1;
+      const bonusProgress = bonusStepIdx >= 0 ? (bonusStepIdx + 1) / totalSegments : 2;
       // Latch startTime on the first rAF callback rather than before scheduling:
       // input handlers can see a higher performance.now() than the frame's document.timeline timestamp.
       let startTime: number | null = null;
@@ -610,6 +652,10 @@ export function RescueRoadBoard({
         if (driveWatchdogTimerRef.current) {
           window.clearTimeout(driveWatchdogTimerRef.current);
           driveWatchdogTimerRef.current = null;
+        }
+        if (bonusStepIdx >= 0 && !bonusPlayedRef.current) {
+          bonusPlayedRef.current = true;
+          setBonusCollected(true);
         }
 
         const lastPt = waypoints[waypoints.length - 1] ?? {
@@ -643,6 +689,12 @@ export function RescueRoadBoard({
           const localT = Math.max(0, Math.min(1, scaled - segIdx));
           const fromPt = waypoints[segIdx] ?? waypoints[0];
           const toPt = waypoints[segIdx + 1] ?? waypoints[waypoints.length - 1];
+
+          if (!bonusPlayedRef.current && t >= bonusProgress) {
+            bonusPlayedRef.current = true;
+            setBonusCollected(true);
+            playRoadCheckpointChime(soundEnabled);
+          }
 
           setDriveCoord({
             x: fromPt.x + (toPt.x - fromPt.x) * localT,
@@ -928,6 +980,7 @@ export function RescueRoadBoard({
           <span className="badge-pill badge-pill--mint">
             {Object.keys(placedSlots).length}/{puzzle.missingCount} Joined
           </span>
+          <GameHelpButton onClick={onRequestHelp} />
           <button
             type="button"
             className="btn-icon-pill"
@@ -955,8 +1008,11 @@ export function RescueRoadBoard({
 
       <main className="rr-stage" ref={stageRef}>
         <div
-          className="rr-board-card"
-          style={{ width: `${Math.max(300, totalGridW + 40)}px` }}
+          className={`rr-board-card rr-board-card--${biomeSpec.id}`}
+          style={{
+            width: `${Math.max(300, totalGridW + 40)}px`,
+            background: biomeSpec.boardTint,
+          }}
         >
           {/* Start Garage Row */}
           <div
@@ -995,17 +1051,36 @@ export function RescueRoadBoard({
               {puzzle.cells.flatMap((row) =>
                 row.map((cell) => {
                   const key = roadCellKey(cell.row, cell.col);
+                  const isBonusCell = puzzle.bonusCellKey === key;
                   if (cell.kind === 'scenery') {
                     return (
                       <div key={key} className="rr-cell rr-cell--scenery">
-                        <SceneryTileSvg variant={cell.sceneryVariant} />
+                        <SceneryTileSvg
+                          variant={cell.sceneryVariant}
+                          bgColor={biomeSpec.sceneryBg}
+                        />
                       </div>
                     );
                   }
                   if (cell.kind === 'fixed' && cell.segment) {
                     return (
                       <div key={key} className="rr-cell rr-cell--fixed">
-                        <RoadTileSvg segment={cell.segment} />
+                        <RoadTileSvg
+                          segment={cell.segment}
+                          shoulderColor={biomeSpec.shoulderColor}
+                          tileBg={biomeSpec.sceneryBg}
+                        />
+                        {isBonusCell && (
+                          <span
+                            className={`rr-checkpoint-dot ${
+                              bonusCollected ? 'rr-checkpoint-dot--collected' : ''
+                            }`}
+                            title="Bonus Star Stop"
+                            aria-label="Bonus Star Stop"
+                          >
+                            ★
+                          </span>
+                        )}
                       </div>
                     );
                   }
@@ -1036,19 +1111,35 @@ export function RescueRoadBoard({
                       disabled={Boolean(placed) || drivingPhase !== 'idle'}
                     >
                       {placed ? (
-                        <RoadTileSvg segment={placed.segment} />
+                        <RoadTileSvg
+                          segment={placed.segment}
+                          shoulderColor={biomeSpec.shoulderColor}
+                          tileBg={biomeSpec.sceneryBg}
+                        />
                       ) : isTeachHere && teachFeedback ? (
                         <RoadTileSvg
                           segment={teachFeedback.attemptedTile.segment}
                           isMismatch
                           wrongDirs={teachFeedback.wrongDirs}
                           neededDirs={teachFeedback.neededDirs}
+                          shoulderColor={biomeSpec.shoulderColor}
+                          tileBg={biomeSpec.sceneryBg}
                         />
                       ) : (
                         <div className="rr-slot-empty">
                           <span className="rr-slot-empty__dot" />
                           <span className="rr-slot-empty__text">Road?</span>
                         </div>
+                      )}
+                      {isBonusCell && (
+                        <span
+                          className={`rr-checkpoint-dot ${
+                            bonusCollected ? 'rr-checkpoint-dot--collected' : ''
+                          }`}
+                          aria-hidden="true"
+                        >
+                          ★
+                        </span>
                       )}
                     </button>
                   );

@@ -74,23 +74,36 @@ function seededShuffle<T>(items: readonly T[], rng: () => number): T[] {
 
 function createBagDrawer(
   pool: readonly GameRegistryEntry['id'][],
+  boostedGames: readonly GameRegistryEntry['id'][],
   rng: () => number,
   preferFirstId?: GameRegistryEntry['id'],
 ): (prevGame?: GameRegistryEntry['id']) => GameRegistryEntry['id'] {
+  const weightedPool: GameRegistryEntry['id'][] = [];
+  for (const id of pool) {
+    weightedPool.push(id);
+    if (boostedGames.includes(id)) {
+      weightedPool.push(id);
+    }
+  }
+
   let bag: GameRegistryEntry['id'][] = [];
   let isFirstBag = true;
 
   return (prevGame) => {
     if (bag.length === 0) {
       if (isFirstBag && preferFirstId && pool.includes(preferFirstId)) {
-        const rest = seededShuffle(
-          pool.filter((id) => id !== preferFirstId),
-          rng,
-        );
-        bag = [preferFirstId, ...rest];
+        let removedOne = false;
+        const rest = weightedPool.filter((id) => {
+          if (!removedOne && id === preferFirstId) {
+            removedOne = true;
+            return false;
+          }
+          return true;
+        });
+        bag = [preferFirstId, ...seededShuffle(rest, rng)];
       } else {
-        bag = seededShuffle(pool, rng);
-        if (prevGame && bag[0] === prevGame && bag.length > 1) {
+        bag = seededShuffle(weightedPool, rng);
+        if (prevGame && bag[0] === prevGame) {
           const swapIdx = bag.findIndex((g) => g !== prevGame);
           if (swapIdx > 0) {
             [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
@@ -98,10 +111,16 @@ function createBagDrawer(
         }
       }
       isFirstBag = false;
-    } else if (prevGame && bag[0] === prevGame && bag.length > 1) {
+    } else if (prevGame && bag[0] === prevGame) {
       const swapIdx = bag.findIndex((g) => g !== prevGame);
       if (swapIdx > 0) {
         [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
+      } else {
+        // Remaining items in current bag all equal prevGame — pick another pool item safely if possible
+        const alt = pool.find((g) => g !== prevGame);
+        if (alt) {
+          return alt;
+        }
       }
     }
 
@@ -111,6 +130,7 @@ function createBagDrawer(
 
 function buildGameSequence(
   enabledGames: readonly GameRegistryEntry['id'][],
+  boostedGames: readonly GameRegistryEntry['id'][],
   funBreakPacing: FunBreakPacingMode,
   totalSlots: number,
   rng: () => number,
@@ -123,9 +143,9 @@ function buildGameSequence(
   const funPool = pool.filter((id) => getGameRegistryEntry(id).activityRole === 'reward');
   const learningPool = pool.filter((id) => getGameRegistryEntry(id).activityRole !== 'reward');
 
-  // If pacing is 'off' or only one role is active, rotate all enabled games via non-repeating bags
+  // If pacing is 'off' or only one role is active, rotate all enabled games via weighted non-repeating bags
   if (funBreakPacing === 'off' || funPool.length === 0 || learningPool.length === 0) {
-    const drawAny = createBagDrawer(pool, rng, 'memory-match');
+    const drawAny = createBagDrawer(pool, boostedGames, rng, 'memory-match');
     const sequence: GameRegistryEntry['id'][] = [];
     for (let i = 0; i < totalSlots; i += 1) {
       sequence.push(drawAny(sequence[sequence.length - 1]));
@@ -133,8 +153,8 @@ function buildGameSequence(
     return sequence;
   }
 
-  const drawFun = createBagDrawer(funPool, rng, 'memory-match');
-  const drawLearning = createBagDrawer(learningPool, rng);
+  const drawFun = createBagDrawer(funPool, boostedGames, rng);
+  const drawLearning = createBagDrawer(learningPool, boostedGames, rng);
   const sequence: GameRegistryEntry['id'][] = [];
 
   if (funBreakPacing === 'balanced') {
@@ -154,10 +174,11 @@ function buildGameSequence(
     return sequence;
   }
 
-  const funInterval = funBreakPacing === 'every-2' ? 2 : 3;
+  const cycleLen = funBreakPacing === 'after-1' ? 2 : funBreakPacing === 'after-3' ? 4 : 3;
   for (let slot = 0; slot < totalSlots; slot += 1) {
     const prevGame = sequence[sequence.length - 1];
-    sequence.push(slot % funInterval === 0 ? drawFun(prevGame) : drawLearning(prevGame));
+    const isFunSlot = slot % cycleLen === cycleLen - 1;
+    sequence.push(isFunSlot ? drawFun(prevGame) : drawLearning(prevGame));
   }
   return sequence;
 }
@@ -194,6 +215,7 @@ export function buildJourneyCurriculum(
 
   const gameSequence = buildGameSequence(
     settings.enabledGames,
+    settings.boostedGames ?? ['rescue-road'],
     settings.funBreakPacing,
     TOTAL_ACTIVITIES,
     rng,
@@ -207,6 +229,8 @@ export function buildJourneyCurriculum(
     'number-safari': 0,
     'rescue-road': 0,
     'sticker-jigsaw': 0,
+    'sticker-scene': 0,
+    'spot-the-twin': 0,
   };
 
   return gameSequence.map((gameId, slotIndex) => {

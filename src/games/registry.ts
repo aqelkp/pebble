@@ -8,7 +8,9 @@ export type GameId =
   | 'number-safari'
   | 'word-fun'
   | 'rescue-road'
-  | 'sticker-jigsaw';
+  | 'sticker-jigsaw'
+  | 'sticker-scene'
+  | 'spot-the-twin';
 
 export type HubShelfId =
   | 'letters-words'
@@ -208,6 +210,46 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['cognition', 'self-regulation'],
       targetSkills: ['visual_recall'],
       conceptUnitLabel: 'Visual Jigsaw Matching',
+    },
+  },
+  {
+    id: 'sticker-scene',
+    title: 'Sticker Scene',
+    description:
+      'Peel and stick colorful characters onto matching storybook scene shadows across sunny meadows, parks, and camps!',
+    badgeText: 'Fun Break',
+    ageHint: 'Ages 3–6 • Shape Shadows',
+    artPath: 'hub/sticker-scene.png',
+    shelf: 'fun-rewards',
+    status: 'available',
+    featured: true,
+    activityRole: 'reward',
+    learningIntent: {
+      summary:
+        'Tactile Fun Break reward game strengthening figure-ground visual discrimination, shape silhouette matching, and fine motor drag-drop.',
+      domains: ['cognition', 'self-regulation'],
+      targetSkills: ['visual_recall'],
+      conceptUnitLabel: 'Shadow & Shape Matching',
+    },
+  },
+  {
+    id: 'spot-the-twin',
+    title: 'Spot the Twin',
+    description:
+      'Compare two playful picture cards and spot the ONE matching twin hiding on both cards — hear its word on every find!',
+    badgeText: 'Fun Break',
+    ageHint: 'Ages 3–7 • Visual Scanning',
+    artPath: 'hub/spot-the-twin.png',
+    shelf: 'fun-rewards',
+    status: 'available',
+    featured: true,
+    activityRole: 'reward',
+    learningIntent: {
+      summary:
+        'Joyful Fun Break focus game strengthening systematic visual scanning, picture comparison, and spoken word reinforcement.',
+      domains: ['cognition', 'literacy', 'self-regulation'],
+      targetSkills: ['picture_recognition', 'visual_recall'],
+      conceptUnitLabel: 'Visual Twin Scanning',
     },
   },
 ];

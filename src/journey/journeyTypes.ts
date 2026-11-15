@@ -8,6 +8,8 @@ import type { PictureSudokuConfig } from '../games/picture-sudoku/PictureSudokuS
 import type { GameRegistryEntry } from '../games/registry';
 import type { RescueRoadConfig } from '../games/rescue-road/roadEngine';
 import type { StickerJigsawConfig } from '../games/sticker-jigsaw/jigsawEngine';
+import type { SpotTheTwinConfig } from '../games/spot-the-twin/twinEngine';
+import type { StickerSceneConfig } from '../games/sticker-scene/sceneEngine';
 import type { WordGameConfig } from '../games/word-fun/WordFunSetup';
 
 export const TOTAL_CHAPTERS = 20;
@@ -17,7 +19,7 @@ export const TOTAL_ACTIVITIES = TOTAL_CHAPTERS * ACTIVITIES_PER_CHAPTER;
 export type JourneyDurationMode = 'short' | 'standard';
 export type LettersPerLesson = 3 | 4 | 5;
 export type JourneyPlayerMode = 'solo' | 'two-player';
-export type FunBreakPacingMode = 'balanced' | 'every-2' | 'every-3' | 'off';
+export type FunBreakPacingMode = 'after-2' | 'after-3' | 'after-1' | 'balanced' | 'off';
 
 export type JourneyVoiceClipId =
   | 'memory-match'
@@ -28,7 +30,9 @@ export type JourneyVoiceClipId =
   | 'number-safari-count'
   | 'number-safari-add'
   | 'rescue-road'
-  | 'sticker-jigsaw';
+  | 'sticker-jigsaw'
+  | 'sticker-scene'
+  | 'spot-the-twin';
 
 export interface JourneyBoardContext {
   chapterNumber: number;
@@ -45,6 +49,9 @@ export interface JourneySettings {
   waitForVoiceIntro: boolean;
   playerMode: JourneyPlayerMode;
   funBreakPacing: FunBreakPacingMode;
+  boostedGames: GameRegistryEntry['id'][];
+  speakChildName: boolean;
+  pacingVersion?: number;
   selectedLetters: LetterId[];
   enabledGames: GameRegistryEntry['id'][];
   knownGames?: GameRegistryEntry['id'][];
@@ -66,7 +73,9 @@ export type JourneyActivityPayload =
   | { gameId: 'word-fun'; config: WordGameConfig }
   | { gameId: 'number-safari'; config: SafariGameConfig }
   | { gameId: 'rescue-road'; config: RescueRoadConfig }
-  | { gameId: 'sticker-jigsaw'; config: StickerJigsawConfig };
+  | { gameId: 'sticker-jigsaw'; config: StickerJigsawConfig }
+  | { gameId: 'sticker-scene'; config: StickerSceneConfig }
+  | { gameId: 'spot-the-twin'; config: SpotTheTwinConfig };
 
 export interface JourneyActivity {
   index: number;

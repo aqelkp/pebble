@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BrandLogo, PawPipIcon, PebbleMark } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
+import { GameHelpButton } from '../../components/GameHelpButton';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { solveGridFit, useStageSize } from '../../engine';
@@ -25,6 +26,7 @@ interface MemoryBoardProps {
   onToggleSound: () => void;
   onChangeSetup: () => void;
   onBackToHub: () => void;
+  onRequestHelp?: () => void;
   onGameActiveChange?: (active: boolean) => void;
   journeyContext?: JourneyBoardContext;
 }
@@ -118,6 +120,7 @@ export function MemoryBoard({
   onToggleSound,
   onChangeSetup,
   onBackToHub,
+  onRequestHelp,
   onGameActiveChange,
   journeyContext,
 }: MemoryBoardProps) {
@@ -467,6 +470,7 @@ export function MemoryBoard({
               )}
             </span>
           )}
+          <GameHelpButton onClick={onRequestHelp} />
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--compact"

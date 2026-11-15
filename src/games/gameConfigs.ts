@@ -29,6 +29,16 @@ import {
   isValidStickerJigsawConfig,
   type StickerJigsawConfig,
 } from './sticker-jigsaw/jigsawEngine';
+import {
+  getDefaultSpotTheTwinConfig,
+  isValidSpotTheTwinConfig,
+  type SpotTheTwinConfig,
+} from './spot-the-twin/twinEngine';
+import {
+  getDefaultStickerSceneConfig,
+  isValidStickerSceneConfig,
+  type StickerSceneConfig,
+} from './sticker-scene/sceneEngine';
 import type { WordGameConfig } from './word-fun/WordFunSetup';
 import {
   DEFAULT_WORD_HELPER_MODE,
@@ -53,6 +63,8 @@ export interface GameConfigMap {
   'number-safari': SafariGameConfig;
   'rescue-road': RescueRoadConfig;
   'sticker-jigsaw': StickerJigsawConfig;
+  'sticker-scene': StickerSceneConfig;
+  'spot-the-twin': SpotTheTwinConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -152,6 +164,8 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'number-safari': isValidSafariConfig,
   'rescue-road': isValidRescueRoadConfig,
   'sticker-jigsaw': isValidStickerJigsawConfig,
+  'sticker-scene': isValidStickerSceneConfig,
+  'spot-the-twin': isValidSpotTheTwinConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -206,5 +220,9 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultRescueRoadConfig() as GameConfigMap[K];
     case 'sticker-jigsaw':
       return getDefaultStickerJigsawConfig() as GameConfigMap[K];
+    case 'sticker-scene':
+      return getDefaultStickerSceneConfig() as GameConfigMap[K];
+    case 'spot-the-twin':
+      return getDefaultSpotTheTwinConfig() as GameConfigMap[K];
   }
 }

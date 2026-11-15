@@ -57,7 +57,7 @@ export function BrandLogo({ size = 'md', subtitle }: BrandLogoProps) {
   const fontSize = size === 'sm' ? '1.3rem' : size === 'lg' ? '1.85rem' : '1.55rem';
 
   return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+    <div className="pebble-brand-logo" style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
       <PebbleMark size={dimensions} />
       <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
         <span

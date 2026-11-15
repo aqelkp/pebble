@@ -143,7 +143,7 @@ export function RescueRoadSetup({
         </div>
 
         <div className="theme-selector-grid">
-          {CARD_THEMES.slice(0, 6).map((theme) => {
+          {CARD_THEMES.map((theme) => {
             const selected = theme.id === themeId;
             return (
               <button

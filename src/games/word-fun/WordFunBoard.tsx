@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BrandLogo } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
+import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
@@ -35,12 +36,14 @@ interface WordFunBoardProps {
   onChangeSetup: () => void;
   onBackToHub: () => void;
   onGameActiveChange?: (active: boolean) => void;
+  onRequestHelp?: () => void;
   journeyContext?: JourneyBoardContext;
 }
 
 type WordPhase = 'idle' | 'resolving-word' | 'resolving-miss' | 'finished';
 
 const ACTIVE_WORD_STORAGE_KEY = 'pebble.wordfun.active.v1';
+const GHOST_LETTER_MISTAKE_THRESHOLD = 5;
 
 interface SavedWordGameState {
   gameKey: number;
@@ -51,6 +54,7 @@ interface SavedWordGameState {
   scores: Record<string, number>;
   currentPlayerIdx: number;
   phase: WordPhase;
+  wordMistakes?: number;
 }
 
 function isValidLetterTile(value: unknown): value is LetterTile {
@@ -72,6 +76,7 @@ function loadSavedWordState(gameKey: number): {
   scores: Record<string, number>;
   currentPlayerIdx: number;
   phase: WordPhase;
+  wordMistakes: number;
 } | null {
   try {
     const raw = window.sessionStorage.getItem(ACTIVE_WORD_STORAGE_KEY);
@@ -123,6 +128,13 @@ function loadSavedWordState(gameKey: number): {
 
     const boundedWordIdx = Math.min(words.length - 1, Math.floor(candidate.wordIdx));
     const restoredPhase: WordPhase = candidate.phase === 'finished' ? 'finished' : 'idle';
+    const safeWordMistakes =
+      typeof candidate.wordMistakes === 'number' &&
+      Number.isFinite(candidate.wordMistakes) &&
+      candidate.wordMistakes >= 0 &&
+      candidate.wordMistakes <= 50
+        ? Math.floor(candidate.wordMistakes)
+        : 0;
 
     return {
       words,
@@ -132,6 +144,7 @@ function loadSavedWordState(gameKey: number): {
       scores: safeScores,
       currentPlayerIdx: Math.max(0, Math.floor(candidate.currentPlayerIdx)),
       phase: restoredPhase,
+      wordMistakes: safeWordMistakes,
     };
   } catch {
     return null;
@@ -171,6 +184,7 @@ export function WordFunBoard({
   onChangeSetup,
   onBackToHub,
   onGameActiveChange,
+  onRequestHelp,
   journeyContext,
 }: WordFunBoardProps) {
   const pack = useMemo(() => getWordPackSpec(config.packId), [config.packId]);
@@ -207,10 +221,11 @@ export function WordFunBoard({
   const [nextPlayerName, setNextPlayerName] = useState<string | null>(null);
   const [burstCount, setBurstCount] = useState<number>(0);
   const [thinkAgainHint, setThinkAgainHint] = useState<string | null>(null);
+  const [wordMistakes, setWordMistakes] = useState<number>(() => savedState?.wordMistakes ?? 0);
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
-  const wordMistakesRef = useRef<number>(0);
+  const wordMistakesRef = useRef<number>(savedState?.wordMistakes ?? 0);
   const roundMistakesRef = useRef<number>(0);
   const roundStartRef = useRef<number>(Date.now());
 
@@ -272,12 +287,13 @@ export function WordFunBoard({
         scores,
         currentPlayerIdx,
         phase: phase === 'finished' ? 'finished' : 'idle',
+        wordMistakes,
       };
       window.sessionStorage.setItem(ACTIVE_WORD_STORAGE_KEY, JSON.stringify(snapshot));
     } catch {
       // Ignore storage errors in restricted environments
     }
-  }, [currentPlayerIdx, gameKey, phase, placedTileUids, scores, tiles, wordIdx, words]);
+  }, [currentPlayerIdx, gameKey, phase, placedTileUids, scores, tiles, wordIdx, wordMistakes, words]);
 
   // Dynamically size illustration, slots, and 3x2 wooden tiles so 100% fits inside 100dvh
   useEffect(() => {
@@ -324,6 +340,9 @@ export function WordFunBoard({
     setWrongLetter(null);
     setHintTileUid(null);
     setNextPlayerName(null);
+    wordMistakesRef.current = 0;
+    roundMistakesRef.current = 0;
+    setWordMistakes(0);
   }, [clearPendingTimer, config.packId, config.roundSizeId, players]);
 
   const currentWord = words[wordIdx] ?? words[0];
@@ -335,6 +354,7 @@ export function WordFunBoard({
   }, [words]);
   const activePlayer = players[currentPlayerIdx % players.length] ?? players[0];
   const nextEmptySlot = placedTileUids.findIndex((uid) => uid === null);
+  const showGhostLetters = wordMistakes >= GHOST_LETTER_MISTAKE_THRESHOLD;
   const completedWordsCount =
     phase === 'finished'
       ? words.length
@@ -366,17 +386,18 @@ export function WordFunBoard({
         }
 
         // All 3 letters placed — award +1 point!
-        const wordMistakes = wordMistakesRef.current;
+        const completedWordMistakes = wordMistakesRef.current;
         recordSkillAttempt({
           playerId: activePlayer.id,
           gameId: 'word-fun',
           conceptId: `word:${currentWord.id}`,
           conceptLabel: currentWord.word.toLowerCase(),
           skillType: 'word_spelling',
-          correct: wordMistakes === 0,
-          attemptsTaken: 3 + wordMistakes,
+          correct: completedWordMistakes === 0,
+          attemptsTaken: 3 + completedWordMistakes,
         });
         wordMistakesRef.current = 0;
+        setWordMistakes(0);
 
         setScores((prev) => ({
           ...prev,
@@ -410,6 +431,8 @@ export function WordFunBoard({
           timeoutRef.current = window.setTimeout(() => {
             const nextWordIndex = wordIdx + 1;
             const nextWord = words[nextWordIndex];
+            wordMistakesRef.current = 0;
+            setWordMistakes(0);
             setWordIdx(nextWordIndex);
             setTiles(buildLetterTiles(nextWord?.word ?? 'CAT', nextWordIndex));
             setPlacedTileUids([null, null, null]);
@@ -421,7 +444,9 @@ export function WordFunBoard({
       }
 
       // Wrong letter tapped
-      wordMistakesRef.current += 1;
+      const nextWordMistakes = wordMistakesRef.current + 1;
+      wordMistakesRef.current = nextWordMistakes;
+      setWordMistakes(nextWordMistakes);
       roundMistakesRef.current += 1;
       recordSkillAttempt({
         playerId: activePlayer.id,
@@ -567,6 +592,7 @@ export function WordFunBoard({
           >
             Words: <strong>{completedWordsCount}</strong>/{words.length}
           </span>
+          <GameHelpButton onClick={onRequestHelp} />
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--compact"
@@ -681,16 +707,22 @@ export function WordFunBoard({
                     <span aria-hidden="true">🔊</span>
                     <span>Hear Word</span>
                   </button>
-                  {config.helperMode === 'sound-out' && (
-                    <button
-                      type="button"
-                      className="wf-helper-btn wf-helper-btn--mint"
-                      onClick={handleHint}
-                      disabled={phase !== 'idle' || nextEmptySlot === -1}
-                      aria-label="Highlight next letter"
+                  <button
+                    type="button"
+                    className="wf-helper-btn wf-helper-btn--mint"
+                    onClick={handleHint}
+                    disabled={phase !== 'idle' || nextEmptySlot === -1}
+                    aria-label="Highlight next letter"
+                  >
+                    <span>Hint</span>
+                  </button>
+                  {showGhostLetters && (
+                    <span
+                      className="badge-pill badge-pill--mint"
+                      data-testid="wf-letter-guides-badge"
                     >
-                      <span>Hint</span>
-                    </button>
+                      Letter Guides On
+                    </span>
                   )}
                 </div>
               </div>
@@ -709,8 +741,7 @@ export function WordFunBoard({
                 const placedTile = tileUid ? tiles.find((t) => t.uid === tileUid) : undefined;
                 const isNextSlot = phase === 'idle' && slotIdx === nextEmptySlot;
                 const isWordDone = phase === 'resolving-word';
-                const guideLetter =
-                  config.helperMode === 'letter-trace' ? currentWord.word[slotIdx] : null;
+                const guideLetter = showGhostLetters ? currentWord.word[slotIdx] : null;
 
                 return (
                   <div

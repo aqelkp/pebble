@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
+import { GameHelpButton } from '../../components/GameHelpButton';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import { assetUrl } from '../../utils/assets';
@@ -42,6 +43,7 @@ interface PictureSudokuBoardProps {
   onToggleSound: () => void;
   onChangeSetup: () => void;
   onBackToHub: () => void;
+  onRequestHelp?: () => void;
   onGameActiveChange: (active: boolean) => void;
   journeyContext?: JourneyBoardContext;
 }
@@ -86,6 +88,7 @@ export function PictureSudokuBoard({
   onToggleSound,
   onChangeSetup,
   onBackToHub,
+  onRequestHelp,
   onGameActiveChange,
   journeyContext,
 }: PictureSudokuBoardProps) {
@@ -531,6 +534,7 @@ export function PictureSudokuBoard({
         </div>
 
         <div className="top-bar__right">
+          <GameHelpButton onClick={onRequestHelp} />
           <button
             type="button"
             className="icon-pill-btn"
