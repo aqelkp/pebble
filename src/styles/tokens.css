@@ -7762,3 +7762,109 @@ h3,
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
+
+/* ==========================================================================
+   DAILY TIME OVER SCREEN (REST & RECHARGE)
+   ========================================================================== */
+
+.daily-over-shell {
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.daily-over-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.daily-over-card {
+  width: 100%;
+  max-width: 560px;
+  max-height: 100%;
+  background: var(--surface-card);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: clamp(22px, 4vw, 38px) clamp(20px, 4vw, 34px);
+  box-shadow: var(--shadow-elevated);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: modal-pop 0.32s cubic-bezier(0.22, 1.25, 0.36, 1);
+}
+
+.daily-over-art {
+  width: min(260px, 56vw);
+  max-height: 28dvh;
+  height: auto;
+  margin: 16px auto 12px;
+  flex-shrink: 1;
+}
+
+.daily-over-card h1 {
+  font-size: clamp(1.75rem, 4.5vw, 2.35rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.15;
+  margin: 4px 0 6px;
+}
+
+.daily-over-subtitle {
+  font-size: clamp(1.3rem, 3.3vw, 1.7rem);
+  font-weight: 600;
+  color: var(--indigo-primary);
+  line-height: 1.25;
+  margin: 0 0 14px;
+}
+
+.daily-over-desc {
+  margin: 0 0 24px;
+  max-width: 420px;
+  color: var(--text-secondary);
+  font-size: clamp(0.96rem, 2.2vw, 1.05rem);
+  line-height: 1.5;
+}
+
+.daily-over-actions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.pjs-daily-usage-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.pjs-daily-usage-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pjs-daily-usage-meta strong {
+  font-size: 0.94rem;
+  color: var(--text-primary);
+}
+
+.pjs-daily-usage-meta span {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+}

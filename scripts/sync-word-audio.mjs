@@ -124,6 +124,10 @@ async function main() {
       id: 'think-or-start-again',
       text: 'Do you want to think again, or start again?',
     },
+    {
+      id: 'daily-time-over',
+      text: 'Time is over for today! See you tomorrow!',
+    },
   ];
   for (const prompt of uiPrompts) {
     const outPath = path.join(uiOutDir, `${prompt.id}.mp3`);
