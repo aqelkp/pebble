@@ -138,6 +138,19 @@ const THINK_AGAIN_AUDIO_PATH = 'audio/ui/think-again.mp3';
 const MISTAKE_HEY_PICKED_AUDIO_PATH = 'audio/ui/mistake-hey-picked.mp3';
 const THINK_OR_START_AGAIN_AUDIO_PATH = 'audio/ui/think-or-start-again.mp3';
 const DAILY_TIME_OVER_AUDIO_PATH = 'audio/ui/daily-time-over.mp3';
+const PERFECT_CHEER_CLIPS = [
+  'audio/ui/perfect-cheer-1.mp3',
+  'audio/ui/perfect-cheer-2.mp3',
+  'audio/ui/perfect-cheer-3.mp3',
+] as const;
+const PERFECT_CHEER_FALLBACKS = [
+  'Bravo! Zero mistakes! You found every single word!',
+  'Woohoo! Three out of three! Super listening!',
+  'Amazing job! You got every picture right on the first try!',
+] as const;
+const TRIP_COMPLETE_CHEER_PATH = 'audio/ui/trip-complete-cheer.mp3';
+const TRIP_COMPLETE_CHEER_FALLBACK =
+  'Hooray! What a wonderful train adventure! You completed all the stations!';
 
 export function getLetterStartsAudioPath(letter: LetterId): string {
   return `audio/letters-starts/${letter.toLowerCase()}.mp3`;
@@ -333,6 +346,27 @@ export function preloadThinkAgainVoice(): void {
     MISTAKE_HEY_PICKED_AUDIO_PATH,
     THINK_OR_START_AGAIN_AUDIO_PATH,
   ]);
+}
+
+export function playPerfectTrainCheer(variantIdx: number, enabled: boolean): void {
+  const safeIdx = Math.abs(Math.floor(variantIdx)) % PERFECT_CHEER_CLIPS.length;
+  playStaticClip(
+    PERFECT_CHEER_CLIPS[safeIdx],
+    PERFECT_CHEER_FALLBACKS[safeIdx],
+    enabled,
+  );
+}
+
+export function playTripCompleteCheer(enabled: boolean): void {
+  playStaticClip(
+    TRIP_COMPLETE_CHEER_PATH,
+    TRIP_COMPLETE_CHEER_FALLBACK,
+    enabled,
+  );
+}
+
+export function preloadTrainCelebrationAudio(): void {
+  preloadAudioPaths([...PERFECT_CHEER_CLIPS, TRIP_COMPLETE_CHEER_PATH]);
 }
 
 export function preloadDailyTimeOverVoice(): void {

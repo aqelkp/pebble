@@ -51,6 +51,7 @@ Every new game, mechanic, reward loop, or gameplay update **must** follow these 
   1. **Target skill & stage** (e.g., K1/LKG initial phoneme discrimination, 1–10 one-to-one counting, 3-letter CVC blending).
   2. **Learning hypothesis** (why this specific mechanic builds that skill).
   3. **Anti-gaming check** (can a child solve it by guessing colors, memorizing positions, or spam-dragging without practicing the skill?).
+  4. **Picture & Sound First (Hide Printed Letter Hints by Default):** In phonics/picture-matching activities (such as Letter Train), platform choice cards must show **artwork + spoken audio only** when `mistakes === 0`—no printed word or highlighted first letter underneath—so the child identifies the picture, says or hears its starting sound, and connects phoneme to letter rather than visually matching printed letters. Only reveal printed word scaffolding gently **after** a mistake occurs (first in the teach-first explanation on the wrong card, and optionally soft plain-text labels after 2+ mistakes on the same station), then reset back to picture-only on the next station or retry.
 
 ---
 
@@ -59,6 +60,7 @@ Every new game, mechanic, reward loop, or gameplay update **must** follow these 
 - **What we observed:** Browser `window.speechSynthesis` (TTS) worked on Android mobile but failed silently in desktop browsers, breaking sound-first learning.
 - **Design rule:**
   - **Never rely on OS/browser TTS** as the primary voice mechanism.
+  - **Never Speak Sound-Effect Stage Directions:** Never pass literal onomatopoeia or stage-direction words like `"clap"`, `"clapping"`, `"ding"`, `"honk"`, or `"cheer"` into spoken voice lines (TTS or pre-generated audio). Synthesize real physical acoustics (multi-handclap applause, horns, chime chords) via Web Audio SFX, and pair them with natural spoken encouragement (*"Bravo! Zero mistakes!"*, *"Woohoo! Three out of three!"*).
   - Use **bundled, pre-generated audio files** alongside Web Audio API synthesized chimes/SFX so every device (desktop, tablet, Android PWA, offline) sounds identical.
   - Back phonics/word games with a **single source-of-truth Word Bank** where every word entry pairs its text, illustration, phonetic metadata, and bundled audio file.
 

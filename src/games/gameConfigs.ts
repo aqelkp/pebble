@@ -107,18 +107,24 @@ function isValidLetterCollectionConfig(value: unknown): boolean {
   if (c.orderMode !== 'alphabetical' && c.orderMode !== 'shuffle') {
     return false;
   }
-  if (c.wordLabelMode !== 'after-drop' && c.wordLabelMode !== 'always') {
-    return false;
-  }
   return true;
 }
 
+function hasValidWordLabelMode(
+  value: unknown,
+  allowedModes: readonly string[],
+): boolean {
+  if (!isValidLetterCollectionConfig(value)) return false;
+  const mode = (value as { wordLabelMode?: unknown }).wordLabelMode;
+  return typeof mode === 'string' && allowedModes.includes(mode);
+}
+
 export function isValidLetterTrainConfig(value: unknown): value is LetterTrainConfig {
-  return isValidLetterCollectionConfig(value);
+  return hasValidWordLabelMode(value, ['on-mistake', 'show-all']);
 }
 
 export function isValidLetterRiverConfig(value: unknown): value is LetterRiverConfig {
-  return isValidLetterCollectionConfig(value);
+  return hasValidWordLabelMode(value, ['after-drop', 'always']);
 }
 
 export function isValidPictureSudokuConfig(value: unknown): value is PictureSudokuConfig {
@@ -190,7 +196,7 @@ export function getDefaultGameConfig<K extends GameId>(
       return {
         selectedLetters: [...ALL_LETTERS],
         orderMode: 'alphabetical',
-        wordLabelMode: 'after-drop',
+        wordLabelMode: 'on-mistake',
       } as GameConfigMap[K];
     case 'letter-river':
       return {
