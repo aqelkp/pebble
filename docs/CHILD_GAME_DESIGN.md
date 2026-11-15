@@ -28,11 +28,15 @@ Every new game, mechanic, reward loop, or gameplay update **must** follow these 
 
 ## 3. Meaningful Consequences for Failures (Preventing Spam-Dragging)
 
-- **What we observed:** When wrong drags or taps simply bounce back with zero consequence, children quickly discover they can **drag everything everywhere without thinking** until something sticks.
+- **What we observed:**
+  - When wrong drags or taps simply bounce back with zero consequence, children quickly discover they can **drag everything everywhere without thinking** until something sticks.
+  - Conversely, opening the full-screen `"Think Again"` modal **synchronously on frame `0`** hides the game board and cuts off word/hint audio *before* the child can see which item they picked or learn *why* it didn't match—missing the core learning moment.
 - **Design rule:**
-  - Mistakes must carry a **gentle, legible, non-punitive consequence** that encourages *"slow down and think"* without causing frustration or dead-end "Game Over" screens.
+  - Mistakes must follow **Teach First, Pause Second**: first deliver an in-context learning explanation on the visible board, and **never** trigger the `"Think Again"` dialogue immediately on frame `0`. Then apply a **gentle, legible, non-punitive consequence** that encourages *"slow down and think"* without causing frustration or dead-end "Game Over" screens.
   - **Approved consequence patterns:**
-    1. **"Think Again" Pause Overlay (Primary Anti-Spam Pattern):** Briefly take over the screen (`~2–3s` calm cooldown) with a gentle, encouraging message such as *"Hey, do you want to take some time to think again?"* before letting the child try again. This physically interrupts rapid brute-force dragging/tapping while staying warm, calm, and non-punitive.
+    1. **Two-Step Mistake Flow ("Teach First, Pause Second" — Primary Anti-Spam Pattern):**
+       - **Step 1 — In-Context Teaching Moment on the Visible Board (`~2–3.5s`, input locked):** Keep the board visible while locking further guesses so the child cannot rush past the feedback. Calmly reveal/highlight the selected item and contrast it with the target right on the card/banner, paired with bundled spoken feedback (for example: *"Okay, hey! You picked Watermelon. That starts with letter W, not letter B."*).
+       - **Step 2 — Delayed "Think Again / Start Again" Dialogue:** Only **after** the in-context explanation finishes, open `ThinkAgainOverlay` (`~2–3s` calm breath cooldown) asking whether the child wants to think again / keep trying or start the round over with fresh items. This preserves both the learning opportunity and calm anti-spam pacing.
     2. **Visible Streak / Bonus at Stake:** Show a **Perfect Run / Star / Clapping Party** badge *during* the round that dims or drops if a mistake is made (so the child actively tries to protect it).
     3. **Small Progress Setback:** On a wrong drop, spill 1 unit from the current progress meter (e.g., bucket drops from `2/3` to `1/3`, or a combo resets to `0`).
     4. **Turn Pass (Multiplayer):** In 2–4 player games, a wrong guess passes the turn to the next family member.
@@ -111,7 +115,7 @@ Before writing implementation code for any new Pebble game, confirm all 8 items 
 - [ ] **Learning Hypothesis:** What exact skill is taught, and how does the mechanic prevent solving without that skill?
 - [ ] **Child Reward Loop:** What tangible, sensory/narrative celebration happens on success (beyond just `+1 PTS`)?
 - [ ] **Playfulness Asymmetry:** Is failure calm, quiet, and boringly neutral compared to success?
-- [ ] **Failure Consequence:** What gentle consequence prevents thoughtless spam-dragging/guessing (e.g., a calm **"Think Again" screen-taking pause overlay**, visible streak/star at stake, small progress setback, or turn pass)?
+- [ ] **Failure Consequence (Teach First, Pause Second):** Does the board stay visible (with input locked) to explain what was picked and why before opening `ThinkAgainOverlay` (`"Think Again / Start Again"` cooldown), paired with visible streak/star at stake, small progress setback, or turn pass?
 - [ ] **Freshness:** Does every round rotate/shuffle targets and distractors from a rich bank?
 - [ ] **Platform-Independent Audio:** Are voices/sounds bundled assets + Web Audio (zero reliance on `speechSynthesis`)?
 - [ ] **Portrait `768 × 1024` & Dual Input:** Zero vertical scroll on gameplay, compact setup, and both drag-and-drop + tap-to-place?

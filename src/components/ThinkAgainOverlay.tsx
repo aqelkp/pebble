@@ -1,28 +1,41 @@
 import { useEffect, useState } from 'react';
-import { playThinkAgainVoice, preloadThinkAgainVoice } from '../utils/wordAudio';
+import {
+  playThinkAgainVoice,
+  playThinkOrStartAgainVoice,
+  preloadThinkAgainVoice,
+} from '../utils/wordAudio';
 import { PebbleMark } from './BrandLogo';
 
 export interface ThinkAgainOverlayProps {
   open: boolean;
+  title?: string;
   hint?: string;
+  readyLabel?: string;
+  onStartAgain?: () => void;
+  startAgainLabel?: string;
   soundEnabled?: boolean;
   durationSeconds?: number;
   onReady: () => void;
 }
 
 /**
- * Calm, full-screen pause overlay shown after a mistake so children
- * pause to think rather than spam-dragging or guessing without looking.
+ * Calm, full-screen pause overlay shown after an in-context mistake explanation so
+ * children pause to think rather than spam-dragging or guessing without looking.
  * Intentionally low-key (zero funny animations, buzzers, or harsh red marks).
  */
 export function ThinkAgainOverlay({
   open,
+  title,
   hint,
+  readyLabel,
+  onStartAgain,
+  startAgainLabel,
   soundEnabled = true,
   durationSeconds = 2,
   onReady,
 }: ThinkAgainOverlayProps) {
   const [secondsLeft, setSecondsLeft] = useState(durationSeconds);
+  const hasStartAgainOption = Boolean(onStartAgain);
 
   useEffect(() => {
     preloadThinkAgainVoice();
@@ -34,7 +47,11 @@ export function ThinkAgainOverlay({
       return;
     }
 
-    playThinkAgainVoice(soundEnabled);
+    if (hasStartAgainOption) {
+      playThinkOrStartAgainVoice(soundEnabled);
+    } else {
+      playThinkAgainVoice(soundEnabled);
+    }
     setSecondsLeft(durationSeconds);
     if (durationSeconds <= 0) return;
 
@@ -49,11 +66,18 @@ export function ThinkAgainOverlay({
     }, 1000);
 
     return () => window.clearInterval(intervalId);
-  }, [open, durationSeconds, soundEnabled]);
+  }, [open, durationSeconds, hasStartAgainOption, soundEnabled]);
 
   if (!open) return null;
 
   const isWaiting = secondsLeft > 0;
+  const resolvedTitle =
+    title ??
+    (onStartAgain
+      ? 'Do you want to think again, or start again?'
+      : 'Hey, do you want to take some time to think again?');
+  const resolvedReadyLabel = readyLabel ?? (onStartAgain ? 'Keep Trying' : "I'm Ready!");
+  const resolvedStartAgainLabel = startAgainLabel ?? 'Start Again';
 
   return (
     <div
@@ -68,7 +92,7 @@ export function ThinkAgainOverlay({
         </div>
 
         <h2 id="think-again-title" className="think-again-card__title">
-          Hey, do you want to take some time to think again?
+          {resolvedTitle}
         </h2>
 
         {hint ? <p className="think-again-card__hint">{hint}</p> : null}
@@ -82,14 +106,27 @@ export function ThinkAgainOverlay({
           />
         </div>
 
-        <button
-          type="button"
-          className="btn-primary think-again-card__btn"
-          disabled={isWaiting}
-          onClick={onReady}
-        >
-          {isWaiting ? `Take a breath (${secondsLeft}s)…` : "I'm Ready!"}
-        </button>
+        <div className="think-again-card__actions">
+          <button
+            type="button"
+            className="btn-primary think-again-card__btn"
+            disabled={isWaiting}
+            onClick={onReady}
+          >
+            {isWaiting ? `Take a breath (${secondsLeft}s)…` : resolvedReadyLabel}
+          </button>
+
+          {onStartAgain ? (
+            <button
+              type="button"
+              className="btn-secondary think-again-card__secondary-btn"
+              disabled={isWaiting}
+              onClick={onStartAgain}
+            >
+              {resolvedStartAgainLabel}
+            </button>
+          ) : null}
+        </div>
       </div>
     </div>
   );
