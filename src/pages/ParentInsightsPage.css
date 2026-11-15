@@ -370,3 +370,70 @@
   background: var(--surface-soft);
   color: var(--text-secondary);
 }
+
+.pi-challenge-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pi-challenge--too-easy {
+  background: var(--mint-tint);
+  color: #196259;
+  border: 1px solid rgba(59, 169, 156, 0.35);
+}
+
+.pi-challenge--just-right {
+  background: var(--indigo-soft);
+  color: var(--indigo-primary);
+  border: 1px solid rgba(91, 91, 214, 0.3);
+}
+
+.pi-challenge--challenging {
+  background: #fdece7;
+  color: #a13922;
+  border: 1px solid rgba(242, 122, 94, 0.4);
+}
+
+.pi-challenge--not-enough-data {
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.pi-challenge-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.14s ease, transform 0.14s ease;
+}
+
+.pi-challenge-row:hover {
+  border-color: var(--indigo-primary);
+  transform: translateY(-1px);
+}
+
+.pi-challenge-meter {
+  width: 100%;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  overflow: hidden;
+}
+
+.pi-challenge-meter__fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+

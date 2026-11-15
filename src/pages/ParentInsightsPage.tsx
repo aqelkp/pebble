@@ -16,8 +16,9 @@ import {
 } from '../curriculum/curriculumTypes';
 import { getWordCategory } from '../curriculum/levels/k1';
 import { getCanonicalWord, type LetterId } from '../data/wordBank';
-import { GAME_REGISTRY, getGameRegistryEntry, type GameId } from '../games/registry';
+import { getGameRegistryEntry, type GameId } from '../games/registry';
 import {
+  getActivityChallengeComparisons,
   getAggregateConceptSummary,
   getConceptSkillBreakdown,
   getCurriculumOverview,
@@ -28,6 +29,7 @@ import {
   getRecentAccuracyPct,
   resetAllLearningTelemetry,
   saveLearningSettings,
+  type ChallengeLevel,
   type MasteryTier,
 } from '../learning/learningStore';
 import { formatDailyUsageLabel, type DailyPlayLimitState } from '../utils/dailyPlayLimit';
@@ -61,6 +63,13 @@ const TIER_LABELS: Record<MasteryTier, string> = {
   'needs-practice': 'Needs Practice',
   unseen: 'Not Tried Yet',
 };
+
+function getChallengeBarColor(level: ChallengeLevel): string {
+  if (level === 'challenging') return 'var(--coral-accent)';
+  if (level === 'just-right') return 'var(--indigo-primary)';
+  if (level === 'too-easy') return 'var(--mint-match)';
+  return 'var(--text-muted)';
+}
 
 export function ParentInsightsPage({
   profiles,
@@ -100,6 +109,16 @@ export function ParentInsightsPage({
   const allStats = useMemo(
     () => getPlayerConceptStats(playerId),
     [playerId, refreshTick],
+  );
+
+  const challengeComparisons = useMemo(
+    () => getActivityChallengeComparisons(playerId),
+    [playerId, refreshTick],
+  );
+
+  const measuredChallenges = useMemo(
+    () => challengeComparisons.filter((c) => c.totalRounds >= 2),
+    [challengeComparisons],
   );
 
   const wordSummaries = useMemo(() => {
@@ -365,6 +384,7 @@ export function ParentInsightsPage({
     // Game deep-dive
     const gameMeta = getGameRegistryEntry(drillTarget.gameId);
     const gameSummary = getGameMetricsSummary(playerId, drillTarget.gameId);
+    const gameChallenge = challengeComparisons.find((c) => c.gameId === drillTarget.gameId);
 
     return (
       <div className="pi-shell">
@@ -401,6 +421,20 @@ export function ParentInsightsPage({
             {gameMeta.learningIntent.summary}
           </p>
         </section>
+
+        {gameChallenge && (
+          <section className="pi-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span className="pi-stat-label">Relative Challenge &amp; Focus</span>
+              <span className={`pi-challenge-pill pi-challenge--${gameChallenge.challengeLevel}`}>
+                {gameChallenge.badgeLabel}
+              </span>
+            </div>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+              {gameChallenge.recommendation}
+            </p>
+          </section>
+        )}
 
         <div className="pi-grid-4">
           <div className="pi-card">
@@ -710,6 +744,54 @@ export function ParentInsightsPage({
           <section className="pi-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
               <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.12rem' }}>
+                Activity Challenge &amp; Where to Focus
+              </h2>
+              <span className="pi-stat-sub">
+                Compares recent accuracy &amp; mistake-free rate across games
+              </span>
+            </div>
+            {measuredChallenges.length === 0 ? (
+              <p className="pi-stat-sub">
+                Play at least 2 rounds in any game to compare which activities feel easy vs. challenging.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {measuredChallenges.map((item) => (
+                  <button
+                    key={item.gameId}
+                    type="button"
+                    className="pi-challenge-row"
+                    onClick={() => setDrillTarget({ kind: 'game', gameId: item.gameId })}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, width: '100%', flexWrap: 'wrap' }}>
+                      <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--text-primary)' }}>
+                        {item.title}
+                      </strong>
+                      <span className={`pi-challenge-pill pi-challenge--${item.challengeLevel}`}>
+                        {item.badgeLabel}
+                      </span>
+                    </div>
+                    <div className="pi-challenge-meter" aria-hidden="true">
+                      <div
+                        className="pi-challenge-meter__fill"
+                        style={{
+                          width: `${Math.max(10, item.challengeScore ?? 10)}%`,
+                          background: getChallengeBarColor(item.challengeLevel),
+                        }}
+                      />
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.35 }}>
+                      {item.recommendation}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="pi-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+              <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.12rem' }}>
                 Curriculum Domains
               </h2>
               <span className="pi-stat-sub">
@@ -838,8 +920,8 @@ export function ParentInsightsPage({
 
       {tab === 'games' && (
         <div className="pi-grid-2">
-          {GAME_REGISTRY.map((game) => {
-            const summary = getGameMetricsSummary(playerId, game.id);
+          {challengeComparisons.map((item) => {
+            const game = getGameRegistryEntry(item.gameId);
             return (
               <button
                 key={game.id}
@@ -847,30 +929,37 @@ export function ParentInsightsPage({
                 className="pi-card pi-card--interactive"
                 onClick={() => setDrillTarget({ kind: 'game', gameId: game.id })}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 8, flexWrap: 'wrap' }}>
                   <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1.12rem' }}>
                     {game.title}
                   </strong>
-                  <span
-                    className={`badge-pill ${
-                      game.activityRole === 'reward' ? 'badge-pill--muted' : 'badge-pill--mint'
-                    }`}
-                  >
-                    {game.activityRole === 'reward' ? 'Just for Fun' : 'Learning'}
+                  <span className={`pi-challenge-pill pi-challenge--${item.challengeLevel}`}>
+                    {item.badgeLabel}
                   </span>
                 </div>
                 <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                  {game.learningIntent.summary}
+                  {item.totalRounds >= 2 ? item.recommendation : game.learningIntent.summary}
                 </p>
+                {item.challengeScore !== null && (
+                  <div className="pi-challenge-meter" aria-hidden="true">
+                    <div
+                      className="pi-challenge-meter__fill"
+                      style={{
+                        width: `${Math.max(10, item.challengeScore)}%`,
+                        background: getChallengeBarColor(item.challengeLevel),
+                      }}
+                    />
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: 16, fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  <span>Rounds: {summary.totalRounds}</span>
+                  <span>Rounds: {item.totalRounds}</span>
                   <span>
-                    Avg Accuracy:{' '}
-                    {summary.averageAccuracyPct !== null ? `${summary.averageAccuracyPct}%` : '—'}
+                    Recent Acc:{' '}
+                    {item.recentAccuracyPct !== null ? `${item.recentAccuracyPct}%` : '—'}
                   </span>
                   <span>
                     Avg Tries:{' '}
-                    {summary.averageAttemptsPerRound !== null ? summary.averageAttemptsPerRound : '—'}
+                    {item.avgAttemptsPerRound !== null ? item.avgAttemptsPerRound : '—'}
                   </span>
                 </div>
               </button>

@@ -6,7 +6,12 @@ import type {
   SkillType,
 } from '../curriculum/curriculumTypes';
 import { getCanonicalWord, type LetterId } from '../data/wordBank';
-import { getGameRegistryEntry, type ActivityRole, type GameId } from '../games/registry';
+import {
+  GAME_REGISTRY,
+  getGameRegistryEntry,
+  type ActivityRole,
+  type GameId,
+} from '../games/registry';
 
 // TODO(security): Pebble runs 100% locally in the browser with no backend server, authentication,
 // or database. All learning telemetry stored in localStorage is treated as untrusted input and
@@ -888,6 +893,137 @@ export function getLetterSummaryMap(
     map.set(letter, getAggregateConceptSummary(stats));
   }
   return map;
+}
+
+export type ChallengeLevel = 'too-easy' | 'just-right' | 'challenging' | 'not-enough-data';
+
+export interface ActivityChallengeComparison {
+  gameId: GameId;
+  title: string;
+  activityRole: ActivityRole;
+  totalRounds: number;
+  recentAccuracyPct: number | null;
+  lifetimeAccuracyPct: number | null;
+  flawlessRatePct: number | null;
+  avgAttemptsPerRound: number | null;
+  challengeScore: number | null;
+  challengeLevel: ChallengeLevel;
+  badgeLabel: string;
+  recommendation: string;
+}
+
+const CHALLENGE_SORT_ORDER: Record<ChallengeLevel, number> = {
+  challenging: 0,
+  'just-right': 1,
+  'too-easy': 2,
+  'not-enough-data': 3,
+};
+
+export function getActivityChallengeComparisons(playerId: string): ActivityChallengeComparison[] {
+  const allSessions = getPlayerSessions(playerId);
+
+  const rawRows = GAME_REGISTRY.map((game) => {
+    const sessions = allSessions.filter((s) => s.gameId === game.id);
+    const totalRounds = sessions.length;
+    const flawlessRounds = sessions.filter((s) => s.flawless).length;
+    const lifetimeAccuracyPct =
+      totalRounds > 0
+        ? Math.round(sessions.reduce((acc, s) => acc + s.accuracyPct, 0) / totalRounds)
+        : null;
+    const avgAttemptsPerRound =
+      totalRounds > 0
+        ? Math.round((sessions.reduce((acc, s) => acc + s.totalAttempts, 0) / totalRounds) * 10) / 10
+        : null;
+    const flawlessRatePct =
+      totalRounds > 0 ? Math.round((flawlessRounds / totalRounds) * 100) : null;
+
+    const recent = sessions.slice(-5);
+    const recentAccuracyPct =
+      recent.length > 0
+        ? Math.round(recent.reduce((acc, s) => acc + s.accuracyPct, 0) / recent.length)
+        : null;
+    const recentFlawlessPct =
+      recent.length > 0
+        ? Math.round((recent.filter((s) => s.flawless).length / recent.length) * 100)
+        : null;
+
+    let challengeLevel: ChallengeLevel = 'not-enough-data';
+    let challengeScore: number | null = null;
+    let badgeLabel = 'Needs 2+ Rounds';
+
+    if (totalRounds >= 2 && recentAccuracyPct !== null && recentFlawlessPct !== null) {
+      challengeScore = Math.min(
+        100,
+        Math.max(
+          0,
+          Math.round((100 - recentAccuracyPct) * 0.7 + (100 - recentFlawlessPct) * 0.3),
+        ),
+      );
+
+      if (recentAccuracyPct >= 92 && recentFlawlessPct >= 75) {
+        challengeLevel = 'too-easy';
+        badgeLabel = 'Easy • Ready to Move On';
+      } else if (recentAccuracyPct >= 70) {
+        challengeLevel = 'just-right';
+        badgeLabel = 'Sweet Spot';
+      } else {
+        challengeLevel = 'challenging';
+        badgeLabel = 'Challenging';
+      }
+    }
+
+    return {
+      gameId: game.id,
+      title: game.title,
+      activityRole: game.activityRole,
+      totalRounds,
+      recentAccuracyPct,
+      lifetimeAccuracyPct,
+      flawlessRatePct,
+      avgAttemptsPerRound,
+      challengeScore,
+      challengeLevel,
+      badgeLabel,
+      recommendation: '',
+    };
+  });
+
+  const nextFocusCandidates = rawRows
+    .filter(
+      (r) =>
+        r.activityRole === 'learning' &&
+        (r.challengeLevel === 'challenging' ||
+          r.challengeLevel === 'just-right' ||
+          r.totalRounds === 0),
+    )
+    .map((r) => r.title)
+    .slice(0, 2);
+
+  const populated = rawRows.map((row) => {
+    let recommendation = `Play at least 2 rounds of ${row.title} to measure how challenging it is.`;
+    if (row.challengeLevel === 'too-easy') {
+      const altText =
+        nextFocusCandidates.length > 0
+          ? ` Consider shifting focus to ${nextFocusCandidates.join(' or ')}.`
+          : ' Consider increasing difficulty or trying a new learning activity.';
+      recommendation = `${row.recentAccuracyPct}% recent accuracy (${row.flawlessRatePct}% mistake-free) — this feels easy now.${altText}`;
+    } else if (row.challengeLevel === 'just-right') {
+      recommendation = `${row.recentAccuracyPct}% recent accuracy — right in the learning sweet spot with healthy challenge.`;
+    } else if (row.challengeLevel === 'challenging') {
+      recommendation = `${row.recentAccuracyPct}% recent accuracy — genuinely stretching skills here; keep practicing with Adaptive Practice.`;
+    }
+
+    return {
+      ...row,
+      recommendation,
+    };
+  });
+
+  return populated.sort((a, b) => {
+    const orderDiff = CHALLENGE_SORT_ORDER[a.challengeLevel] - CHALLENGE_SORT_ORDER[b.challengeLevel];
+    if (orderDiff !== 0) return orderDiff;
+    return (b.challengeScore ?? -1) - (a.challengeScore ?? -1);
+  });
 }
 
 export function resetAllLearningTelemetry(): void {
