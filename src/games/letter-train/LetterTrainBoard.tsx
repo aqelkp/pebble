@@ -9,6 +9,7 @@ import {
 import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { preloadLettersAudio, preloadWordsAudio } from '../../utils/wordAudio';
 import {
   ALL_LETTERS,
   buildPlatformCards,
@@ -32,6 +33,7 @@ import {
   playTrainDepartureSound,
   playTripCompleteSound,
   speakPhrase,
+  speakTrainWord,
   stopTrainSpeech,
 } from './trainSounds';
 import { WordIllustration } from './WordIllustration';
@@ -282,6 +284,14 @@ export function LetterTrainBoard({
   const [stationIdx, setStationIdx] = useState<number>(() => saved?.stationIdx ?? 0);
   const currentLetter: LetterId = stationQueue[stationIdx] ?? stationQueue[0] ?? 'A';
   const stationSpec = useMemo(() => getStationSpec(currentLetter), [currentLetter]);
+
+  // Silently preload MP3 clips for current station + next 2 stations
+  useEffect(() => {
+    const lookaheadLetters = stationQueue.slice(stationIdx, stationIdx + 3);
+    if (lookaheadLetters.length === 0) return;
+    preloadLettersAudio(lookaheadLetters);
+    preloadWordsAudio(lookaheadLetters.flatMap((letter) => getStationSpec(letter).words.map((w) => w.id)));
+  }, [stationIdx, stationQueue]);
 
   const [platformCards, setPlatformCards] = useState<PlatformCardItem[]>(
     () => saved?.platformCards ?? buildPlatformCards(currentLetter),
@@ -587,7 +597,7 @@ export function LetterTrainBoard({
 
     e.currentTarget.setPointerCapture(e.pointerId);
     playCardPickupSound(soundEnabled);
-    speakPhrase(card.spec.word, soundEnabled);
+    speakTrainWord(card.spec.id, card.spec.word, soundEnabled);
 
     setDragState({
       card,
@@ -1079,7 +1089,7 @@ export function LetterTrainBoard({
                   onClick={(e) => {
                     e.stopPropagation();
                     playCardPickupSound(true);
-                    speakPhrase(card.spec.word, true);
+                    speakTrainWord(card.spec.id, card.spec.word, true);
                   }}
                 >
                   <AudioSpeakerIcon size={15} />

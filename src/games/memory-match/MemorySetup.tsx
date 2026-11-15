@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BrandLogo, CrownIcon } from '../../components/BrandLogo';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { assetUrl } from '../../utils/assets';
+import { preloadImages } from '../../utils/wordAudio';
 import { MemoryRecordsModal } from './MemoryRecordsModal';
 import {
   clearMemoryStats,
@@ -44,6 +45,12 @@ export function MemorySetup({
   onStartGame,
 }: MemorySetupProps) {
   const [themeId, setThemeId] = useState<ThemeId>(initialConfig?.themeId ?? DEFAULT_THEME_ID);
+
+  // Silently warm up theme card images while the child picks players & layout
+  useEffect(() => {
+    const theme = getThemeSpec(themeId);
+    preloadImages(theme.characters.map((character) => character.imagePath));
+  }, [themeId]);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [boardSizeId, setBoardSizeId] = useState<BoardSizeId>(
     initialConfig?.boardSizeId ?? DEFAULT_BOARD_SIZE_ID,

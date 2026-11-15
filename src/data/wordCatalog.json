@@ -1,0 +1,1308 @@
+{
+  "letters": [
+    {
+      "letter": "A",
+      "phonicsHint": "ah"
+    },
+    {
+      "letter": "B",
+      "phonicsHint": "buh"
+    },
+    {
+      "letter": "C",
+      "phonicsHint": "kuh"
+    },
+    {
+      "letter": "D",
+      "phonicsHint": "duh"
+    },
+    {
+      "letter": "E",
+      "phonicsHint": "eh"
+    },
+    {
+      "letter": "F",
+      "phonicsHint": "fff"
+    },
+    {
+      "letter": "G",
+      "phonicsHint": "guh"
+    },
+    {
+      "letter": "H",
+      "phonicsHint": "huh"
+    },
+    {
+      "letter": "I",
+      "phonicsHint": "ih"
+    },
+    {
+      "letter": "J",
+      "phonicsHint": "juh"
+    },
+    {
+      "letter": "K",
+      "phonicsHint": "kuh"
+    },
+    {
+      "letter": "L",
+      "phonicsHint": "lll"
+    },
+    {
+      "letter": "M",
+      "phonicsHint": "mmm"
+    },
+    {
+      "letter": "N",
+      "phonicsHint": "nnn"
+    },
+    {
+      "letter": "O",
+      "phonicsHint": "aw"
+    },
+    {
+      "letter": "P",
+      "phonicsHint": "puh"
+    },
+    {
+      "letter": "Q",
+      "phonicsHint": "kwuh"
+    },
+    {
+      "letter": "R",
+      "phonicsHint": "rrr"
+    },
+    {
+      "letter": "S",
+      "phonicsHint": "sss"
+    },
+    {
+      "letter": "T",
+      "phonicsHint": "tuh"
+    },
+    {
+      "letter": "U",
+      "phonicsHint": "uh"
+    },
+    {
+      "letter": "V",
+      "phonicsHint": "vvv"
+    },
+    {
+      "letter": "W",
+      "phonicsHint": "wuh"
+    },
+    {
+      "letter": "X",
+      "phonicsHint": "ks"
+    },
+    {
+      "letter": "Y",
+      "phonicsHint": "yuh"
+    },
+    {
+      "letter": "Z",
+      "phonicsHint": "zzz"
+    }
+  ],
+  "words": [
+    {
+      "id": "apple",
+      "word": "Apple",
+      "letter": "A",
+      "inLetterGames": true
+    },
+    {
+      "id": "ant",
+      "word": "Ant",
+      "letter": "A",
+      "inLetterGames": true
+    },
+    {
+      "id": "airplane",
+      "word": "Airplane",
+      "letter": "A",
+      "inLetterGames": true
+    },
+    {
+      "id": "alligator",
+      "word": "Alligator",
+      "letter": "A",
+      "inLetterGames": true
+    },
+    {
+      "id": "anchor",
+      "word": "Anchor",
+      "letter": "A",
+      "inLetterGames": true
+    },
+    {
+      "id": "acorn",
+      "word": "Acorn",
+      "letter": "A",
+      "inLetterGames": true
+    },
+    {
+      "id": "ball",
+      "word": "Ball",
+      "letter": "B",
+      "inLetterGames": true
+    },
+    {
+      "id": "bus",
+      "word": "Bus",
+      "letter": "B",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "play",
+        "clue": "Sunny yellow ride",
+        "phonics": "B · U · S"
+      }
+    },
+    {
+      "id": "bee",
+      "word": "Bee",
+      "letter": "B",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "animals",
+        "clue": "Buzzing garden helper",
+        "phonics": "B · E · E"
+      }
+    },
+    {
+      "id": "banana",
+      "word": "Banana",
+      "letter": "B",
+      "inLetterGames": true
+    },
+    {
+      "id": "boat",
+      "word": "Boat",
+      "letter": "B",
+      "inLetterGames": true
+    },
+    {
+      "id": "bear",
+      "word": "Bear",
+      "letter": "B",
+      "inLetterGames": true
+    },
+    {
+      "id": "cat",
+      "word": "Cat",
+      "letter": "C",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "animals",
+        "clue": "Purring cozy kitten",
+        "phonics": "C · A · T"
+      }
+    },
+    {
+      "id": "cake",
+      "word": "Cake",
+      "letter": "C",
+      "inLetterGames": true
+    },
+    {
+      "id": "car",
+      "word": "Car",
+      "letter": "C",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "play",
+        "clue": "Beep-beep family coupe",
+        "phonics": "C · A · R"
+      }
+    },
+    {
+      "id": "carrot",
+      "word": "Carrot",
+      "letter": "C",
+      "inLetterGames": true
+    },
+    {
+      "id": "cow",
+      "word": "Cow",
+      "letter": "C",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "animals",
+        "clue": "Gentle meadow grazer",
+        "phonics": "C · O · W"
+      }
+    },
+    {
+      "id": "cup",
+      "word": "Cup",
+      "letter": "C",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "home",
+        "clue": "Warm cocoa mug",
+        "phonics": "C · U · P"
+      }
+    },
+    {
+      "id": "dog",
+      "word": "Dog",
+      "letter": "D",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "animals",
+        "clue": "Friendly wagging puppy",
+        "phonics": "D · O · G"
+      }
+    },
+    {
+      "id": "duck",
+      "word": "Duck",
+      "letter": "D",
+      "inLetterGames": true
+    },
+    {
+      "id": "drum",
+      "word": "Drum",
+      "letter": "D",
+      "inLetterGames": true
+    },
+    {
+      "id": "donut",
+      "word": "Donut",
+      "letter": "D",
+      "inLetterGames": true
+    },
+    {
+      "id": "door",
+      "word": "Door",
+      "letter": "D",
+      "inLetterGames": true
+    },
+    {
+      "id": "dolphin",
+      "word": "Dolphin",
+      "letter": "D",
+      "inLetterGames": true
+    },
+    {
+      "id": "egg",
+      "word": "Egg",
+      "letter": "E",
+      "inLetterGames": true
+    },
+    {
+      "id": "elephant",
+      "word": "Elephant",
+      "letter": "E",
+      "inLetterGames": true
+    },
+    {
+      "id": "envelope",
+      "word": "Envelope",
+      "letter": "E",
+      "inLetterGames": true
+    },
+    {
+      "id": "engine",
+      "word": "Engine",
+      "letter": "E",
+      "inLetterGames": true
+    },
+    {
+      "id": "eagle",
+      "word": "Eagle",
+      "letter": "E",
+      "inLetterGames": true
+    },
+    {
+      "id": "earth",
+      "word": "Earth",
+      "letter": "E",
+      "inLetterGames": true
+    },
+    {
+      "id": "fish",
+      "word": "Fish",
+      "letter": "F",
+      "inLetterGames": true
+    },
+    {
+      "id": "frog",
+      "word": "Frog",
+      "letter": "F",
+      "inLetterGames": true
+    },
+    {
+      "id": "flower",
+      "word": "Flower",
+      "letter": "F",
+      "inLetterGames": true
+    },
+    {
+      "id": "firetruck",
+      "word": "Firetruck",
+      "letter": "F",
+      "inLetterGames": true
+    },
+    {
+      "id": "fox",
+      "word": "Fox",
+      "letter": "F",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "animals",
+        "clue": "Fluffy woodland explorer",
+        "phonics": "F · O · X"
+      }
+    },
+    {
+      "id": "feather",
+      "word": "Feather",
+      "letter": "F",
+      "inLetterGames": true
+    },
+    {
+      "id": "grapes",
+      "word": "Grapes",
+      "letter": "G",
+      "inLetterGames": true
+    },
+    {
+      "id": "gift",
+      "word": "Gift",
+      "letter": "G",
+      "inLetterGames": true
+    },
+    {
+      "id": "guitar",
+      "word": "Guitar",
+      "letter": "G",
+      "inLetterGames": true
+    },
+    {
+      "id": "giraffe",
+      "word": "Giraffe",
+      "letter": "G",
+      "inLetterGames": true
+    },
+    {
+      "id": "goat",
+      "word": "Goat",
+      "letter": "G",
+      "inLetterGames": true
+    },
+    {
+      "id": "glasses",
+      "word": "Glasses",
+      "letter": "G",
+      "inLetterGames": true
+    },
+    {
+      "id": "hat",
+      "word": "Hat",
+      "letter": "H",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "home",
+        "clue": "Cozy pom-pom beanie",
+        "phonics": "H · A · T"
+      }
+    },
+    {
+      "id": "house",
+      "word": "House",
+      "letter": "H",
+      "inLetterGames": true
+    },
+    {
+      "id": "heart",
+      "word": "Heart",
+      "letter": "H",
+      "inLetterGames": true
+    },
+    {
+      "id": "horse",
+      "word": "Horse",
+      "letter": "H",
+      "inLetterGames": true
+    },
+    {
+      "id": "helicopter",
+      "word": "Helicopter",
+      "letter": "H",
+      "inLetterGames": true
+    },
+    {
+      "id": "hammer",
+      "word": "Hammer",
+      "letter": "H",
+      "inLetterGames": true
+    },
+    {
+      "id": "igloo",
+      "word": "Igloo",
+      "letter": "I",
+      "inLetterGames": true
+    },
+    {
+      "id": "ice-cream",
+      "word": "Ice Cream",
+      "letter": "I",
+      "inLetterGames": true
+    },
+    {
+      "id": "island",
+      "word": "Island",
+      "letter": "I",
+      "inLetterGames": true
+    },
+    {
+      "id": "iguana",
+      "word": "Iguana",
+      "letter": "I",
+      "inLetterGames": true
+    },
+    {
+      "id": "insect",
+      "word": "Insect",
+      "letter": "I",
+      "inLetterGames": true
+    },
+    {
+      "id": "iron",
+      "word": "Iron",
+      "letter": "I",
+      "inLetterGames": true
+    },
+    {
+      "id": "jam",
+      "word": "Jam",
+      "letter": "J",
+      "inLetterGames": true
+    },
+    {
+      "id": "jellyfish",
+      "word": "Jellyfish",
+      "letter": "J",
+      "inLetterGames": true
+    },
+    {
+      "id": "jet",
+      "word": "Jet",
+      "letter": "J",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "play",
+        "clue": "Zooming cloud airplane",
+        "phonics": "J · E · T"
+      }
+    },
+    {
+      "id": "juice",
+      "word": "Juice",
+      "letter": "J",
+      "inLetterGames": true
+    },
+    {
+      "id": "jacket",
+      "word": "Jacket",
+      "letter": "J",
+      "inLetterGames": true
+    },
+    {
+      "id": "jigsaw",
+      "word": "Jigsaw",
+      "letter": "J",
+      "inLetterGames": true
+    },
+    {
+      "id": "kite",
+      "word": "Kite",
+      "letter": "K",
+      "inLetterGames": true
+    },
+    {
+      "id": "key",
+      "word": "Key",
+      "letter": "K",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "home",
+        "clue": "Golden treasure opener",
+        "phonics": "K · E · Y"
+      }
+    },
+    {
+      "id": "king",
+      "word": "King",
+      "letter": "K",
+      "inLetterGames": true
+    },
+    {
+      "id": "koala",
+      "word": "Koala",
+      "letter": "K",
+      "inLetterGames": true
+    },
+    {
+      "id": "kettle",
+      "word": "Kettle",
+      "letter": "K",
+      "inLetterGames": true
+    },
+    {
+      "id": "kangaroo",
+      "word": "Kangaroo",
+      "letter": "K",
+      "inLetterGames": true
+    },
+    {
+      "id": "lion",
+      "word": "Lion",
+      "letter": "L",
+      "inLetterGames": true
+    },
+    {
+      "id": "leaf",
+      "word": "Leaf",
+      "letter": "L",
+      "inLetterGames": true
+    },
+    {
+      "id": "lamp",
+      "word": "Lamp",
+      "letter": "L",
+      "inLetterGames": true
+    },
+    {
+      "id": "lemon",
+      "word": "Lemon",
+      "letter": "L",
+      "inLetterGames": true
+    },
+    {
+      "id": "ladybug",
+      "word": "Ladybug",
+      "letter": "L",
+      "inLetterGames": true
+    },
+    {
+      "id": "ladder",
+      "word": "Ladder",
+      "letter": "L",
+      "inLetterGames": true
+    },
+    {
+      "id": "moon",
+      "word": "Moon",
+      "letter": "M",
+      "inLetterGames": true
+    },
+    {
+      "id": "milk",
+      "word": "Milk",
+      "letter": "M",
+      "inLetterGames": true
+    },
+    {
+      "id": "mushroom",
+      "word": "Mushroom",
+      "letter": "M",
+      "inLetterGames": true
+    },
+    {
+      "id": "monkey",
+      "word": "Monkey",
+      "letter": "M",
+      "inLetterGames": true
+    },
+    {
+      "id": "mango",
+      "word": "Mango",
+      "letter": "M",
+      "inLetterGames": true
+    },
+    {
+      "id": "magnet",
+      "word": "Magnet",
+      "letter": "M",
+      "inLetterGames": true
+    },
+    {
+      "id": "nest",
+      "word": "Nest",
+      "letter": "N",
+      "inLetterGames": true
+    },
+    {
+      "id": "nut",
+      "word": "Nut",
+      "letter": "N",
+      "inLetterGames": true
+    },
+    {
+      "id": "net",
+      "word": "Net",
+      "letter": "N",
+      "inLetterGames": true
+    },
+    {
+      "id": "noodles",
+      "word": "Noodles",
+      "letter": "N",
+      "inLetterGames": true
+    },
+    {
+      "id": "notebook",
+      "word": "Notebook",
+      "letter": "N",
+      "inLetterGames": true
+    },
+    {
+      "id": "necklace",
+      "word": "Necklace",
+      "letter": "N",
+      "inLetterGames": true
+    },
+    {
+      "id": "octopus",
+      "word": "Octopus",
+      "letter": "O",
+      "inLetterGames": true
+    },
+    {
+      "id": "orange",
+      "word": "Orange",
+      "letter": "O",
+      "inLetterGames": true
+    },
+    {
+      "id": "owl",
+      "word": "Owl",
+      "letter": "O",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "animals",
+        "clue": "Wise night-sky bird",
+        "phonics": "O · W · L"
+      }
+    },
+    {
+      "id": "onion",
+      "word": "Onion",
+      "letter": "O",
+      "inLetterGames": true
+    },
+    {
+      "id": "otter",
+      "word": "Otter",
+      "letter": "O",
+      "inLetterGames": true
+    },
+    {
+      "id": "ostrich",
+      "word": "Ostrich",
+      "letter": "O",
+      "inLetterGames": true
+    },
+    {
+      "id": "pig",
+      "word": "Pig",
+      "letter": "P",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "animals",
+        "clue": "Rosy farmyard friend",
+        "phonics": "P · I · G"
+      }
+    },
+    {
+      "id": "pizza",
+      "word": "Pizza",
+      "letter": "P",
+      "inLetterGames": true
+    },
+    {
+      "id": "pencil",
+      "word": "Pencil",
+      "letter": "P",
+      "inLetterGames": true
+    },
+    {
+      "id": "penguin",
+      "word": "Penguin",
+      "letter": "P",
+      "inLetterGames": true
+    },
+    {
+      "id": "pear",
+      "word": "Pear",
+      "letter": "P",
+      "inLetterGames": true
+    },
+    {
+      "id": "pumpkin",
+      "word": "Pumpkin",
+      "letter": "P",
+      "inLetterGames": true
+    },
+    {
+      "id": "queen",
+      "word": "Queen",
+      "letter": "Q",
+      "inLetterGames": true
+    },
+    {
+      "id": "quilt",
+      "word": "Quilt",
+      "letter": "Q",
+      "inLetterGames": true
+    },
+    {
+      "id": "quail",
+      "word": "Quail",
+      "letter": "Q",
+      "inLetterGames": true
+    },
+    {
+      "id": "quarter",
+      "word": "Quarter",
+      "letter": "Q",
+      "inLetterGames": true
+    },
+    {
+      "id": "question",
+      "word": "Question",
+      "letter": "Q",
+      "inLetterGames": true
+    },
+    {
+      "id": "quill",
+      "word": "Quill",
+      "letter": "Q",
+      "inLetterGames": true
+    },
+    {
+      "id": "rocket",
+      "word": "Rocket",
+      "letter": "R",
+      "inLetterGames": true
+    },
+    {
+      "id": "robot",
+      "word": "Robot",
+      "letter": "R",
+      "inLetterGames": true
+    },
+    {
+      "id": "rainbow",
+      "word": "Rainbow",
+      "letter": "R",
+      "inLetterGames": true
+    },
+    {
+      "id": "rabbit",
+      "word": "Rabbit",
+      "letter": "R",
+      "inLetterGames": true
+    },
+    {
+      "id": "ring",
+      "word": "Ring",
+      "letter": "R",
+      "inLetterGames": true
+    },
+    {
+      "id": "rose",
+      "word": "Rose",
+      "letter": "R",
+      "inLetterGames": true
+    },
+    {
+      "id": "sun",
+      "word": "Sun",
+      "letter": "S",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "nature",
+        "clue": "Bright morning warmth",
+        "phonics": "S · U · N"
+      }
+    },
+    {
+      "id": "snowman",
+      "word": "Snowman",
+      "letter": "S",
+      "inLetterGames": true
+    },
+    {
+      "id": "snail",
+      "word": "Snail",
+      "letter": "S",
+      "inLetterGames": true
+    },
+    {
+      "id": "strawberry",
+      "word": "Strawberry",
+      "letter": "S",
+      "inLetterGames": true
+    },
+    {
+      "id": "sock",
+      "word": "Sock",
+      "letter": "S",
+      "inLetterGames": true
+    },
+    {
+      "id": "submarine",
+      "word": "Submarine",
+      "letter": "S",
+      "inLetterGames": true
+    },
+    {
+      "id": "tree",
+      "word": "Tree",
+      "letter": "T",
+      "inLetterGames": true
+    },
+    {
+      "id": "turtle",
+      "word": "Turtle",
+      "letter": "T",
+      "inLetterGames": true
+    },
+    {
+      "id": "tent",
+      "word": "Tent",
+      "letter": "T",
+      "inLetterGames": true
+    },
+    {
+      "id": "tiger",
+      "word": "Tiger",
+      "letter": "T",
+      "inLetterGames": true
+    },
+    {
+      "id": "tomato",
+      "word": "Tomato",
+      "letter": "T",
+      "inLetterGames": true
+    },
+    {
+      "id": "truck",
+      "word": "Truck",
+      "letter": "T",
+      "inLetterGames": true
+    },
+    {
+      "id": "umbrella",
+      "word": "Umbrella",
+      "letter": "U",
+      "inLetterGames": true
+    },
+    {
+      "id": "unicorn",
+      "word": "Unicorn",
+      "letter": "U",
+      "inLetterGames": true
+    },
+    {
+      "id": "ukulele",
+      "word": "Ukulele",
+      "letter": "U",
+      "inLetterGames": true
+    },
+    {
+      "id": "up-arrow",
+      "word": "Up",
+      "letter": "U",
+      "inLetterGames": true
+    },
+    {
+      "id": "urchin",
+      "word": "Urchin",
+      "letter": "U",
+      "inLetterGames": true
+    },
+    {
+      "id": "unicycle",
+      "word": "Unicycle",
+      "letter": "U",
+      "inLetterGames": true
+    },
+    {
+      "id": "van",
+      "word": "Van",
+      "letter": "V",
+      "inLetterGames": true,
+      "wordFun": {
+        "packId": "play",
+        "clue": "Camper road-trip cruiser",
+        "phonics": "V · A · N"
+      }
+    },
+    {
+      "id": "volcano",
+      "word": "Volcano",
+      "letter": "V",
+      "inLetterGames": true
+    },
+    {
+      "id": "violin",
+      "word": "Violin",
+      "letter": "V",
+      "inLetterGames": true
+    },
+    {
+      "id": "vase",
+      "word": "Vase",
+      "letter": "V",
+      "inLetterGames": true
+    },
+    {
+      "id": "vest",
+      "word": "Vest",
+      "letter": "V",
+      "inLetterGames": true
+    },
+    {
+      "id": "vacuum",
+      "word": "Vacuum",
+      "letter": "V",
+      "inLetterGames": true
+    },
+    {
+      "id": "whale",
+      "word": "Whale",
+      "letter": "W",
+      "inLetterGames": true
+    },
+    {
+      "id": "watermelon",
+      "word": "Watermelon",
+      "letter": "W",
+      "inLetterGames": true
+    },
+    {
+      "id": "watch",
+      "word": "Watch",
+      "letter": "W",
+      "inLetterGames": true
+    },
+    {
+      "id": "wagon",
+      "word": "Wagon",
+      "letter": "W",
+      "inLetterGames": true
+    },
+    {
+      "id": "waffle",
+      "word": "Waffle",
+      "letter": "W",
+      "inLetterGames": true
+    },
+    {
+      "id": "worm",
+      "word": "Worm",
+      "letter": "W",
+      "inLetterGames": true
+    },
+    {
+      "id": "xylophone",
+      "word": "Xylophone",
+      "letter": "X",
+      "inLetterGames": true
+    },
+    {
+      "id": "x-ray",
+      "word": "X-Ray",
+      "letter": "X",
+      "inLetterGames": true
+    },
+    {
+      "id": "x-ray-fish",
+      "word": "X-Ray Fish",
+      "letter": "X",
+      "inLetterGames": true
+    },
+    {
+      "id": "x-ray-dino",
+      "word": "X-Ray Dino",
+      "letter": "X",
+      "inLetterGames": true
+    },
+    {
+      "id": "x-ray-hand",
+      "word": "X-Ray Hand",
+      "letter": "X",
+      "inLetterGames": true
+    },
+    {
+      "id": "x-mark",
+      "word": "X-Mark",
+      "letter": "X",
+      "inLetterGames": true
+    },
+    {
+      "id": "yo-yo",
+      "word": "Yo-Yo",
+      "letter": "Y",
+      "inLetterGames": true
+    },
+    {
+      "id": "yacht",
+      "word": "Yacht",
+      "letter": "Y",
+      "inLetterGames": true
+    },
+    {
+      "id": "yarn",
+      "word": "Yarn",
+      "letter": "Y",
+      "inLetterGames": true
+    },
+    {
+      "id": "yogurt",
+      "word": "Yogurt",
+      "letter": "Y",
+      "inLetterGames": true
+    },
+    {
+      "id": "yak",
+      "word": "Yak",
+      "letter": "Y",
+      "inLetterGames": true
+    },
+    {
+      "id": "yolk",
+      "word": "Yolk",
+      "letter": "Y",
+      "inLetterGames": true
+    },
+    {
+      "id": "zebra",
+      "word": "Zebra",
+      "letter": "Z",
+      "inLetterGames": true
+    },
+    {
+      "id": "zipper",
+      "word": "Zipper",
+      "letter": "Z",
+      "inLetterGames": true
+    },
+    {
+      "id": "zoo",
+      "word": "Zoo",
+      "letter": "Z",
+      "inLetterGames": true
+    },
+    {
+      "id": "zero",
+      "word": "Zero",
+      "letter": "Z",
+      "inLetterGames": true
+    },
+    {
+      "id": "zigzag",
+      "word": "Zigzag",
+      "letter": "Z",
+      "inLetterGames": true
+    },
+    {
+      "id": "zucchini",
+      "word": "Zucchini",
+      "letter": "Z",
+      "inLetterGames": true
+    },
+    {
+      "id": "hen",
+      "word": "Hen",
+      "letter": "H",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "animals",
+        "clue": "Clucking barnyard bird",
+        "phonics": "H · E · N"
+      }
+    },
+    {
+      "id": "bed",
+      "word": "Bed",
+      "letter": "B",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "home",
+        "clue": "Soft pillow & quilt",
+        "phonics": "B · E · D"
+      }
+    },
+    {
+      "id": "box",
+      "word": "Box",
+      "letter": "B",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "home",
+        "clue": "Ribbon-tied surprise",
+        "phonics": "B · O · X"
+      }
+    },
+    {
+      "id": "pot",
+      "word": "Pot",
+      "letter": "P",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "home",
+        "clue": "Warm soup kettle",
+        "phonics": "P · O · T"
+      }
+    },
+    {
+      "id": "jar",
+      "word": "Jar",
+      "letter": "J",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "home",
+        "clue": "Sweet berry jam keeper",
+        "phonics": "J · A · R"
+      }
+    },
+    {
+      "id": "pan",
+      "word": "Pan",
+      "letter": "P",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "home",
+        "clue": "Sunny breakfast skillet",
+        "phonics": "P · A · N"
+      }
+    },
+    {
+      "id": "sub",
+      "word": "Sub",
+      "letter": "S",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "play",
+        "clue": "Deep-sea yellow explorer",
+        "phonics": "S · U · B"
+      }
+    },
+    {
+      "id": "top",
+      "word": "Top",
+      "letter": "T",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "play",
+        "clue": "Whirling wooden toy",
+        "phonics": "T · O · P"
+      }
+    },
+    {
+      "id": "bag",
+      "word": "Bag",
+      "letter": "B",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "play",
+        "clue": "Handy adventure backpack",
+        "phonics": "B · A · G"
+      }
+    },
+    {
+      "id": "map",
+      "word": "Map",
+      "letter": "M",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "play",
+        "clue": "Winding trail guide",
+        "phonics": "M · A · P"
+      }
+    },
+    {
+      "id": "log",
+      "word": "Log",
+      "letter": "L",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "nature",
+        "clue": "Mossy woodland timber",
+        "phonics": "L · O · G"
+      }
+    },
+    {
+      "id": "web",
+      "word": "Web",
+      "letter": "W",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "nature",
+        "clue": "Silky morning threads",
+        "phonics": "W · E · B"
+      }
+    },
+    {
+      "id": "pod",
+      "word": "Pod",
+      "letter": "P",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "nature",
+        "clue": "Three sweet green peas",
+        "phonics": "P · O · D"
+      }
+    },
+    {
+      "id": "bug",
+      "word": "Bug",
+      "letter": "B",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "nature",
+        "clue": "Spotted red ladybug",
+        "phonics": "B · U · G"
+      }
+    },
+    {
+      "id": "gem",
+      "word": "Gem",
+      "letter": "G",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "nature",
+        "clue": "Shining crystal stone",
+        "phonics": "G · E · M"
+      }
+    },
+    {
+      "id": "sky",
+      "word": "Sky",
+      "letter": "S",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "nature",
+        "clue": "Fluffy clouds & rainbow",
+        "phonics": "S · K · Y"
+      }
+    },
+    {
+      "id": "sea",
+      "word": "Sea",
+      "letter": "S",
+      "inLetterGames": false,
+      "wordFun": {
+        "packId": "nature",
+        "clue": "Gentle ocean waves",
+        "phonics": "S · E · A"
+      }
+    }
+  ]
+}

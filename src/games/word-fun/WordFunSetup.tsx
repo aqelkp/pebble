@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrandLogo } from '../../components/BrandLogo';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { preloadWordsAudio } from '../../utils/wordAudio';
 import { WordFunArt } from './WordFunArt';
 import {
   DEFAULT_WORD_HELPER_MODE,
   DEFAULT_WORD_PACK_ID,
   DEFAULT_WORD_ROUND_SIZE_ID,
+  WORD_CATALOG,
   WORD_HELPER_MODES,
   WORD_PACKS,
   WORD_ROUND_SIZES,
@@ -58,6 +60,13 @@ export function WordFunSetup({
   const [packId, setPackId] = useState<WordPackId>(
     initialConfig?.packId ?? DEFAULT_WORD_PACK_ID,
   );
+
+  // Silently warm up audio clips for words in the selected pack before Start
+  useEffect(() => {
+    const packWords =
+      packId === 'all' ? WORD_CATALOG : WORD_CATALOG.filter((w) => w.packId === packId);
+    preloadWordsAudio(packWords.map((w) => w.id));
+  }, [packId]);
   const [roundSizeId, setRoundSizeId] = useState<WordRoundSizeId>(
     initialConfig?.roundSizeId ?? DEFAULT_WORD_ROUND_SIZE_ID,
   );

@@ -1,3 +1,5 @@
+import { CANONICAL_WORDS } from '../../data/wordBank';
+
 export type WordPackId = 'all' | 'animals' | 'home' | 'play' | 'nature';
 
 export type WordRoundSizeId = '8' | '6' | '12';
@@ -152,47 +154,18 @@ export const WORD_HELPER_MODES: readonly WordHelperModeSpec[] = [
   },
 ];
 
-export const WORD_CATALOG: readonly WordEntry[] = [
-  // Animal Pals (8)
-  { id: 'cat', word: 'CAT', packId: 'animals', clue: 'Purring cozy kitten', phonics: 'C · A · T' },
-  { id: 'dog', word: 'DOG', packId: 'animals', clue: 'Friendly wagging puppy', phonics: 'D · O · G' },
-  { id: 'pig', word: 'PIG', packId: 'animals', clue: 'Rosy farmyard friend', phonics: 'P · I · G' },
-  { id: 'fox', word: 'FOX', packId: 'animals', clue: 'Fluffy woodland explorer', phonics: 'F · O · X' },
-  { id: 'owl', word: 'OWL', packId: 'animals', clue: 'Wise night-sky bird', phonics: 'O · W · L' },
-  { id: 'bee', word: 'BEE', packId: 'animals', clue: 'Buzzing garden helper', phonics: 'B · E · E' },
-  { id: 'hen', word: 'HEN', packId: 'animals', clue: 'Clucking barnyard bird', phonics: 'H · E · N' },
-  { id: 'cow', word: 'COW', packId: 'animals', clue: 'Gentle meadow grazer', phonics: 'C · O · W' },
-
-  // Cozy Home (8)
-  { id: 'cup', word: 'CUP', packId: 'home', clue: 'Warm cocoa mug', phonics: 'C · U · P' },
-  { id: 'hat', word: 'HAT', packId: 'home', clue: 'Cozy pom-pom beanie', phonics: 'H · A · T' },
-  { id: 'bed', word: 'BED', packId: 'home', clue: 'Soft pillow & quilt', phonics: 'B · E · D' },
-  { id: 'box', word: 'BOX', packId: 'home', clue: 'Ribbon-tied surprise', phonics: 'B · O · X' },
-  { id: 'key', word: 'KEY', packId: 'home', clue: 'Golden treasure opener', phonics: 'K · E · Y' },
-  { id: 'pot', word: 'POT', packId: 'home', clue: 'Warm soup kettle', phonics: 'P · O · T' },
-  { id: 'jar', word: 'JAR', packId: 'home', clue: 'Sweet berry jam keeper', phonics: 'J · A · R' },
-  { id: 'pan', word: 'PAN', packId: 'home', clue: 'Sunny breakfast skillet', phonics: 'P · A · N' },
-
-  // On the Go (8)
-  { id: 'bus', word: 'BUS', packId: 'play', clue: 'Sunny yellow ride', phonics: 'B · U · S' },
-  { id: 'car', word: 'CAR', packId: 'play', clue: 'Beep-beep family coupe', phonics: 'C · A · R' },
-  { id: 'jet', word: 'JET', packId: 'play', clue: 'Zooming cloud airplane', phonics: 'J · E · T' },
-  { id: 'sub', word: 'SUB', packId: 'play', clue: 'Deep-sea yellow explorer', phonics: 'S · U · B' },
-  { id: 'top', word: 'TOP', packId: 'play', clue: 'Whirling wooden toy', phonics: 'T · O · P' },
-  { id: 'bag', word: 'BAG', packId: 'play', clue: 'Handy adventure backpack', phonics: 'B · A · G' },
-  { id: 'van', word: 'VAN', packId: 'play', clue: 'Camper road-trip cruiser', phonics: 'V · A · N' },
-  { id: 'map', word: 'MAP', packId: 'play', clue: 'Winding trail guide', phonics: 'M · A · P' },
-
-  // Sunny Nature (8)
-  { id: 'sun', word: 'SUN', packId: 'nature', clue: 'Bright morning warmth', phonics: 'S · U · N' },
-  { id: 'log', word: 'LOG', packId: 'nature', clue: 'Mossy woodland timber', phonics: 'L · O · G' },
-  { id: 'web', word: 'WEB', packId: 'nature', clue: 'Silky morning threads', phonics: 'W · E · B' },
-  { id: 'pod', word: 'POD', packId: 'nature', clue: 'Three sweet green peas', phonics: 'P · O · D' },
-  { id: 'bug', word: 'BUG', packId: 'nature', clue: 'Spotted red ladybug', phonics: 'B · U · G' },
-  { id: 'gem', word: 'GEM', packId: 'nature', clue: 'Shining crystal stone', phonics: 'G · E · M' },
-  { id: 'sky', word: 'SKY', packId: 'nature', clue: 'Fluffy clouds & rainbow', phonics: 'S · K · Y' },
-  { id: 'sea', word: 'SEA', packId: 'nature', clue: 'Gentle ocean waves', phonics: 'S · E · A' },
-];
+export const WORD_CATALOG: readonly WordEntry[] = CANONICAL_WORDS.flatMap((entry) => {
+  if (!entry.wordFun) return [];
+  return [
+    {
+      id: entry.id as WordArtId,
+      word: entry.word.toUpperCase(),
+      packId: entry.wordFun.packId,
+      clue: entry.wordFun.clue,
+      phonics: entry.wordFun.phonics,
+    },
+  ];
+});
 
 const DISTRACTOR_ALPHABET = [
   'A',

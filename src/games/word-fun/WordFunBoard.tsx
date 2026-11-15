@@ -3,6 +3,7 @@ import { BrandLogo } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { preloadWordsAudio } from '../../utils/wordAudio';
 import { WordFunArt } from './WordFunArt';
 import type { WordGameConfig } from './WordFunSetup';
 import {
@@ -302,6 +303,12 @@ export function WordFunBoard({
   }, [clearPendingTimer, config.packId, config.roundSizeId, players]);
 
   const currentWord = words[wordIdx] ?? words[0];
+
+  // Silently preload MP3 clips for the current round deck
+  useEffect(() => {
+    if (words.length === 0) return;
+    preloadWordsAudio(words.map((w) => w.id));
+  }, [words]);
   const activePlayer = players[currentPlayerIdx % players.length] ?? players[0];
   const nextEmptySlot = placedTileUids.findIndex((uid) => uid === null);
   const completedWordsCount =
@@ -439,7 +446,7 @@ export function WordFunBoard({
 
   const handleHearWord = () => {
     if (!currentWord) return;
-    speakWordPrompt(currentWord.word, currentWord.clue, soundEnabled);
+    speakWordPrompt(currentWord.word, currentWord.clue, soundEnabled, currentWord.id);
   };
 
   const standings: PlayerStanding[] = players.map((player) => ({

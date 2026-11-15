@@ -1,3 +1,11 @@
+import {
+  playLetterAudio,
+  playWordAudio,
+  speakWithSynthesis,
+  stopAllSpokenAudio,
+} from '../../utils/wordAudio';
+import type { LetterId } from './riverData';
+
 let sharedCtx: AudioContext | null = null;
 let cachedNoiseBuffer: AudioBuffer | null = null;
 
@@ -105,30 +113,20 @@ function playWaterSplashNoise(
   }
 }
 
+export function speakRiverWord(wordId: string, fallbackWord: string, enabled: boolean): void {
+  playWordAudio(wordId, fallbackWord, enabled);
+}
+
+export function speakRiverLetter(letter: LetterId, fallbackPhrase: string, enabled: boolean): void {
+  playLetterAudio(letter, fallbackPhrase, enabled);
+}
+
 export function speakRiverPhrase(phrase: string, enabled: boolean): void {
-  if (!enabled) return;
-  try {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(phrase);
-    utter.lang = 'en-US';
-    utter.rate = 0.92;
-    utter.pitch = 1.08;
-    utter.volume = 0.95;
-    window.speechSynthesis.speak(utter);
-  } catch {
-    // Speech synthesis unavailable or restricted
-  }
+  speakWithSynthesis(phrase, enabled);
 }
 
 export function stopRiverSpeech(): void {
-  try {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-  } catch {
-    // Ignore speech errors
-  }
+  stopAllSpokenAudio();
 }
 
 /**

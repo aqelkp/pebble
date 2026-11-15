@@ -10,6 +10,7 @@ import {
 import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { preloadLettersAudio, preloadWordsAudio } from '../../utils/wordAudio';
 import { WordIllustration } from '../letter-train/WordIllustration';
 import type { LetterRiverConfig } from './LetterRiverSetup';
 import {
@@ -34,6 +35,7 @@ import {
   playNewBucketSlideSound,
   playRiverCompleteSound,
   speakRiverPhrase,
+  speakRiverWord,
   stopRiverSpeech,
 } from './riverSounds';
 
@@ -641,6 +643,18 @@ export function LetterRiverBoard({
   const [finished, setFinished] = useState<boolean>(initialBoot.saved.finished);
   const [masteredCount, setMasteredCount] = useState<number>(() => loadRiverMasteredLetters().length);
 
+  // Silently preload MP3 clips for the active dock buckets plus the next 2 queued letters
+  useEffect(() => {
+    const activeLetters = buckets
+      .filter((b): b is DockBucket => b !== null)
+      .map((b) => b.letter);
+    const lookaheadLetters = letterQueue.slice(nextQueueIdx, nextQueueIdx + 2);
+    const targetLetters = Array.from(new Set([...activeLetters, ...lookaheadLetters]));
+    if (targetLetters.length === 0) return;
+    preloadLettersAudio(targetLetters);
+    preloadWordsAudio(targetLetters.flatMap((letter) => getStationSpec(letter).words.map((w) => w.id)));
+  }, [buckets, letterQueue, nextQueueIdx]);
+
   const [hookedFishId, setHookedFishId] = useState<string | null>(null);
   const [dragState, setDragState] = useState<DragFishState | null>(null);
   const [bucketFeedback, setBucketFeedback] = useState<BucketFeedback | null>(null);
@@ -1093,7 +1107,7 @@ export function LetterRiverBoard({
     e.stopPropagation();
     e.currentTarget.setPointerCapture(e.pointerId);
     playFishPlopSound(soundEnabled);
-    speakRiverPhrase(fish.spec.word, soundEnabled);
+    speakRiverWord(fish.spec.id, fish.spec.word, soundEnabled);
 
     setDragState({
       fish,
@@ -1441,7 +1455,7 @@ export function LetterRiverBoard({
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       playFishPlopSound(soundEnabled);
-                      speakRiverPhrase(fish.spec.word, soundEnabled);
+                      speakRiverWord(fish.spec.id, fish.spec.word, soundEnabled);
                       setHookedFishId((prev) => (prev === fish.uid ? null : fish.uid));
                     }
                   }}
