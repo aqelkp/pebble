@@ -510,9 +510,11 @@ export function SafariBoard({
         setPhase('idle');
       }, 920);
     } else {
-      setThinkAgainHint(
-        'Tap each animal on the clearing to count 1, 2, 3… then pick the matching number!',
-      );
+      timeoutRef.current = window.setTimeout(() => {
+        setThinkAgainHint(
+          `You tapped ${chosenNumber} — tap each animal on the clearing to count 1, 2, 3…!`,
+        );
+      }, 2200);
     }
   };
 
@@ -854,6 +856,10 @@ export function SafariBoard({
           setThinkAgainHint(null);
           setLastWrongNumber(null);
           setPhase('idle');
+        }}
+        onStartAgain={() => {
+          setThinkAgainHint(null);
+          restartGame();
         }}
       />
     </div>

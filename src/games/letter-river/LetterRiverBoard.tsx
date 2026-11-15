@@ -14,7 +14,12 @@ import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesCo
 import { useGameLoop } from '../../engine';
 import { pickWeightedAdaptive } from '../../learning/adaptiveSelector';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
-import { preloadLettersAudio, preloadWordsAudio } from '../../utils/wordAudio';
+import {
+  playWrongLetterExplanation,
+  preloadLetterMistakeAudio,
+  preloadLettersAudio,
+  preloadWordsAudio,
+} from '../../utils/wordAudio';
 import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import { WordIllustration } from '../letter-train/WordIllustration';
 import type { LetterRiverConfig } from './LetterRiverSetup';
@@ -675,6 +680,7 @@ export function LetterRiverBoard({
     const targetLetters = Array.from(new Set([...activeLetters, ...lookaheadLetters]));
     if (targetLetters.length === 0) return;
     preloadLettersAudio(targetLetters);
+    preloadLetterMistakeAudio(targetLetters);
     preloadWordsAudio(targetLetters.flatMap((letter) => getStationSpec(letter).words.map((w) => w.id)));
   }, [buckets, letterQueue, nextQueueIdx]);
 
@@ -687,6 +693,7 @@ export function LetterRiverBoard({
   const [bannerText, setBannerText] = useState<string>(
     'Scoop a fish and drop it in the matching letter bucket!',
   );
+  const [explainingWrong, setExplainingWrong] = useState<boolean>(false);
   const [thinkAgainHint, setThinkAgainHint] = useState<string | null>(null);
 
   const riverLanesRef = useRef<HTMLDivElement | null>(null);
@@ -855,7 +862,7 @@ export function LetterRiverBoard({
 
   const handleDropFishIntoBucket = useCallback(
     (fish: SwimmingFish, slotIndex: number) => {
-      if (finished || thinkAgainHint !== null) return;
+      if (finished || explainingWrong || thinkAgainHint !== null) return;
       const targetBucket = buckets[slotIndex];
       if (!targetBucket || targetBucket.state === 'popping') return;
 
@@ -895,15 +902,41 @@ export function LetterRiverBoard({
           ? `${fish.spec.word} starts with "${station.phonicsHint}" — try bucket ${fish.spec.letter}${fish.spec.letter.toLowerCase()}!`
           : `${fish.spec.word} starts with ${fish.spec.letter} ("${station.phonicsHint}")!`;
 
+        const boardExplainLine = `Okay, hey — ${fish.spec.word} starts with ${fish.spec.letter}, not ${targetBucket.letter}!`;
         setBannerTone('calm-hint');
-        setBannerText(hintLine);
+        setBannerText(boardExplainLine);
+        setExplainingWrong(true);
 
         const fbKey = Date.now();
         setBucketFeedback({ slotIndex, kind: 'gentle-nope', key: fbKey });
-        setThinkAgainHint(hintLine);
-        scheduleTimer(() => {
+
+        const startedAt = Date.now();
+        let opened = false;
+        const openPauseDialog = () => {
+          if (opened) return;
+          opened = true;
           setBucketFeedback((prev) => (prev && prev.key === fbKey ? null : prev));
-        }, 260);
+          setExplainingWrong(false);
+          setThinkAgainHint(hintLine);
+        };
+
+        if (soundEnabled) {
+          playWrongLetterExplanation(
+            fish.spec.id,
+            fish.spec.word,
+            fish.spec.letter,
+            targetBucket.letter,
+            true,
+            () => {
+              const elapsed = Date.now() - startedAt;
+              const remainingBeat = Math.max(320, 2200 - elapsed);
+              scheduleTimer(openPauseDialog, remainingBeat);
+            },
+          );
+          scheduleTimer(openPauseDialog, 4800);
+        } else {
+          scheduleTimer(openPauseDialog, 2200);
+        }
         return;
       }
 
@@ -1150,6 +1183,7 @@ export function LetterRiverBoard({
       buckets,
       childProfile.name,
       completedLetters,
+      explainingWrong,
       finished,
       fishList,
       letterQueue,
@@ -1164,7 +1198,7 @@ export function LetterRiverBoard({
     e: ReactPointerEvent<HTMLDivElement>,
     fish: SwimmingFish,
   ) => {
-    if (finished || thinkAgainHint !== null) return;
+    if (finished || explainingWrong || thinkAgainHint !== null) return;
     if (e.button !== 0 && e.pointerType === 'mouse') return;
 
     e.stopPropagation();
@@ -1257,6 +1291,8 @@ export function LetterRiverBoard({
     clearTimers();
     stopRiverSpeech();
     clearSavedLetterRiverGame();
+    setExplainingWrong(false);
+    setThinkAgainHint(null);
 
     fishPosRef.current.clear();
     pendingGoldenRef.current = false;
@@ -1799,6 +1835,7 @@ export function LetterRiverBoard({
         hint={thinkAgainHint ?? undefined}
         soundEnabled={soundEnabled}
         onReady={() => setThinkAgainHint(null)}
+        onStartAgain={handleRestartRiver}
       />
     </div>
   );
