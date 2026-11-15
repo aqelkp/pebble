@@ -8574,3 +8574,107 @@ h3,
   font-size: 0.84rem;
   color: var(--text-secondary);
 }
+
+.daily-limit-custom-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.daily-limit-stepper {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.daily-limit-step-btn {
+  min-width: 44px;
+  min-height: 40px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--border-subtle);
+  background: var(--surface-soft);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.14s ease, background-color 0.14s ease, transform 0.12s ease;
+}
+
+.daily-limit-step-btn:hover {
+  border-color: var(--indigo-primary);
+  background: var(--indigo-tint);
+}
+
+.daily-limit-step-btn:active {
+  transform: scale(0.96);
+}
+
+.daily-limit-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--indigo-border);
+  background: #ffffff;
+}
+
+.daily-limit-input {
+  width: 44px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  outline: none;
+}
+
+.daily-limit-input-unit {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.pi-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pi-daily-summary-card {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pi-daily-summary-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pi-daily-summary-card__title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pi-daily-summary-card__title-row strong {
+  font-family: var(--font-display);
+  font-size: 1.06rem;
+  color: var(--text-primary);
+}

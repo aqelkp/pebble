@@ -5,7 +5,7 @@
 - **Framework:** React 19 + TypeScript (`strict` mode, `noUnusedLocals`, `noUnusedParameters`)
 - **Bundler:** Vite 6 with `base: './'` (`vite.config.ts`) so static builds work cleanly at root (`/`) and subpaths (`/pebble/` on GitHub Pages)
 - **Styling:** Plain modular CSS variables and utility classes (`src/styles/tokens.css`), zero runtime CSS-in-JS dependencies
-- **Storage:** Client-only `localStorage` under `pebble.family.v1`, `pebble.journey.v1`, `pebble.daily-limit.v1` (silent 20-minute daily screen-time tracker with local-midnight rollover in `src/utils/dailyPlayLimit.ts`), `pebble.letter-train.mastery.v1`, and `pebble.letter-river.mastery.v1` with schema sanitization (`src/context/FamilyProfilesContext.tsx`), plus `sessionStorage` active-game recovery (`pebble.nav.v1`, `pebble.memory.active.v1`, `pebble.letter-train.active.v1`, `pebble.letter-river.active.v1`, `pebble.safari.active.v1`, `pebble.wordfun.active.v1`)
+- **Storage:** Client-only `localStorage` under `pebble.family.v1`, `pebble.journey.v1`, `pebble.daily-limit.v1` (silent 20-minute default daily screen-time tracker customizable to 1–180 min or Off across `ParentJourneySettingsPage` and `ParentInsightsPage`, with local-midnight rollover in `src/utils/dailyPlayLimit.ts`), `pebble.letter-train.mastery.v1`, and `pebble.letter-river.mastery.v1` with schema sanitization (`src/context/FamilyProfilesContext.tsx`), plus `sessionStorage` active-game recovery (`pebble.nav.v1`, `pebble.memory.active.v1`, `pebble.letter-train.active.v1`, `pebble.letter-river.active.v1`, `pebble.safari.active.v1`, `pebble.wordfun.active.v1`)
 - **Audio & Word Bank:** Synthesized Web Audio feedback chimes plus bundled offline Kokoro TTS MP3 speech clips (`public/audio/letters/*.mp3`, `public/audio/words/*.mp3`) driven from a single source-of-truth catalog (`src/data/wordCatalog.json` + `src/data/wordBank.ts`) via `src/utils/wordAudio.ts`, with silent Setup/lookahead prefetching and `speechSynthesis` fallback (`src/games/memory-match/soundEffects.ts`, `src/games/letter-train/trainSounds.ts`, `src/games/letter-river/riverSounds.ts`, `src/games/number-safari/safariSounds.ts`, `src/games/word-fun/wordSounds.ts`)
 - **PWA Offline Cache:** `public/sw.js` (registered in `src/main.tsx` for production builds) caches visited audio, images, and app assets (`pebble-assets-v1`) so replay and offline sessions work without loading screens
 
@@ -44,7 +44,7 @@ pebble/
 │   ├── sync-word-audio.mjs     # Incremental Kokoro TTS -> MP3 generator for wordCatalog.json
 │   └── visual-verify-helper.mjs # Playwright 768x1024 screenshot & WebM video helper
 ├── src/
-│   ├── components/             # BrandLogo, ConfettiBurst, DailyTimeOverScreen, GameLoadingFallback, GameStage, LeaveGameModal, WinnerModal
+│   ├── components/             # BrandLogo, ConfettiBurst, DailyLimitParentControl, DailyTimeOverScreen, GameLoadingFallback, GameStage, LeaveGameModal, WinnerModal
 │   ├── context/                # FamilyProfilesContext (validated localStorage state)
 │   ├── data/                   # wordCatalog.json + wordBank.ts (single source of truth)
 │   ├── engine/                 # Shared micro-toolkit: useStageSize, solveGridFit, useGameLoop, usePointerStroke
