@@ -4,6 +4,7 @@ import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import {
   buildSafariTrail,
   getSafariLengthSpec,
@@ -265,6 +266,9 @@ export function SafariBoard({
 
   const clearingBodyRef = useRef<HTMLDivElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
+  const stopMistakesRef = useRef<number>(0);
+  const roundMistakesRef = useRef<number>(0);
+  const roundStartRef = useRef<number>(Date.now());
   const nudgeTimeoutRef = useRef<number | null>(null);
 
   const [animalTileSize, setAnimalTileSize] = useState<number>(108);
@@ -404,6 +408,20 @@ export function SafariBoard({
     if (triedNumbers.includes(chosenNumber)) return;
 
     if (chosenNumber === currentStop.answer) {
+      const skillType =
+        currentStop.kind === 'addition' ? 'group_joining' : 'quantity_counting';
+      const stopMistakes = stopMistakesRef.current;
+      recordSkillAttempt({
+        playerId: activePlayer.id,
+        gameId: 'number-safari',
+        conceptId: `number:${currentStop.answer}`,
+        conceptLabel: `Number ${currentStop.answer}`,
+        skillType,
+        correct: stopMistakes === 0,
+        attemptsTaken: 1 + stopMistakes,
+      });
+      stopMistakesRef.current = 0;
+
       // Reveal sequential 1..N count badges across every animal in the clearing for celebration!
       setCountedUids(currentStop.animals.map((a) => a.uid));
       setScores((prev) => ({
@@ -418,6 +436,19 @@ export function SafariBoard({
       clearPendingTimers();
       const isFinalStop = currentStopIdx + 1 >= trail.length;
       if (isFinalStop) {
+        recordLearningSession({
+          playerId: activePlayer.id,
+          gameId: 'number-safari',
+          mode: config.modeId,
+          totalAttempts: trail.length + roundMistakesRef.current,
+          correctAttempts: trail.length,
+          mistakes: roundMistakesRef.current,
+          flawless: roundMistakesRef.current === 0,
+          durationMs: Date.now() - roundStartRef.current,
+          conceptsTested: trail.map((s) => `number:${s.answer}`),
+        });
+        roundMistakesRef.current = 0;
+        roundStartRef.current = Date.now();
         timeoutRef.current = window.setTimeout(() => {
           setPhase('finished');
           playSafariWinSound(soundEnabled);
@@ -435,6 +466,16 @@ export function SafariBoard({
     }
 
     // Gentle non-punitive feedback when a wrong block is tapped
+    stopMistakesRef.current += 1;
+    roundMistakesRef.current += 1;
+    recordSkillAttempt({
+      playerId: activePlayer.id,
+      gameId: 'number-safari',
+      conceptId: `number:${currentStop.answer}`,
+      conceptLabel: `Number ${currentStop.answer}`,
+      skillType: currentStop.kind === 'addition' ? 'group_joining' : 'quantity_counting',
+      correct: false,
+    });
     setTriedNumbers((prev) => [...prev, chosenNumber]);
     setLastWrongNumber(chosenNumber);
     setPhase('resolving-wrong');

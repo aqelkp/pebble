@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPoi
 import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import { assetUrl } from '../../utils/assets';
 import { getThemeSpec, type CharacterCardSpec } from '../memory-match/themes';
 import type { PictureSudokuConfig } from './PictureSudokuSetup';
@@ -209,6 +210,14 @@ export function PictureSudokuBoard({
     ) => {
       playConflictSound(soundEnabled);
       setMistakesCount((m) => m + 1);
+      recordSkillAttempt({
+        playerId: childProfile.id,
+        gameId: 'picture-sudoku',
+        conceptId: `sudoku:${puzzle.size}x${puzzle.size}`,
+        conceptLabel: `${puzzle.size}×${puzzle.size} Grid`,
+        skillType: 'grid_deduction',
+        correct: false,
+      });
       setSelectedTrayUid(null);
       setConflictKeys(new Set(focusCells.map((cell) => cellKey(cell.row, cell.col))));
       setBandKeys(new Set(highlightBand.map((cell) => cellKey(cell.row, cell.col))));
@@ -220,7 +229,7 @@ export function PictureSudokuBoard({
         secondsLeft: TRY_AGAIN_COOLDOWN_SEC,
       });
     },
-    [soundEnabled],
+    [childProfile.id, soundEnabled],
   );
 
   const attemptPlaceCard = useCallback(
@@ -291,12 +300,39 @@ export function PictureSudokuBoard({
         setSolved(true);
         setConfettiSeed((s) => s + 1);
         playSolvedFanfare(soundEnabled);
+        recordSkillAttempt({
+          playerId: childProfile.id,
+          gameId: 'picture-sudoku',
+          conceptId: `sudoku:${puzzle.size}x${puzzle.size}`,
+          conceptLabel: `${puzzle.size}×${puzzle.size} Grid`,
+          skillType: 'grid_deduction',
+          correct: mistakesCount === 0,
+          attemptsTaken: movesCount + 1 + mistakesCount,
+        });
+        recordLearningSession({
+          playerId: childProfile.id,
+          gameId: 'picture-sudoku',
+          mode: `${puzzle.size}x${puzzle.size}`,
+          totalAttempts: movesCount + 1 + mistakesCount,
+          correctAttempts: movesCount + 1,
+          mistakes: mistakesCount,
+          flawless: mistakesCount === 0,
+          conceptsTested: [`sudoku:${puzzle.size}x${puzzle.size}`],
+        });
         setBanner({
           tone: 'success',
           text: `Puzzle solved! Every row and column is complete!`,
         });
         onGameActiveChange(false);
       } else {
+        recordSkillAttempt({
+          playerId: childProfile.id,
+          gameId: 'picture-sudoku',
+          conceptId: `sudoku:${puzzle.size}x${puzzle.size}`,
+          conceptLabel: `${puzzle.size}×${puzzle.size} Grid`,
+          skillType: 'grid_deduction',
+          correct: true,
+        });
         playPlaceSuccessSound(soundEnabled);
         const remaining = nextTray.length;
         setBanner({
@@ -310,6 +346,9 @@ export function PictureSudokuBoard({
     },
     [
       board,
+      childProfile.id,
+      mistakesCount,
+      movesCount,
       onGameActiveChange,
       placedMap,
       puzzle.givens,

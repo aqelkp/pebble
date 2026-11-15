@@ -4,6 +4,7 @@ import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import { preloadWordsAudio } from '../../utils/wordAudio';
 import { WordFunArt } from './WordFunArt';
 import type { WordGameConfig } from './WordFunSetup';
@@ -206,6 +207,9 @@ export function WordFunBoard({
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const timeoutRef = useRef<number | null>(null);
+  const wordMistakesRef = useRef<number>(0);
+  const roundMistakesRef = useRef<number>(0);
+  const roundStartRef = useRef<number>(Date.now());
 
   const [metrics, setMetrics] = useState<StageMetrics>({
     artSize: 160,
@@ -344,6 +348,18 @@ export function WordFunBoard({
         }
 
         // All 3 letters placed — award +1 point!
+        const wordMistakes = wordMistakesRef.current;
+        recordSkillAttempt({
+          playerId: activePlayer.id,
+          gameId: 'word-fun',
+          conceptId: `word:${currentWord.id}`,
+          conceptLabel: currentWord.word.toLowerCase(),
+          skillType: 'word_spelling',
+          correct: wordMistakes === 0,
+          attemptsTaken: 3 + wordMistakes,
+        });
+        wordMistakesRef.current = 0;
+
         setScores((prev) => ({
           ...prev,
           [activePlayer.id]: (prev[activePlayer.id] ?? 0) + 1,
@@ -355,6 +371,19 @@ export function WordFunBoard({
         clearPendingTimer();
         const isLastWord = wordIdx + 1 >= words.length;
         if (isLastWord) {
+          recordLearningSession({
+            playerId: activePlayer.id,
+            gameId: 'word-fun',
+            mode: config.packId,
+            totalAttempts: words.length * 3 + roundMistakesRef.current,
+            correctAttempts: words.length * 3,
+            mistakes: roundMistakesRef.current,
+            flawless: roundMistakesRef.current === 0,
+            durationMs: Date.now() - roundStartRef.current,
+            conceptsTested: words.map((w) => `word:${w.id}`),
+          });
+          roundMistakesRef.current = 0;
+          roundStartRef.current = Date.now();
           timeoutRef.current = window.setTimeout(() => {
             setPhase('finished');
             playRoundWinSound(soundEnabled);
@@ -374,6 +403,16 @@ export function WordFunBoard({
       }
 
       // Wrong letter tapped
+      wordMistakesRef.current += 1;
+      roundMistakesRef.current += 1;
+      recordSkillAttempt({
+        playerId: activePlayer.id,
+        gameId: 'word-fun',
+        conceptId: `word:${currentWord.id}`,
+        conceptLabel: currentWord.word.toLowerCase(),
+        skillType: 'word_spelling',
+        correct: false,
+      });
       setWrongTileUid(tile.uid);
       setWrongLetter(tile.letter);
       setHintTileUid(null);

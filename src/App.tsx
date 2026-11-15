@@ -47,9 +47,11 @@ import {
 } from './games/word-fun/WordFunSetup';
 import { FamilyProfilesPage } from './pages/FamilyProfilesPage';
 import { GameHubPage } from './pages/GameHubPage';
+import { ParentInsightsPage } from './pages/ParentInsightsPage';
 
 type Screen =
   | { view: 'hub' }
+  | { view: 'parent-insights' }
   | {
       view: 'profiles';
       returnTo:
@@ -102,6 +104,7 @@ function isValidScreen(value: unknown): value is Screen {
   const candidate = value as Partial<Screen> & { returnTo?: unknown; gameKey?: unknown };
   if (
     candidate.view === 'hub' ||
+    candidate.view === 'parent-insights' ||
     candidate.view === 'memory-setup' ||
     candidate.view === 'letter-train-setup' ||
     candidate.view === 'letter-river-setup' ||
@@ -240,7 +243,7 @@ function loadSavedNavState(): SavedNavState {
 }
 
 function PebbleRouter() {
-  const { profiles, soundEnabled, toggleSound } = useFamilyProfiles();
+  const { profiles, soundEnabled, toggleSound, updateProfile } = useFamilyProfiles();
   const [initialNav] = useState<SavedNavState>(() => loadSavedNavState());
   const [screen, setScreen] = useState<Screen>(initialNav.screen);
   const [lastMemoryConfig, setLastMemoryConfig] = useState<MemoryGameConfig | null>(
@@ -480,6 +483,17 @@ function PebbleRouter() {
                   ? { view: 'sudoku-setup' }
                   : { view: 'hub' };
     return <FamilyProfilesPage onBack={() => navigateBack(fallback)} />;
+  }
+
+  if (screen.view === 'parent-insights') {
+    return (
+      <ParentInsightsPage
+        profiles={profiles}
+        onUpdateProfile={updateProfile}
+        onOpenGame={handleOpenGame}
+        onBackToHub={() => navigateBack({ view: 'hub' })}
+      />
+    );
   }
 
   if (screen.view === 'memory-setup') {
@@ -901,6 +915,7 @@ function PebbleRouter() {
       profiles={profiles}
       onOpenGame={handleOpenGame}
       onOpenProfiles={() => navigateTo({ view: 'profiles', returnTo: 'hub' })}
+      onOpenParentInsights={() => navigateTo({ view: 'parent-insights' })}
     />
   );
 }
