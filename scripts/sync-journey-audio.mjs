@@ -54,6 +54,14 @@ const JOURNEY_PROMPTS = [
     id: 'number-safari-add',
     text: 'Count both animal groups together, then pick the total number!',
   },
+  {
+    id: 'rescue-road',
+    text: 'Place the road tiles to connect the garage to the finish flag!',
+  },
+  {
+    id: 'sticker-jigsaw',
+    text: 'Place each puzzle piece to build the picture sticker!',
+  },
 ];
 
 function resolveTtsPackage(pkgName, esmSubpath = '') {

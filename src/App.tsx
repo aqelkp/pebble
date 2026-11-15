@@ -42,6 +42,26 @@ import {
   type PictureSudokuConfig,
 } from './games/picture-sudoku/PictureSudokuSetup';
 import type { GameRegistryEntry } from './games/registry';
+import {
+  clearSavedRescueRoadGame,
+  RescueRoadBoard,
+} from './games/rescue-road/RescueRoadBoard';
+import { RescueRoadSetup } from './games/rescue-road/RescueRoadSetup';
+import {
+  getDefaultRescueRoadConfig,
+  isValidRescueRoadConfig,
+  type RescueRoadConfig,
+} from './games/rescue-road/roadEngine';
+import {
+  clearSavedStickerJigsawGame,
+  StickerJigsawBoard,
+} from './games/sticker-jigsaw/StickerJigsawBoard';
+import { StickerJigsawSetup } from './games/sticker-jigsaw/StickerJigsawSetup';
+import {
+  getDefaultStickerJigsawConfig,
+  isValidStickerJigsawConfig,
+  type StickerJigsawConfig,
+} from './games/sticker-jigsaw/jigsawEngine';
 import { clearSavedWordGame, WordFunBoard } from './games/word-fun/WordFunBoard';
 import {
   isValidWordGameConfig,
@@ -99,7 +119,11 @@ type Screen =
   | { view: 'word-setup' }
   | { view: 'word-play'; gameKey: number }
   | { view: 'sudoku-setup' }
-  | { view: 'sudoku-play'; gameKey: number };
+  | { view: 'sudoku-play'; gameKey: number }
+  | { view: 'rescue-road-setup' }
+  | { view: 'rescue-road-play'; gameKey: number }
+  | { view: 'sticker-jigsaw-setup' }
+  | { view: 'sticker-jigsaw-play'; gameKey: number };
 
 const NAV_STORAGE_KEY = 'pebble.nav.v1';
 
@@ -111,6 +135,8 @@ interface SavedNavState {
   lastSafariConfig: SafariGameConfig | null;
   lastWordConfig: WordGameConfig | null;
   lastSudokuConfig: PictureSudokuConfig | null;
+  lastRescueRoadConfig: RescueRoadConfig | null;
+  lastStickerJigsawConfig: StickerJigsawConfig | null;
 }
 
 function isPlayScreen(screen: Screen): boolean {
@@ -121,7 +147,9 @@ function isPlayScreen(screen: Screen): boolean {
     screen.view === 'letter-river-play' ||
     screen.view === 'safari-play' ||
     screen.view === 'word-play' ||
-    screen.view === 'sudoku-play'
+    screen.view === 'sudoku-play' ||
+    screen.view === 'rescue-road-play' ||
+    screen.view === 'sticker-jigsaw-play'
   );
 }
 
@@ -132,6 +160,8 @@ function clearAllSavedGames() {
   clearSavedSafariGame();
   clearSavedWordGame();
   clearSavedSudokuGame();
+  clearSavedRescueRoadGame();
+  clearSavedStickerJigsawGame();
 }
 
 function clearSavedGameById(gameId: GameRegistryEntry['id']) {
@@ -141,6 +171,8 @@ function clearSavedGameById(gameId: GameRegistryEntry['id']) {
   else if (gameId === 'number-safari') clearSavedSafariGame();
   else if (gameId === 'word-fun') clearSavedWordGame();
   else if (gameId === 'picture-sudoku') clearSavedSudokuGame();
+  else if (gameId === 'rescue-road') clearSavedRescueRoadGame();
+  else if (gameId === 'sticker-jigsaw') clearSavedStickerJigsawGame();
 }
 
 function isValidScreen(value: unknown): value is Screen {
@@ -160,7 +192,9 @@ function isValidScreen(value: unknown): value is Screen {
     candidate.view === 'letter-river-setup' ||
     candidate.view === 'safari-setup' ||
     candidate.view === 'word-setup' ||
-    candidate.view === 'sudoku-setup'
+    candidate.view === 'sudoku-setup' ||
+    candidate.view === 'rescue-road-setup' ||
+    candidate.view === 'sticker-jigsaw-setup'
   ) {
     return true;
   }
@@ -194,7 +228,9 @@ function isValidScreen(value: unknown): value is Screen {
       candidate.view === 'letter-river-play' ||
       candidate.view === 'safari-play' ||
       candidate.view === 'word-play' ||
-      candidate.view === 'sudoku-play') &&
+      candidate.view === 'sudoku-play' ||
+      candidate.view === 'rescue-road-play' ||
+      candidate.view === 'sticker-jigsaw-play') &&
     typeof candidate.gameKey === 'number'
   ) {
     return true;
@@ -234,6 +270,8 @@ function loadSavedNavState(): SavedNavState {
     lastSafariConfig: null,
     lastWordConfig: null,
     lastSudokuConfig: null,
+    lastRescueRoadConfig: null,
+    lastStickerJigsawConfig: null,
   };
   try {
     const raw = window.sessionStorage.getItem(NAV_STORAGE_KEY);
@@ -252,6 +290,8 @@ function loadSavedNavState(): SavedNavState {
       lastSafariConfig?: unknown;
       lastWordConfig?: unknown;
       lastSudokuConfig?: unknown;
+      lastRescueRoadConfig?: unknown;
+      lastStickerJigsawConfig?: unknown;
     };
     const lastMemoryConfig = isValidMemoryConfig(candidate.lastMemoryConfig)
       ? candidate.lastMemoryConfig
@@ -270,6 +310,12 @@ function loadSavedNavState(): SavedNavState {
       : null;
     const lastSudokuConfig = isValidPictureSudokuConfig(candidate.lastSudokuConfig)
       ? candidate.lastSudokuConfig
+      : null;
+    const lastRescueRoadConfig = isValidRescueRoadConfig(candidate.lastRescueRoadConfig)
+      ? candidate.lastRescueRoadConfig
+      : null;
+    const lastStickerJigsawConfig = isValidStickerJigsawConfig(candidate.lastStickerJigsawConfig)
+      ? candidate.lastStickerJigsawConfig
       : null;
     let screen: Screen = isValidScreen(candidate.screen) ? candidate.screen : { view: 'hub' };
     if (screen.view === 'memory-play' && !lastMemoryConfig) {
@@ -290,6 +336,12 @@ function loadSavedNavState(): SavedNavState {
     if (screen.view === 'sudoku-play' && !lastSudokuConfig) {
       screen = { view: 'hub' };
     }
+    if (screen.view === 'rescue-road-play' && !lastRescueRoadConfig) {
+      screen = { view: 'hub' };
+    }
+    if (screen.view === 'sticker-jigsaw-play' && !lastStickerJigsawConfig) {
+      screen = { view: 'hub' };
+    }
     return {
       screen,
       lastMemoryConfig,
@@ -298,6 +350,8 @@ function loadSavedNavState(): SavedNavState {
       lastSafariConfig,
       lastWordConfig,
       lastSudokuConfig,
+      lastRescueRoadConfig,
+      lastStickerJigsawConfig,
     };
   } catch {
     return emptyState;
@@ -325,6 +379,12 @@ function PebbleRouter() {
   );
   const [lastSudokuConfig, setLastSudokuConfig] = useState<PictureSudokuConfig | null>(
     initialNav.lastSudokuConfig,
+  );
+  const [lastRescueRoadConfig, setLastRescueRoadConfig] = useState<RescueRoadConfig | null>(
+    initialNav.lastRescueRoadConfig,
+  );
+  const [lastStickerJigsawConfig, setLastStickerJigsawConfig] = useState<StickerJigsawConfig | null>(
+    initialNav.lastStickerJigsawConfig,
   );
   const [journeyState, setJourneyState] = useState<JourneyProgressState>(() => loadJourneyState());
   const [showParentGate, setShowParentGate] = useState(false);
@@ -358,6 +418,8 @@ function PebbleRouter() {
         lastSafariConfig,
         lastWordConfig,
         lastSudokuConfig,
+        lastRescueRoadConfig,
+        lastStickerJigsawConfig,
       };
       window.sessionStorage.setItem(NAV_STORAGE_KEY, JSON.stringify(payload));
     } catch {
@@ -367,7 +429,9 @@ function PebbleRouter() {
     lastLetterRiverConfig,
     lastLetterTrainConfig,
     lastMemoryConfig,
+    lastRescueRoadConfig,
     lastSafariConfig,
+    lastStickerJigsawConfig,
     lastSudokuConfig,
     lastWordConfig,
     screen,
@@ -438,6 +502,20 @@ function PebbleRouter() {
         clearSavedSudokuGame();
         isGameActiveRef.current = false;
       }
+      if (
+        screenRef.current.view === 'rescue-road-play' &&
+        targetScreen.view !== 'rescue-road-play'
+      ) {
+        clearSavedRescueRoadGame();
+        isGameActiveRef.current = false;
+      }
+      if (
+        screenRef.current.view === 'sticker-jigsaw-play' &&
+        targetScreen.view !== 'sticker-jigsaw-play'
+      ) {
+        clearSavedStickerJigsawGame();
+        isGameActiveRef.current = false;
+      }
       setScreen(targetScreen);
     };
 
@@ -459,6 +537,8 @@ function PebbleRouter() {
       if (fallbackScreen.view !== 'safari-play') clearSavedSafariGame();
       if (fallbackScreen.view !== 'word-play') clearSavedWordGame();
       if (fallbackScreen.view !== 'sudoku-play') clearSavedSudokuGame();
+      if (fallbackScreen.view !== 'rescue-road-play') clearSavedRescueRoadGame();
+      if (fallbackScreen.view !== 'sticker-jigsaw-play') clearSavedStickerJigsawGame();
     }
     if (!isPlayScreen(fallbackScreen)) {
       isGameActiveRef.current = false;
@@ -530,6 +610,10 @@ function PebbleRouter() {
       navigateTo({ view: 'word-setup' });
     } else if (gameId === 'picture-sudoku') {
       navigateTo({ view: 'sudoku-setup' });
+    } else if (gameId === 'rescue-road') {
+      navigateTo({ view: 'rescue-road-setup' });
+    } else if (gameId === 'sticker-jigsaw') {
+      navigateTo({ view: 'sticker-jigsaw-setup' });
     }
   };
 
@@ -713,6 +797,38 @@ function PebbleRouter() {
             gameKey={screen.gameKey}
             config={payload.config}
             profiles={profiles}
+            soundEnabled={soundEnabled}
+            onToggleSound={toggleSound}
+            onChangeSetup={() => undefined}
+            onBackToHub={navigateToHub}
+            onGameActiveChange={handleGameActiveChange}
+            journeyContext={journeyContext}
+          />
+        );
+      }
+      if (payload.gameId === 'rescue-road') {
+        return (
+          <RescueRoadBoard
+            key={screen.gameKey}
+            gameKey={screen.gameKey}
+            config={payload.config}
+            childProfile={profiles[0]}
+            soundEnabled={soundEnabled}
+            onToggleSound={toggleSound}
+            onChangeSetup={() => undefined}
+            onBackToHub={navigateToHub}
+            onGameActiveChange={handleGameActiveChange}
+            journeyContext={journeyContext}
+          />
+        );
+      }
+      if (payload.gameId === 'sticker-jigsaw') {
+        return (
+          <StickerJigsawBoard
+            key={screen.gameKey}
+            gameKey={screen.gameKey}
+            config={payload.config}
+            childProfile={profiles[0]}
             soundEnabled={soundEnabled}
             onToggleSound={toggleSound}
             onChangeSetup={() => undefined}
@@ -1146,6 +1262,140 @@ function PebbleRouter() {
                   onClick={() => setShowLeaveConfirm(false)}
                 >
                   Keep Solving
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ width: '100%' }}
+                  onClick={forceLeaveToHub}
+                >
+                  Back to Games
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  if (screen.view === 'rescue-road-setup') {
+    return (
+      <RescueRoadSetup
+        initialConfig={lastRescueRoadConfig ?? getDefaultRescueRoadConfig()}
+        onBackToHub={() => navigateBack({ view: 'hub' })}
+        onStartGame={(config) => {
+          clearSavedRescueRoadGame();
+          setLastRescueRoadConfig(config);
+          navigateTo({ view: 'rescue-road-play', gameKey: Date.now() });
+        }}
+      />
+    );
+  }
+
+  if (screen.view === 'rescue-road-play') {
+    const activeRescueRoadConfig = lastRescueRoadConfig ?? getDefaultRescueRoadConfig();
+    return (
+      <>
+        <RescueRoadBoard
+          key={screen.gameKey}
+          gameKey={screen.gameKey}
+          config={activeRescueRoadConfig}
+          childProfile={profiles[0]}
+          soundEnabled={soundEnabled}
+          onToggleSound={toggleSound}
+          onChangeSetup={() => navigateBack({ view: 'rescue-road-setup' }, true)}
+          onBackToHub={navigateToHub}
+          onGameActiveChange={handleGameActiveChange}
+        />
+
+        {showLeaveConfirm && (
+          <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leave-rr-headline"
+          >
+            <div className="winner-modal">
+              <h2 id="leave-rr-headline">Leave this road?</h2>
+              <p className="winner-subtitle">
+                Your current Rescue Road progress will be cleared.
+              </p>
+              <div className="winner-actions">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ width: '100%' }}
+                  onClick={() => setShowLeaveConfirm(false)}
+                >
+                  Keep Building
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ width: '100%' }}
+                  onClick={forceLeaveToHub}
+                >
+                  Back to Games
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  if (screen.view === 'sticker-jigsaw-setup') {
+    return (
+      <StickerJigsawSetup
+        initialConfig={lastStickerJigsawConfig ?? getDefaultStickerJigsawConfig()}
+        onBackToHub={() => navigateBack({ view: 'hub' })}
+        onStartGame={(config) => {
+          clearSavedStickerJigsawGame();
+          setLastStickerJigsawConfig(config);
+          navigateTo({ view: 'sticker-jigsaw-play', gameKey: Date.now() });
+        }}
+      />
+    );
+  }
+
+  if (screen.view === 'sticker-jigsaw-play') {
+    const activeJigsawConfig = lastStickerJigsawConfig ?? getDefaultStickerJigsawConfig();
+    return (
+      <>
+        <StickerJigsawBoard
+          key={screen.gameKey}
+          gameKey={screen.gameKey}
+          config={activeJigsawConfig}
+          childProfile={profiles[0]}
+          soundEnabled={soundEnabled}
+          onToggleSound={toggleSound}
+          onChangeSetup={() => navigateBack({ view: 'sticker-jigsaw-setup' }, true)}
+          onBackToHub={navigateToHub}
+          onGameActiveChange={handleGameActiveChange}
+        />
+
+        {showLeaveConfirm && (
+          <div
+            className="modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leave-sj-headline"
+          >
+            <div className="winner-modal">
+              <h2 id="leave-sj-headline">Leave this sticker?</h2>
+              <p className="winner-subtitle">
+                Your current Sticker Jigsaw progress will be cleared.
+              </p>
+              <div className="winner-actions">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ width: '100%' }}
+                  onClick={() => setShowLeaveConfirm(false)}
+                >
+                  Keep Building
                 </button>
                 <button
                   type="button"

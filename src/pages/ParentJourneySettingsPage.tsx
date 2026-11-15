@@ -7,6 +7,7 @@ import {
   ACTIVITIES_PER_CHAPTER,
   TOTAL_ACTIVITIES,
   TOTAL_CHAPTERS,
+  type FunBreakPacingMode,
   type JourneyActivity,
   type JourneyProgressState,
   type JourneySettings,
@@ -28,6 +29,16 @@ interface ParentJourneySettingsPageProps {
 }
 
 const LETTERS_PER_LESSON_OPTIONS: readonly LettersPerLesson[] = [3, 4, 5];
+
+const FUN_BREAK_PACING_OPTIONS: readonly {
+  id: FunBreakPacingMode;
+  label: string;
+}[] = [
+  { id: 'balanced', label: 'Balanced (Equal Mix)' },
+  { id: 'every-2', label: 'Every 2nd' },
+  { id: 'every-3', label: 'Every 3rd' },
+  { id: 'off', label: 'Standard Mix' },
+];
 
 export function ParentJourneySettingsPage({
   journeyState,
@@ -209,6 +220,30 @@ export function ParentJourneySettingsPage({
                 >
                   Allow Skip
                 </button>
+              </div>
+            </div>
+
+            <div className="pjs-row">
+              <div className="pjs-row__label">
+                <strong>Fun Break Pacing</strong>
+                <span>
+                  Weaves fun reward games at equal frequency with learning lessons across 400
+                  activities
+                </span>
+              </div>
+              <div className="pjs-pill-group">
+                {FUN_BREAK_PACING_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    className={`pjs-pill ${
+                      settings.funBreakPacing === opt.id ? 'pjs-pill--active' : ''
+                    }`}
+                    onClick={() => onUpdateSettings({ funBreakPacing: opt.id })}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
             </div>
 

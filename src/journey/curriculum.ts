@@ -1,12 +1,13 @@
 import type { FamilyProfile } from '../context/FamilyProfilesContext';
 import type { LetterId } from '../data/wordBank';
 import { ALL_LETTERS } from '../games/letter-train/letterData';
-import type { GameRegistryEntry } from '../games/registry';
+import { getGameRegistryEntry, type GameRegistryEntry } from '../games/registry';
 import {
   ACTIVITIES_PER_CHAPTER,
   TOTAL_ACTIVITIES,
   TOTAL_CHAPTERS,
   type ChapterSpec,
+  type FunBreakPacingMode,
   type JourneyActivity,
   type JourneySettings,
 } from './journeyTypes';
@@ -71,8 +72,46 @@ function seededShuffle<T>(items: readonly T[], rng: () => number): T[] {
   return copy;
 }
 
+function createBagDrawer(
+  pool: readonly GameRegistryEntry['id'][],
+  rng: () => number,
+  preferFirstId?: GameRegistryEntry['id'],
+): (prevGame?: GameRegistryEntry['id']) => GameRegistryEntry['id'] {
+  let bag: GameRegistryEntry['id'][] = [];
+  let isFirstBag = true;
+
+  return (prevGame) => {
+    if (bag.length === 0) {
+      if (isFirstBag && preferFirstId && pool.includes(preferFirstId)) {
+        const rest = seededShuffle(
+          pool.filter((id) => id !== preferFirstId),
+          rng,
+        );
+        bag = [preferFirstId, ...rest];
+      } else {
+        bag = seededShuffle(pool, rng);
+        if (prevGame && bag[0] === prevGame && bag.length > 1) {
+          const swapIdx = bag.findIndex((g) => g !== prevGame);
+          if (swapIdx > 0) {
+            [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
+          }
+        }
+      }
+      isFirstBag = false;
+    } else if (prevGame && bag[0] === prevGame && bag.length > 1) {
+      const swapIdx = bag.findIndex((g) => g !== prevGame);
+      if (swapIdx > 0) {
+        [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
+      }
+    }
+
+    return bag.shift()!;
+  };
+}
+
 function buildGameSequence(
   enabledGames: readonly GameRegistryEntry['id'][],
+  funBreakPacing: FunBreakPacingMode,
   totalSlots: number,
   rng: () => number,
 ): GameRegistryEntry['id'][] {
@@ -81,29 +120,46 @@ function buildGameSequence(
     return Array.from({ length: totalSlots }, () => pool[0]);
   }
 
+  const funPool = pool.filter((id) => getGameRegistryEntry(id).activityRole === 'reward');
+  const learningPool = pool.filter((id) => getGameRegistryEntry(id).activityRole !== 'reward');
+
+  // If pacing is 'off' or only one role is active, rotate all enabled games via non-repeating bags
+  if (funBreakPacing === 'off' || funPool.length === 0 || learningPool.length === 0) {
+    const drawAny = createBagDrawer(pool, rng, 'memory-match');
+    const sequence: GameRegistryEntry['id'][] = [];
+    for (let i = 0; i < totalSlots; i += 1) {
+      sequence.push(drawAny(sequence[sequence.length - 1]));
+    }
+    return sequence;
+  }
+
+  const drawFun = createBagDrawer(funPool, rng, 'memory-match');
+  const drawLearning = createBagDrawer(learningPool, rng);
   const sequence: GameRegistryEntry['id'][] = [];
 
-  // Slot 0 opinionated start: Memory Match (PAW Patrol) when enabled
-  if (pool.includes('memory-match')) {
-    sequence.push('memory-match');
+  if (funBreakPacing === 'balanced') {
+    const R = funPool.length;
+    const L = learningPool.length;
+    const cycleLen = L + R;
+    const funPositionsInCycle = new Set<number>();
+    for (let m = 0; m < R; m += 1) {
+      funPositionsInCycle.add(Math.floor((m * cycleLen + R - 1) / R));
+    }
+
+    for (let slot = 0; slot < totalSlots; slot += 1) {
+      const inCycle = slot % cycleLen;
+      const prevGame = sequence[sequence.length - 1];
+      sequence.push(funPositionsInCycle.has(inCycle) ? drawFun(prevGame) : drawLearning(prevGame));
+    }
+    return sequence;
   }
 
-  while (sequence.length < totalSlots) {
-    const bag = seededShuffle(pool, rng);
+  const funInterval = funBreakPacing === 'every-2' ? 2 : 3;
+  for (let slot = 0; slot < totalSlots; slot += 1) {
     const prevGame = sequence[sequence.length - 1];
-    if (prevGame && bag[0] === prevGame && bag.length > 1) {
-      const swapIdx = bag.findIndex((g) => g !== prevGame);
-      if (swapIdx > 0) {
-        [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
-      }
-    }
-    for (const gameId of bag) {
-      if (sequence.length >= totalSlots) break;
-      sequence.push(gameId);
-    }
+    sequence.push(slot % funInterval === 0 ? drawFun(prevGame) : drawLearning(prevGame));
   }
-
-  return sequence.slice(0, totalSlots);
+  return sequence;
 }
 
 export function buildJourneyCurriculum(
@@ -136,7 +192,12 @@ export function buildJourneyCurriculum(
     return picked;
   };
 
-  const gameSequence = buildGameSequence(settings.enabledGames, TOTAL_ACTIVITIES, rng);
+  const gameSequence = buildGameSequence(
+    settings.enabledGames,
+    settings.funBreakPacing,
+    TOTAL_ACTIVITIES,
+    rng,
+  );
   const gameCounts: Record<GameRegistryEntry['id'], number> = {
     'memory-match': 0,
     'letter-train': 0,
@@ -144,6 +205,8 @@ export function buildJourneyCurriculum(
     'picture-sudoku': 0,
     'word-fun': 0,
     'number-safari': 0,
+    'rescue-road': 0,
+    'sticker-jigsaw': 0,
   };
 
   return gameSequence.map((gameId, slotIndex) => {
@@ -153,6 +216,7 @@ export function buildJourneyCurriculum(
     gameCounts[gameId] = gameOrdinal + 1;
 
     const adapter = getJourneyAdapter(gameId);
+    const registryEntry = getGameRegistryEntry(gameId);
     const generated = adapter.buildActivity({
       slotIndex,
       chapterNumber,
@@ -170,6 +234,7 @@ export function buildJourneyCurriculum(
       chapterNumber,
       numberInChapter,
       gameId,
+      isFunBreak: registryEntry.activityRole === 'reward',
       title: generated.title,
       subtitle: generated.subtitle,
       detailLine: generated.detailLine,

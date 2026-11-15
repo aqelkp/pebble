@@ -405,6 +405,127 @@
           "endMs": 3528
         }
       ]
+    },
+    "rescue-road": {
+      "id": "rescue-road",
+      "text": "Place the road tiles to connect the garage to the finish flag!",
+      "audioPath": "audio/journey/rescue-road.mp3",
+      "durationMs": 3445,
+      "words": [
+        {
+          "word": "Place",
+          "startMs": 0,
+          "endMs": 348
+        },
+        {
+          "word": "the",
+          "startMs": 348,
+          "endMs": 464
+        },
+        {
+          "word": "road",
+          "startMs": 464,
+          "endMs": 768
+        },
+        {
+          "word": "tiles",
+          "startMs": 768,
+          "endMs": 1127
+        },
+        {
+          "word": "to",
+          "startMs": 1127,
+          "endMs": 1255
+        },
+        {
+          "word": "connect",
+          "startMs": 1255,
+          "endMs": 1725
+        },
+        {
+          "word": "the",
+          "startMs": 1725,
+          "endMs": 1846
+        },
+        {
+          "word": "garage",
+          "startMs": 1846,
+          "endMs": 2353
+        },
+        {
+          "word": "to",
+          "startMs": 2353,
+          "endMs": 2506
+        },
+        {
+          "word": "the",
+          "startMs": 2506,
+          "endMs": 2717
+        },
+        {
+          "word": "finish",
+          "startMs": 2717,
+          "endMs": 3204
+        },
+        {
+          "word": "flag!",
+          "startMs": 3204,
+          "endMs": 3445
+        }
+      ]
+    },
+    "sticker-jigsaw": {
+      "id": "sticker-jigsaw",
+      "text": "Place each puzzle piece to build the picture sticker!",
+      "audioPath": "audio/journey/sticker-jigsaw.mp3",
+      "durationMs": 2830,
+      "words": [
+        {
+          "word": "Place",
+          "startMs": 0,
+          "endMs": 359
+        },
+        {
+          "word": "each",
+          "startMs": 359,
+          "endMs": 524
+        },
+        {
+          "word": "puzzle",
+          "startMs": 524,
+          "endMs": 1022
+        },
+        {
+          "word": "piece",
+          "startMs": 1022,
+          "endMs": 1266
+        },
+        {
+          "word": "to",
+          "startMs": 1266,
+          "endMs": 1411
+        },
+        {
+          "word": "build",
+          "startMs": 1411,
+          "endMs": 1562
+        },
+        {
+          "word": "the",
+          "startMs": 1562,
+          "endMs": 1899
+        },
+        {
+          "word": "picture",
+          "startMs": 1899,
+          "endMs": 2260
+        },
+        {
+          "word": "sticker!",
+          "startMs": 2260,
+          "endMs": 2830
+        }
+      ]
     }
   }
 }
