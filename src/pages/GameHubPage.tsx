@@ -7,9 +7,15 @@ interface GameHubPageProps {
   profiles: FamilyProfile[];
   onOpenGame: (gameId: GameRegistryEntry['id']) => void;
   onOpenProfiles: () => void;
+  onOpenParentInsights: () => void;
 }
 
-export function GameHubPage({ profiles, onOpenGame, onOpenProfiles }: GameHubPageProps) {
+export function GameHubPage({
+  profiles,
+  onOpenGame,
+  onOpenProfiles,
+  onOpenParentInsights,
+}: GameHubPageProps) {
   const primaryChild = profiles[0];
   const isCustomChildName =
     primaryChild && primaryChild.name.trim().toLowerCase() !== 'child';
@@ -21,12 +27,21 @@ export function GameHubPage({ profiles, onOpenGame, onOpenProfiles }: GameHubPag
     <div className="app-shell">
       <header className="hub-header">
         <BrandLogo size="lg" subtitle="Family learning games" />
-        <button
-          type="button"
-          className="hub-hero__profiles-chip"
-          onClick={onOpenProfiles}
-          aria-label="Manage Family Profiles"
-        >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            type="button"
+            className="btn-secondary"
+            style={{ padding: '8px 14px', fontSize: '0.88rem' }}
+            onClick={onOpenParentInsights}
+          >
+            Parent Insights
+          </button>
+          <button
+            type="button"
+            className="hub-hero__profiles-chip"
+            onClick={onOpenProfiles}
+            aria-label="Manage Family Profiles"
+          >
           <div className="avatar-stack" aria-hidden="true">
             {profiles.slice(0, 4).map((profile) => (
               <img
@@ -38,7 +53,8 @@ export function GameHubPage({ profiles, onOpenGame, onOpenProfiles }: GameHubPag
             ))}
           </div>
           <span style={{ fontWeight: 600, fontSize: '0.94rem' }}>Family</span>
-        </button>
+          </button>
+        </div>
       </header>
 
       <section className="hub-hero" aria-label="Welcome banner">

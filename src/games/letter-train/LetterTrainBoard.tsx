@@ -10,6 +10,8 @@ import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { pickWeightedAdaptive } from '../../learning/adaptiveSelector';
+import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import { preloadLettersAudio, preloadWordsAudio } from '../../utils/wordAudio';
 import {
   ALL_LETTERS,
@@ -20,7 +22,6 @@ import {
   loadPerfectLetters,
   saveMasteredLetter,
   savePerfectLetter,
-  shuffleArray,
   type LetterId,
   type PlatformCardItem,
 } from './letterData';
@@ -291,12 +292,14 @@ interface DragState {
   overDropZone: boolean;
 }
 
-function buildInitialQueue(config: LetterTrainConfig): LetterId[] {
+function buildInitialQueue(config: LetterTrainConfig, playerId: string): LetterId[] {
   const base =
     config.selectedLetters.length > 0
       ? ALL_LETTERS.filter((l) => config.selectedLetters.includes(l))
       : [...ALL_LETTERS];
-  return config.orderMode === 'shuffle' ? shuffleArray(base) : base;
+  return config.orderMode === 'shuffle'
+    ? pickWeightedAdaptive(base, (l) => `letter:${l}`, playerId, 'initial_letter_sound', base.length)
+    : base;
 }
 
 export function LetterTrainBoard({
@@ -312,7 +315,7 @@ export function LetterTrainBoard({
   const [saved] = useState<SavedTrainState | null>(() => loadSavedTrainState(gameKey));
 
   const [stationQueue, setStationQueue] = useState<LetterId[]>(
-    () => saved?.stationQueue ?? buildInitialQueue(config),
+    () => saved?.stationQueue ?? buildInitialQueue(config, childProfile.id),
   );
   const [stationIdx, setStationIdx] = useState<number>(() => saved?.stationIdx ?? 0);
   const currentLetter: LetterId = stationQueue[stationIdx] ?? stationQueue[0] ?? 'A';
@@ -497,6 +500,31 @@ export function LetterTrainBoard({
           speakTrainWord(card.spec.id, card.spec.word, soundEnabled);
         }
 
+        recordSkillAttempt({
+          playerId: childProfile.id,
+          gameId: 'letter-train',
+          conceptId: `letter:${currentLetter}`,
+          conceptLabel: `Letter ${currentLetter}`,
+          skillType: 'initial_letter_sound',
+          correct: true,
+        });
+        recordSkillAttempt({
+          playerId: childProfile.id,
+          gameId: 'letter-train',
+          conceptId: `word:${card.spec.id}`,
+          conceptLabel: card.spec.word,
+          skillType: 'initial_letter_sound',
+          correct: true,
+        });
+        recordSkillAttempt({
+          playerId: childProfile.id,
+          gameId: 'letter-train',
+          conceptId: `word:${card.spec.id}`,
+          conceptLabel: card.spec.word,
+          skillType: 'picture_recognition',
+          correct: true,
+        });
+
         playCorrectSeatSound(seatCount, soundEnabled);
 
         if (seatCount >= 3) {
@@ -505,6 +533,16 @@ export function LetterTrainBoard({
           setCarsCleared((prev) => prev + 1);
 
           const isFlawless = mistakes === 0;
+          recordLearningSession({
+            playerId: childProfile.id,
+            gameId: 'letter-train',
+            mode: currentLetter,
+            totalAttempts: 3 + mistakes,
+            correctAttempts: 3,
+            mistakes,
+            flawless: isFlawless,
+            conceptsTested: [`letter:${currentLetter}`, `word:${card.spec.id}`],
+          });
 
           if (isFlawless) {
             // PERFECT 3-FOR-3 WITH ZERO MISTAKES!
@@ -594,6 +632,22 @@ export function LetterTrainBoard({
         setMistakes((prev) => prev + 1);
         setPerfectStreak(0);
         setTriedWrongUids((prev) => ({ ...prev, [card.uid]: true }));
+        recordSkillAttempt({
+          playerId: childProfile.id,
+          gameId: 'letter-train',
+          conceptId: `letter:${currentLetter}`,
+          conceptLabel: `Letter ${currentLetter}`,
+          skillType: 'initial_letter_sound',
+          correct: false,
+        });
+        recordSkillAttempt({
+          playerId: childProfile.id,
+          gameId: 'letter-train',
+          conceptId: `word:${card.spec.id}`,
+          conceptLabel: card.spec.word,
+          skillType: 'initial_letter_sound',
+          correct: false,
+        });
         const hintMsg = `${card.spec.word} starts with ${card.spec.letter} — listen and pick a word starting with ${currentLetter}.`;
         setBannerTone('muted');
         setBannerText(hintMsg);
@@ -703,7 +757,7 @@ export function LetterTrainBoard({
     lastSpokenWordRef.current = { id: '', at: 0 };
     setThinkAgainHint(null);
 
-    const freshQueue = buildInitialQueue(config);
+    const freshQueue = buildInitialQueue(config, childProfile.id);
     const firstLetter = freshQueue[0] ?? 'A';
     setStationQueue(freshQueue);
     setStationIdx(0);

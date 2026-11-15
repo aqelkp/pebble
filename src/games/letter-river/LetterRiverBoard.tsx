@@ -11,6 +11,8 @@ import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { pickWeightedAdaptive } from '../../learning/adaptiveSelector';
+import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import { preloadLettersAudio, preloadWordsAudio } from '../../utils/wordAudio';
 import { WordIllustration } from '../letter-train/WordIllustration';
 import type { LetterRiverConfig } from './LetterRiverSetup';
@@ -23,7 +25,6 @@ import {
   loadRiverMasteredLetters,
   pickRandomInt,
   saveRiverMasteredLetter,
-  shuffleArray,
   type FishThemeSpec,
   type LetterId,
   type LetterWordSpec,
@@ -292,10 +293,12 @@ function BucketSplashBurst({
   );
 }
 
-function buildInitialQueue(config: LetterRiverConfig): LetterId[] {
+function buildInitialQueue(config: LetterRiverConfig, playerId: string): LetterId[] {
   const clean = ALL_LETTERS.filter((l) => config.selectedLetters.includes(l));
   const base = clean.length > 0 ? clean : [...ALL_LETTERS];
-  return config.orderMode === 'shuffle' ? shuffleArray(base) : base;
+  return config.orderMode === 'shuffle'
+    ? pickWeightedAdaptive(base, (l) => `letter:${l}`, playerId, 'initial_letter_sound', base.length)
+    : base;
 }
 
 function buildInitialBuckets(queue: LetterId[]): {
@@ -602,7 +605,7 @@ export function LetterRiverBoard({
       return { saved, buckets: hydratedBuckets };
     }
 
-    const queue = buildInitialQueue(config);
+    const queue = buildInitialQueue(config, childProfile.id);
     const { buckets, nextQueueIdx } = buildInitialBuckets(queue);
     return {
       saved: {
@@ -857,6 +860,22 @@ export function LetterRiverBoard({
       if (fish.spec.letter !== targetBucket.letter) {
         setStreak(0);
         setMistakeCount((prev) => prev + 1);
+        recordSkillAttempt({
+          playerId: childProfile.id,
+          gameId: 'letter-river',
+          conceptId: `letter:${fish.spec.letter}`,
+          conceptLabel: `Letter ${fish.spec.letter}`,
+          skillType: 'initial_letter_sound',
+          correct: false,
+        });
+        recordSkillAttempt({
+          playerId: childProfile.id,
+          gameId: 'letter-river',
+          conceptId: `word:${fish.spec.id}`,
+          conceptLabel: fish.spec.word,
+          skillType: 'initial_letter_sound',
+          correct: false,
+        });
         playGentleWrongBucketSound(soundEnabled);
 
         const correctBucketOnDock = buckets.some(
@@ -884,6 +903,31 @@ export function LetterRiverBoard({
       const nextStreak = streak + 1;
       setStreak(nextStreak);
       setBestStreak((prev) => Math.max(prev, nextStreak));
+
+      recordSkillAttempt({
+        playerId: childProfile.id,
+        gameId: 'letter-river',
+        conceptId: `letter:${targetBucket.letter}`,
+        conceptLabel: `Letter ${targetBucket.letter}`,
+        skillType: 'initial_letter_sound',
+        correct: true,
+      });
+      recordSkillAttempt({
+        playerId: childProfile.id,
+        gameId: 'letter-river',
+        conceptId: `word:${fish.spec.id}`,
+        conceptLabel: fish.spec.word,
+        skillType: 'initial_letter_sound',
+        correct: true,
+      });
+      recordSkillAttempt({
+        playerId: childProfile.id,
+        gameId: 'letter-river',
+        conceptId: `word:${fish.spec.id}`,
+        conceptLabel: fish.spec.word,
+        skillType: 'picture_recognition',
+        correct: true,
+      });
 
       if (nextStreak % GOLDEN_STREAK_STEP === 0) {
         pendingGoldenRef.current = true;
@@ -978,6 +1022,17 @@ export function LetterRiverBoard({
 
       const updatedMastered = saveRiverMasteredLetter(targetBucket.letter);
       setMasteredCount(updatedMastered.length);
+
+      recordLearningSession({
+        playerId: childProfile.id,
+        gameId: 'letter-river',
+        mode: targetBucket.letter,
+        totalAttempts: 3,
+        correctAttempts: 3,
+        mistakes: 0,
+        flawless: streak >= 3,
+        conceptsTested: [`letter:${targetBucket.letter}`, `word:${fish.spec.id}`],
+      });
 
       playCorrectCatchSound(3, fish.isGolden, soundEnabled);
       playBucketFullSound(soundEnabled);
@@ -1196,7 +1251,7 @@ export function LetterRiverBoard({
     fishPosRef.current.clear();
     pendingGoldenRef.current = false;
 
-    const freshQueue = buildInitialQueue(config);
+    const freshQueue = buildInitialQueue(config, childProfile.id);
     const { buckets: freshBuckets, nextQueueIdx: freshNextIdx } = buildInitialBuckets(freshQueue);
     const freshFish = reconcileRiverFish(
       [],
