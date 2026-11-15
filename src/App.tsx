@@ -10,10 +10,21 @@ import {
 } from 'react';
 import { ActivityCompleteModal } from './components/ActivityCompleteModal';
 import { ActivityIntroModal } from './components/ActivityIntroModal';
+import { DailyTimeOverScreen } from './components/DailyTimeOverScreen';
 import { GameLoadingFallback } from './components/GameLoadingFallback';
 import { LeaveGameModal } from './components/LeaveGameModal';
 import { ParentGateModal } from './components/ParentGateModal';
 import { FamilyProfilesProvider, useFamilyProfiles } from './context/FamilyProfilesContext';
+import {
+  DAILY_LIMIT_STORAGE_KEY,
+  getLocalDateKey,
+  isDailyLimitReached,
+  loadDailyPlayLimitState,
+  saveDailyPlayLimitState,
+  type DailyLimitMinutesOption,
+  type DailyPlayLimitState,
+} from './utils/dailyPlayLimit';
+import { preloadDailyTimeOverVoice, stopAllSpokenAudio } from './utils/wordAudio';
 import { isValidGameConfig, type GameConfigMap, type SavedGameConfigs } from './games/gameConfigs';
 import {
   clearAllSavedGames,
@@ -280,6 +291,9 @@ function PebbleRouter() {
   const [screen, setScreen] = useState<Screen>(initialNav.screen);
   const [gameConfigs, setGameConfigs] = useState<SavedGameConfigs>(initialNav.gameConfigs);
   const [journeyState, setJourneyState] = useState<JourneyProgressState>(() => loadJourneyState());
+  const [dailyLimit, setDailyLimit] = useState<DailyPlayLimitState>(() =>
+    loadDailyPlayLimitState(),
+  );
   const [showParentGate, setShowParentGate] = useState(false);
   const [introActivity, setIntroActivity] = useState<JourneyActivity | null>(null);
   const [completedActivity, setCompletedActivity] = useState<JourneyActivity | null>(null);
@@ -294,8 +308,24 @@ function PebbleRouter() {
     saveJourneyState(journeyState);
   }, [journeyState]);
 
-  // Gently pre-warm lazy game bundles during idle time after initial paint
-  useEffect(() => scheduleIdleGamePreload(), []);
+  // Gently pre-warm lazy game bundles and daily wind-down voice during idle time after initial paint
+  useEffect(() => {
+    preloadDailyTimeOverVoice();
+    return scheduleIdleGamePreload();
+  }, []);
+
+  useEffect(() => {
+    saveDailyPlayLimitState(dailyLimit);
+  }, [dailyLimit]);
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== DAILY_LIMIT_STORAGE_KEY) return;
+      setDailyLimit(loadDailyPlayLimitState());
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   // Pre-warm the selected activity's chunk while the intro modal is open
   useEffect(() => {
@@ -309,6 +339,105 @@ function PebbleRouter() {
   const isGameActiveRef = useRef(false);
   const historyDepthRef = useRef(0);
   const bypassGuardRef = useRef(false);
+  const lastInteractionMsRef = useRef<number>(Date.now());
+
+  const isGrownUpScreen =
+    screen.view === 'parent-settings' ||
+    screen.view === 'parent-insights' ||
+    screen.view === 'profiles';
+  const isGrownUpScreenRef = useRef(isGrownUpScreen);
+  isGrownUpScreenRef.current = isGrownUpScreen;
+  const showParentGateRef = useRef(showParentGate);
+  showParentGateRef.current = showParentGate;
+  const isTimeOverToday = isDailyLimitReached(dailyLimit);
+
+  useEffect(() => {
+    lastInteractionMsRef.current = Date.now();
+  }, [screen]);
+
+  // Silently accumulate active child play seconds and automatically reset at local midnight
+  useEffect(() => {
+    const markInteraction = () => {
+      lastInteractionMsRef.current = Date.now();
+    };
+
+    const syncDayRollover = () => {
+      const todayKey = getLocalDateKey();
+      setDailyLimit((prev) => {
+        if (prev.dateKey === todayKey) return prev;
+        return { ...prev, dateKey: todayKey, usedSeconds: 0 };
+      });
+    };
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        lastInteractionMsRef.current = Date.now();
+      }
+      syncDayRollover();
+    };
+
+    window.addEventListener('pointerdown', markInteraction, { passive: true });
+    window.addEventListener('touchstart', markInteraction, { passive: true });
+    window.addEventListener('keydown', markInteraction);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
+    const intervalId = window.setInterval(() => {
+      const nowMs = Date.now();
+      const todayKey = getLocalDateKey(new Date(nowMs));
+      setDailyLimit((prev) => {
+        if (prev.dateKey !== todayKey) {
+          return { ...prev, dateKey: todayKey, usedSeconds: 0 };
+        }
+        if (prev.limitMinutes <= 0 || isDailyLimitReached(prev)) {
+          return prev;
+        }
+        if (isGrownUpScreenRef.current || showParentGateRef.current) {
+          return prev;
+        }
+        if (document.visibilityState !== 'visible') {
+          return prev;
+        }
+        if (nowMs - lastInteractionMsRef.current > 90_000) {
+          return prev;
+        }
+        return {
+          ...prev,
+          usedSeconds: prev.usedSeconds + 1,
+        };
+      });
+    }, 1000);
+
+    return () => {
+      window.removeEventListener('pointerdown', markInteraction);
+      window.removeEventListener('touchstart', markInteraction);
+      window.removeEventListener('keydown', markInteraction);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  // When the daily limit is reached, cleanly exit any active child session
+  const wasTimeOverRef = useRef(isTimeOverToday);
+  useEffect(() => {
+    const justReachedLimit = isTimeOverToday && !wasTimeOverRef.current;
+    wasTimeOverRef.current = isTimeOverToday;
+    if (!justReachedLimit) return;
+
+    stopAllSpokenAudio();
+    clearAllSavedGames();
+    isGameActiveRef.current = false;
+    setIntroActivity(null);
+    setCompletedActivity(null);
+    setShowLeaveConfirm(false);
+
+    if (!isGrownUpScreenRef.current && screenRef.current.view !== 'hub') {
+      historyDepthRef.current = 0;
+      window.history.replaceState({ pebbleScreen: { view: 'hub' } }, '');
+      setScreen({ view: 'hub' });
+    }
+  }, [isTimeOverToday]);
 
   // Persist current screen & configs in sessionStorage so PWA reloads restore mid-session state
   useEffect(() => {
@@ -480,7 +609,33 @@ function PebbleRouter() {
     [navigateTo],
   );
 
+  const handleChangeDailyLimitMinutes = useCallback((limitMinutes: DailyLimitMinutesOption) => {
+    setDailyLimit((prev) => ({
+      ...prev,
+      dateKey: getLocalDateKey(),
+      limitMinutes,
+    }));
+  }, []);
+
+  const handleResetDailyTimeToday = useCallback(() => {
+    setDailyLimit((prev) => ({
+      ...prev,
+      dateKey: getLocalDateKey(),
+      usedSeconds: 0,
+    }));
+  }, []);
+
   const renderScreen = (): ReactNode => {
+    if (isTimeOverToday && !isGrownUpScreen) {
+      return (
+        <DailyTimeOverScreen
+          childProfile={profiles[0]}
+          soundEnabled={soundEnabled}
+          onOpenParentGate={() => setShowParentGate(true)}
+        />
+      );
+    }
+
     if (screen.view === 'profiles') {
       return <FamilyProfilesPage onBack={() => navigateBack(screen.returnTo)} />;
     }
@@ -490,6 +645,9 @@ function PebbleRouter() {
         <ParentJourneySettingsPage
           journeyState={journeyState}
           curriculum={curriculum}
+          dailyLimit={dailyLimit}
+          onChangeDailyLimitMinutes={handleChangeDailyLimitMinutes}
+          onResetDailyTimeToday={handleResetDailyTimeToday}
           onUpdateSettings={handleUpdateJourneySettings}
           onJumpToActivityIndex={(idx) =>
             setJourneyState((prev) => ({

@@ -137,6 +137,7 @@ export function preloadLettersAudio(letters: readonly LetterId[]): void {
 const THINK_AGAIN_AUDIO_PATH = 'audio/ui/think-again.mp3';
 const MISTAKE_HEY_PICKED_AUDIO_PATH = 'audio/ui/mistake-hey-picked.mp3';
 const THINK_OR_START_AGAIN_AUDIO_PATH = 'audio/ui/think-or-start-again.mp3';
+const DAILY_TIME_OVER_AUDIO_PATH = 'audio/ui/daily-time-over.mp3';
 
 export function getLetterStartsAudioPath(letter: LetterId): string {
   return `audio/letters-starts/${letter.toLowerCase()}.mp3`;
@@ -332,6 +333,70 @@ export function preloadThinkAgainVoice(): void {
     MISTAKE_HEY_PICKED_AUDIO_PATH,
     THINK_OR_START_AGAIN_AUDIO_PATH,
   ]);
+}
+
+export function preloadDailyTimeOverVoice(): void {
+  preloadAudioPaths([DAILY_TIME_OVER_AUDIO_PATH]);
+}
+
+/**
+ * Plays the bundled Kokoro message ("Time is over for today! See you tomorrow!").
+ * Notifies `onAutoplayBlocked` if playback is blocked by browser autoplay policy
+ * (such as on a fresh page reload before user gesture), and falls back to Web Speech
+ * only if the static MP3 fails to load.
+ */
+export function playDailyTimeOverVoice(
+  enabled: boolean,
+  onAutoplayBlocked?: () => void,
+): void {
+  if (!enabled || typeof window === 'undefined') return;
+  stopAllSpokenAudio();
+  const currentNonce = playbackNonce;
+  const fallbackPhrase = 'Time is over for today! See you tomorrow!';
+
+  try {
+    const src = assetUrl(DAILY_TIME_OVER_AUDIO_PATH);
+    const audio = new Audio(src);
+    audio.preload = 'auto';
+    audio.volume = 0.95;
+    activeAudioEl = audio;
+
+    audio.addEventListener('ended', () => {
+      if (activeAudioEl === audio) {
+        activeAudioEl = null;
+      }
+    });
+
+    audio.addEventListener('error', () => {
+      if (activeAudioEl === audio) {
+        activeAudioEl = null;
+      }
+      if (playbackNonce === currentNonce) {
+        speakWithSynthesis(fallbackPhrase, true);
+      }
+    });
+
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch((err: unknown) => {
+        if (activeAudioEl === audio) {
+          activeAudioEl = null;
+        }
+        if (playbackNonce !== currentNonce) return;
+        const isAutoplayBlock =
+          err instanceof DOMException && err.name === 'NotAllowedError';
+        if (isAutoplayBlock) {
+          onAutoplayBlocked?.();
+          return;
+        }
+        speakWithSynthesis(fallbackPhrase, true);
+      });
+    }
+  } catch {
+    if (playbackNonce === currentNonce) {
+      speakWithSynthesis(fallbackPhrase, true);
+    }
+  }
 }
 
 export function preloadLetterMistakeAudio(letters: readonly LetterId[]): void {
