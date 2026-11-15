@@ -10037,3 +10037,32 @@ h3,
   }
 }
 
+.intro-demo-stage--dots {
+  flex-direction: column;
+  gap: 8px;
+  background: linear-gradient(180deg, #f8fbfa 0%, #eff8f6 100%);
+  padding: 12px;
+}
+
+.intro-demo-dots-svg {
+  width: 220px;
+  height: 108px;
+  display: block;
+}
+
+.intro-demo-dots-line {
+  stroke-dasharray: 240;
+  stroke-dashoffset: 240;
+  animation: introDotsDraw 2.6s ease-in-out infinite;
+}
+
+@keyframes introDotsDraw {
+  0% {
+    stroke-dashoffset: 240;
+  }
+  65%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
