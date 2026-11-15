@@ -14,6 +14,7 @@ import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesCo
 import { pickWeightedAdaptive } from '../../learning/adaptiveSelector';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import { preloadLettersAudio, preloadWordsAudio } from '../../utils/wordAudio';
+import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import { WordIllustration } from '../letter-train/WordIllustration';
 import type { LetterRiverConfig } from './LetterRiverSetup';
 import {
@@ -50,6 +51,7 @@ interface LetterRiverBoardProps {
   onChangeSetup: () => void;
   onBackToHub: () => void;
   onGameActiveChange?: (active: boolean) => void;
+  journeyContext?: JourneyBoardContext;
 }
 
 type BannerTone = 'neutral' | 'mint' | 'golden' | 'calm-hint';
@@ -582,6 +584,7 @@ export function LetterRiverBoard({
   onChangeSetup,
   onBackToHub,
   onGameActiveChange,
+  journeyContext,
 }: LetterRiverBoardProps) {
   const [initialBoot] = useState(() => {
     const saved = loadSavedRiverState(gameKey);
@@ -646,6 +649,21 @@ export function LetterRiverBoard({
   const [mistakeCount, setMistakeCount] = useState<number>(initialBoot.saved.mistakeCount);
   const [finished, setFinished] = useState<boolean>(initialBoot.saved.finished);
   const [masteredCount, setMasteredCount] = useState<number>(() => loadRiverMasteredLetters().length);
+
+  const journeyOnCompleteRef = useRef(journeyContext?.onActivityComplete);
+  journeyOnCompleteRef.current = journeyContext?.onActivityComplete;
+  const journeyCompletedFiredRef = useRef(false);
+  const isJourneyMode = Boolean(journeyContext);
+
+  useEffect(() => {
+    if (!isJourneyMode || !finished || journeyCompletedFiredRef.current) return;
+    const timer = window.setTimeout(() => {
+      if (journeyCompletedFiredRef.current) return;
+      journeyCompletedFiredRef.current = true;
+      journeyOnCompleteRef.current?.();
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [finished, isJourneyMode]);
 
   // Silently preload MP3 clips for the active dock buckets plus the next 2 queued letters
   useEffect(() => {
@@ -1322,16 +1340,23 @@ export function LetterRiverBoard({
             onClick={onBackToHub}
           >
             <span aria-hidden="true">←</span>
-            <span>Games</span>
+            <span>{journeyContext ? 'Activity Book' : 'Games'}</span>
           </button>
 
-          <button
-            type="button"
-            className="icon-pill-btn icon-pill-btn--compact"
-            onClick={onChangeSetup}
-          >
-            Setup
-          </button>
+          {journeyContext ? (
+            <span className="section-pill section-pill--journey">
+              Ch. {journeyContext.chapterNumber} • #{journeyContext.activityNumberInChapter}/
+              {journeyContext.totalInChapter}
+            </span>
+          ) : (
+            <button
+              type="button"
+              className="icon-pill-btn icon-pill-btn--compact"
+              onClick={onChangeSetup}
+            >
+              Setup
+            </button>
+          )}
         </div>
 
         <div className="lr-top-pills">
@@ -1689,7 +1714,7 @@ export function LetterRiverBoard({
       )}
 
       {/* Master Angler Celebration Modal */}
-      {finished && (
+      {finished && !journeyContext && (
         <div
           className="modal-backdrop"
           role="dialog"

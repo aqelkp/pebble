@@ -13,6 +13,7 @@ import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesCo
 import { pickWeightedAdaptive } from '../../learning/adaptiveSelector';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import { preloadLettersAudio, preloadWordsAudio } from '../../utils/wordAudio';
+import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import {
   ALL_LETTERS,
   buildPlatformCards,
@@ -49,6 +50,7 @@ interface LetterTrainBoardProps {
   onChangeSetup: () => void;
   onBackToHub: () => void;
   onGameActiveChange?: (active: boolean) => void;
+  journeyContext?: JourneyBoardContext;
 }
 
 type CarPhase = 'arriving' | 'idle' | 'departing-normal' | 'departing-perfect' | 'finished';
@@ -311,6 +313,7 @@ export function LetterTrainBoard({
   onChangeSetup,
   onBackToHub,
   onGameActiveChange,
+  journeyContext,
 }: LetterTrainBoardProps) {
   const [saved] = useState<SavedTrainState | null>(() => loadSavedTrainState(gameKey));
 
@@ -408,11 +411,26 @@ export function LetterTrainBoard({
     onGameActiveChange?.(hasProgress);
   }, [loadedUids.length, onGameActiveChange, phase, stationIdx, totalScore]);
 
+  const journeyOnCompleteRef = useRef(journeyContext?.onActivityComplete);
+  journeyOnCompleteRef.current = journeyContext?.onActivityComplete;
+  const journeyCompletedFiredRef = useRef(false);
+  const isJourneyMode = Boolean(journeyContext);
+
   useEffect(() => {
     return () => {
       onGameActiveChange?.(false);
     };
   }, [onGameActiveChange]);
+
+  useEffect(() => {
+    if (!isJourneyMode || phase !== 'finished' || journeyCompletedFiredRef.current) return;
+    const timer = window.setTimeout(() => {
+      if (journeyCompletedFiredRef.current) return;
+      journeyCompletedFiredRef.current = true;
+      journeyOnCompleteRef.current?.();
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [isJourneyMode, phase]);
 
   // Persist session state across reloads
   useEffect(() => {
@@ -836,7 +854,7 @@ export function LetterTrainBoard({
             onClick={onBackToHub}
           >
             <span aria-hidden="true">←</span>
-            <span>Games</span>
+            <span>{journeyContext ? 'Activity Book' : 'Games'}</span>
           </button>
 
           <button
@@ -858,6 +876,12 @@ export function LetterTrainBoard({
         </div>
 
         <div className="top-bar__right">
+          {journeyContext && (
+            <span className="section-pill section-pill--journey">
+              Ch. {journeyContext.chapterNumber} • #{journeyContext.activityNumberInChapter}/
+              {journeyContext.totalInChapter}
+            </span>
+          )}
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--compact icon-pill-btn--square"
@@ -867,13 +891,15 @@ export function LetterTrainBoard({
           >
             <AudioSpeakerIcon muted={!soundEnabled} size={17} />
           </button>
-          <button
-            type="button"
-            className="icon-pill-btn icon-pill-btn--compact"
-            onClick={onChangeSetup}
-          >
-            <span>Letters</span>
-          </button>
+          {!journeyContext && (
+            <button
+              type="button"
+              className="icon-pill-btn icon-pill-btn--compact"
+              onClick={onChangeSetup}
+            >
+              <span>Letters</span>
+            </button>
+          )}
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--compact"
@@ -1319,7 +1345,7 @@ export function LetterTrainBoard({
       )}
 
       {/* Trip Complete Celebration Modal */}
-      {phase === 'finished' && (
+      {phase === 'finished' && !journeyContext && (
         <div
           className="modal-backdrop"
           role="dialog"

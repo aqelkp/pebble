@@ -11,6 +11,7 @@ import {
   type MemoryGameRun,
   type RecordCompletionOutcome,
 } from './memoryStats';
+import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import type { MemoryGameConfig } from './MemorySetup';
 import { playFlipSound, playMatchSound, playMismatchSound, playWinSound } from './soundEffects';
 import { buildDeck, getBoardSizeSpec, getThemeSpec, type DeckCard } from './themes';
@@ -24,6 +25,7 @@ interface MemoryBoardProps {
   onChangeSetup: () => void;
   onBackToHub: () => void;
   onGameActiveChange?: (active: boolean) => void;
+  journeyContext?: JourneyBoardContext;
 }
 
 type TurnPhase = 'idle' | 'resolving-match' | 'resolving-mismatch' | 'finished';
@@ -122,6 +124,7 @@ export function MemoryBoard({
   onChangeSetup,
   onBackToHub,
   onGameActiveChange,
+  journeyContext,
 }: MemoryBoardProps) {
   const theme = useMemo(() => getThemeSpec(config.themeId), [config.themeId]);
   const boardSize = useMemo(() => getBoardSizeSpec(config.boardSizeId), [config.boardSizeId]);
@@ -198,9 +201,24 @@ export function MemoryBoard({
     return () => clearPendingTimer();
   }, [clearPendingTimer]);
 
+  const journeyOnCompleteRef = useRef(journeyContext?.onActivityComplete);
+  journeyOnCompleteRef.current = journeyContext?.onActivityComplete;
+  const journeyCompletedFiredRef = useRef(false);
+  const isJourneyMode = Boolean(journeyContext);
+
   useEffect(() => {
     onGameActiveChange?.(phase !== 'finished');
   }, [onGameActiveChange, phase]);
+
+  useEffect(() => {
+    if (!isJourneyMode || phase !== 'finished' || journeyCompletedFiredRef.current) return;
+    const timer = window.setTimeout(() => {
+      if (journeyCompletedFiredRef.current) return;
+      journeyCompletedFiredRef.current = true;
+      journeyOnCompleteRef.current?.();
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [isJourneyMode, phase]);
 
   useEffect(() => {
     try {
@@ -240,7 +258,7 @@ export function MemoryBoard({
       const rect = element.getBoundingClientRect();
       const stageW = Math.max(240, rect.width - 4);
       const stageH = Math.max(240, rect.height - 4);
-      const gap = boardSize.rows >= 6 ? 8 : boardSize.cols === 4 && boardSize.rows === 4 ? 14 : 11;
+      const gap = boardSize.rows >= 6 ? 8 : boardSize.cols === 4 && boardSize.rows <= 4 ? 14 : 11;
 
       const maxWidthPerCard = (stageW - (boardSize.cols - 1) * gap) / boardSize.cols;
       const maxHeightFromWidth = maxWidthPerCard * (3.5 / 2.5);
@@ -431,31 +449,39 @@ export function MemoryBoard({
             type="button"
             className="icon-pill-btn icon-pill-btn--compact"
             onClick={onBackToHub}
-            aria-label="Back to Game Hub"
+            aria-label={journeyContext ? 'Back to Activity Book' : 'Back to Game Hub'}
           >
             <span aria-hidden="true">←</span>
-            <span>Games</span>
+            <span>{journeyContext ? 'Activity Book' : 'Games'}</span>
           </button>
           <BrandLogo size="sm" />
         </div>
 
         <div className="top-bar__right">
+          {journeyContext && (
+            <span className="section-pill section-pill--journey">
+              Ch. {journeyContext.chapterNumber} • #{journeyContext.activityNumberInChapter}/
+              {journeyContext.totalInChapter}
+            </span>
+          )}
           <span className="section-pill" aria-label={`Pairs matched ${matchedPairsCount} of ${boardSize.pairs}`}>
             Pairs: <strong>{matchedPairsCount}</strong>/{boardSize.pairs}
           </span>
-          <span
-            className="section-pill section-pill--attempts"
-            aria-label={
-              currentThemeSummary.bestAttempts !== null
-                ? `Attempts ${totalAttempts}, best record ${currentThemeSummary.bestAttempts}`
-                : `Attempts ${totalAttempts}`
-            }
-          >
-            Attempts: <strong>{totalAttempts}</strong>
-            {currentThemeSummary.bestAttempts !== null && (
-              <span className="section-pill__best"> • Best {currentThemeSummary.bestAttempts}</span>
-            )}
-          </span>
+          {!journeyContext && (
+            <span
+              className="section-pill section-pill--attempts"
+              aria-label={
+                currentThemeSummary.bestAttempts !== null
+                  ? `Attempts ${totalAttempts}, best record ${currentThemeSummary.bestAttempts}`
+                  : `Attempts ${totalAttempts}`
+              }
+            >
+              Attempts: <strong>{totalAttempts}</strong>
+              {currentThemeSummary.bestAttempts !== null && (
+                <span className="section-pill__best"> • Best {currentThemeSummary.bestAttempts}</span>
+              )}
+            </span>
+          )}
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--compact"
@@ -464,13 +490,15 @@ export function MemoryBoard({
           >
             <span>{soundEnabled ? 'Sound On' : 'Muted'}</span>
           </button>
-          <button
-            type="button"
-            className="icon-pill-btn icon-pill-btn--compact"
-            onClick={onChangeSetup}
-          >
-            <span>Setup</span>
-          </button>
+          {!journeyContext && (
+            <button
+              type="button"
+              className="icon-pill-btn icon-pill-btn--compact"
+              onClick={onChangeSetup}
+            >
+              <span>Setup</span>
+            </button>
+          )}
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--compact"
@@ -611,7 +639,7 @@ export function MemoryBoard({
         </div>
       </main>
 
-      {phase === 'finished' && (
+      {phase === 'finished' && !journeyContext && (
         <WinnerModal
           standings={standings}
           totalPairs={boardSize.pairs}

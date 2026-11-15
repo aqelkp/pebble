@@ -2,7 +2,7 @@ import { CANONICAL_WORDS } from '../../data/wordBank';
 
 export type WordPackId = 'all' | 'animals' | 'home' | 'play' | 'nature';
 
-export type WordRoundSizeId = '8' | '6' | '12';
+export type WordRoundSizeId = '4' | '8' | '6' | '12';
 
 export type WordHelperMode = 'sound-out' | 'letter-trace';
 
@@ -137,6 +137,12 @@ export const WORD_ROUND_SIZES: readonly WordRoundSizeSpec[] = [
     label: '12 Words',
     description: 'Big adventure • Extra practice',
     wordsCount: 12,
+  },
+  {
+    id: '4',
+    label: '4 Words',
+    description: 'Mini round • Quick taste',
+    wordsCount: 4,
   },
 ];
 

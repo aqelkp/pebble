@@ -1,4 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { ActivityCompleteModal } from './components/ActivityCompleteModal';
+import { ActivityIntroModal } from './components/ActivityIntroModal';
+import { ParentGateModal } from './components/ParentGateModal';
 import { FamilyProfilesProvider, useFamilyProfiles } from './context/FamilyProfilesContext';
 import {
   clearSavedLetterRiverGame,
@@ -45,17 +48,39 @@ import {
   WordFunSetup,
   type WordGameConfig,
 } from './games/word-fun/WordFunSetup';
+import { buildJourneyCurriculum } from './journey/curriculum';
+import {
+  getDefaultJourneyState,
+  loadJourneyState,
+  markJourneyActivityCompleted,
+  saveJourneyState,
+} from './journey/journeyStorage';
+import {
+  ACTIVITIES_PER_CHAPTER,
+  TOTAL_ACTIVITIES,
+  type JourneyActivity,
+  type JourneyBoardContext,
+  type JourneyProgressState,
+  type JourneySettings,
+} from './journey/journeyTypes';
+import { ActivityBookPage } from './pages/ActivityBookPage';
 import { FamilyProfilesPage } from './pages/FamilyProfilesPage';
 import { GameHubPage } from './pages/GameHubPage';
 import { ParentInsightsPage } from './pages/ParentInsightsPage';
+import { ParentJourneySettingsPage } from './pages/ParentJourneySettingsPage';
 
 type Screen =
   | { view: 'hub' }
+  | { view: 'free-play-hub' }
+  | { view: 'parent-settings' }
   | { view: 'parent-insights' }
+  | { view: 'journey-play'; activityIndex: number; gameKey: number }
   | {
       view: 'profiles';
       returnTo:
         | 'hub'
+        | 'free-play-hub'
+        | 'parent-settings'
         | 'memory-setup'
         | 'letter-train-setup'
         | 'letter-river-setup'
@@ -90,6 +115,7 @@ interface SavedNavState {
 
 function isPlayScreen(screen: Screen): boolean {
   return (
+    screen.view === 'journey-play' ||
     screen.view === 'memory-play' ||
     screen.view === 'letter-train-play' ||
     screen.view === 'letter-river-play' ||
@@ -99,11 +125,35 @@ function isPlayScreen(screen: Screen): boolean {
   );
 }
 
+function clearAllSavedGames() {
+  clearSavedMemoryGame();
+  clearSavedLetterTrainGame();
+  clearSavedLetterRiverGame();
+  clearSavedSafariGame();
+  clearSavedWordGame();
+  clearSavedSudokuGame();
+}
+
+function clearSavedGameById(gameId: GameRegistryEntry['id']) {
+  if (gameId === 'memory-match') clearSavedMemoryGame();
+  else if (gameId === 'letter-train') clearSavedLetterTrainGame();
+  else if (gameId === 'letter-river') clearSavedLetterRiverGame();
+  else if (gameId === 'number-safari') clearSavedSafariGame();
+  else if (gameId === 'word-fun') clearSavedWordGame();
+  else if (gameId === 'picture-sudoku') clearSavedSudokuGame();
+}
+
 function isValidScreen(value: unknown): value is Screen {
   if (typeof value !== 'object' || value === null) return false;
-  const candidate = value as Partial<Screen> & { returnTo?: unknown; gameKey?: unknown };
+  const candidate = value as Partial<Screen> & {
+    returnTo?: unknown;
+    gameKey?: unknown;
+    activityIndex?: unknown;
+  };
   if (
     candidate.view === 'hub' ||
+    candidate.view === 'free-play-hub' ||
+    candidate.view === 'parent-settings' ||
     candidate.view === 'parent-insights' ||
     candidate.view === 'memory-setup' ||
     candidate.view === 'letter-train-setup' ||
@@ -115,8 +165,20 @@ function isValidScreen(value: unknown): value is Screen {
     return true;
   }
   if (
+    candidate.view === 'journey-play' &&
+    typeof candidate.activityIndex === 'number' &&
+    Number.isInteger(candidate.activityIndex) &&
+    candidate.activityIndex >= 0 &&
+    candidate.activityIndex < TOTAL_ACTIVITIES &&
+    typeof candidate.gameKey === 'number'
+  ) {
+    return true;
+  }
+  if (
     candidate.view === 'profiles' &&
     (candidate.returnTo === 'hub' ||
+      candidate.returnTo === 'free-play-hub' ||
+      candidate.returnTo === 'parent-settings' ||
       candidate.returnTo === 'memory-setup' ||
       candidate.returnTo === 'letter-train-setup' ||
       candidate.returnTo === 'letter-river-setup' ||
@@ -264,7 +326,20 @@ function PebbleRouter() {
   const [lastSudokuConfig, setLastSudokuConfig] = useState<PictureSudokuConfig | null>(
     initialNav.lastSudokuConfig,
   );
+  const [journeyState, setJourneyState] = useState<JourneyProgressState>(() => loadJourneyState());
+  const [showParentGate, setShowParentGate] = useState(false);
+  const [introActivity, setIntroActivity] = useState<JourneyActivity | null>(null);
+  const [completedActivity, setCompletedActivity] = useState<JourneyActivity | null>(null);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
+  const curriculum = useMemo(
+    () => buildJourneyCurriculum(journeyState.settings, profiles),
+    [journeyState.settings, profiles],
+  );
+
+  useEffect(() => {
+    saveJourneyState(journeyState);
+  }, [journeyState]);
 
   const screenRef = useRef<Screen>(screen);
   screenRef.current = screen;
@@ -327,6 +402,12 @@ function PebbleRouter() {
         ? stateObj.pebbleScreen
         : { view: 'hub' as const };
 
+      if (screenRef.current.view === 'journey-play' && targetScreen.view !== 'journey-play') {
+        clearAllSavedGames();
+        isGameActiveRef.current = false;
+        setCompletedActivity(null);
+        setIntroActivity(null);
+      }
       if (screenRef.current.view === 'memory-play' && targetScreen.view !== 'memory-play') {
         clearSavedMemoryGame();
         isGameActiveRef.current = false;
@@ -371,26 +452,17 @@ function PebbleRouter() {
   }, []);
 
   const navigateBack = useCallback((fallbackScreen: Screen, bypassGameGuard = false) => {
-    if (fallbackScreen.view !== 'memory-play') {
-      clearSavedMemoryGame();
-    }
-    if (fallbackScreen.view !== 'letter-train-play') {
-      clearSavedLetterTrainGame();
-    }
-    if (fallbackScreen.view !== 'letter-river-play') {
-      clearSavedLetterRiverGame();
-    }
-    if (fallbackScreen.view !== 'safari-play') {
-      clearSavedSafariGame();
-    }
-    if (fallbackScreen.view !== 'word-play') {
-      clearSavedWordGame();
-    }
-    if (fallbackScreen.view !== 'sudoku-play') {
-      clearSavedSudokuGame();
+    if (fallbackScreen.view !== 'journey-play') {
+      if (fallbackScreen.view !== 'memory-play') clearSavedMemoryGame();
+      if (fallbackScreen.view !== 'letter-train-play') clearSavedLetterTrainGame();
+      if (fallbackScreen.view !== 'letter-river-play') clearSavedLetterRiverGame();
+      if (fallbackScreen.view !== 'safari-play') clearSavedSafariGame();
+      if (fallbackScreen.view !== 'word-play') clearSavedWordGame();
+      if (fallbackScreen.view !== 'sudoku-play') clearSavedSudokuGame();
     }
     if (!isPlayScreen(fallbackScreen)) {
       isGameActiveRef.current = false;
+      setCompletedActivity(null);
     }
     if (historyDepthRef.current > 0) {
       if (bypassGameGuard) {
@@ -408,13 +480,10 @@ function PebbleRouter() {
       setShowLeaveConfirm(true);
       return;
     }
-    clearSavedMemoryGame();
-    clearSavedLetterTrainGame();
-    clearSavedLetterRiverGame();
-    clearSavedSafariGame();
-    clearSavedWordGame();
-    clearSavedSudokuGame();
+    clearAllSavedGames();
     isGameActiveRef.current = false;
+    setCompletedActivity(null);
+    setIntroActivity(null);
     setShowLeaveConfirm(false);
     if (historyDepthRef.current > 0) {
       bypassGuardRef.current = true;
@@ -428,13 +497,10 @@ function PebbleRouter() {
   }, []);
 
   const forceLeaveToHub = useCallback(() => {
-    clearSavedMemoryGame();
-    clearSavedLetterTrainGame();
-    clearSavedLetterRiverGame();
-    clearSavedSafariGame();
-    clearSavedWordGame();
-    clearSavedSudokuGame();
+    clearAllSavedGames();
     isGameActiveRef.current = false;
+    setCompletedActivity(null);
+    setIntroActivity(null);
     setShowLeaveConfirm(false);
     if (historyDepthRef.current > 0) {
       bypassGuardRef.current = true;
@@ -467,34 +533,221 @@ function PebbleRouter() {
     }
   };
 
-  if (screen.view === 'profiles') {
-    const fallback: Screen =
-      screen.returnTo === 'memory-setup'
-        ? { view: 'memory-setup' }
-        : screen.returnTo === 'letter-train-setup'
-          ? { view: 'letter-train-setup' }
-          : screen.returnTo === 'letter-river-setup'
-            ? { view: 'letter-river-setup' }
-            : screen.returnTo === 'safari-setup'
-              ? { view: 'safari-setup' }
-              : screen.returnTo === 'word-setup'
-                ? { view: 'word-setup' }
-                : screen.returnTo === 'sudoku-setup'
-                  ? { view: 'sudoku-setup' }
-                  : { view: 'hub' };
-    return <FamilyProfilesPage onBack={() => navigateBack(fallback)} />;
-  }
+  const handleUpdateJourneySettings = useCallback((patch: Partial<JourneySettings>) => {
+    setJourneyState((prev) => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        ...patch,
+      },
+    }));
+  }, []);
 
-  if (screen.view === 'parent-insights') {
-    return (
-      <ParentInsightsPage
-        profiles={profiles}
-        onUpdateProfile={updateProfile}
-        onOpenGame={handleOpenGame}
-        onBackToHub={() => navigateBack({ view: 'hub' })}
-      />
-    );
-  }
+  const handleConfirmStartActivity = useCallback(
+    (activity: JourneyActivity) => {
+      clearSavedGameById(activity.gameId);
+      setIntroActivity(null);
+      setCompletedActivity(null);
+      const nextScreen: Screen = {
+        view: 'journey-play',
+        activityIndex: activity.index,
+        gameKey: Date.now(),
+      };
+      if (screenRef.current.view === 'journey-play') {
+        window.history.replaceState({ pebbleScreen: nextScreen }, '');
+        setScreen(nextScreen);
+        return;
+      }
+      navigateTo(nextScreen);
+    },
+    [navigateTo],
+  );
+
+  const renderScreen = (): ReactNode => {
+    if (screen.view === 'profiles') {
+      const fallback: Screen =
+        screen.returnTo === 'free-play-hub'
+          ? { view: 'free-play-hub' }
+          : screen.returnTo === 'parent-settings'
+            ? { view: 'parent-settings' }
+            : screen.returnTo === 'memory-setup'
+              ? { view: 'memory-setup' }
+              : screen.returnTo === 'letter-train-setup'
+                ? { view: 'letter-train-setup' }
+                : screen.returnTo === 'letter-river-setup'
+                  ? { view: 'letter-river-setup' }
+                  : screen.returnTo === 'safari-setup'
+                    ? { view: 'safari-setup' }
+                    : screen.returnTo === 'word-setup'
+                      ? { view: 'word-setup' }
+                      : screen.returnTo === 'sudoku-setup'
+                        ? { view: 'sudoku-setup' }
+                        : { view: 'hub' };
+      return <FamilyProfilesPage onBack={() => navigateBack(fallback)} />;
+    }
+
+    if (screen.view === 'parent-settings') {
+      return (
+        <ParentJourneySettingsPage
+          journeyState={journeyState}
+          curriculum={curriculum}
+          onUpdateSettings={handleUpdateJourneySettings}
+          onJumpToActivityIndex={(idx) =>
+            setJourneyState((prev) => ({
+              ...prev,
+              currentActivityIndex: Math.max(0, Math.min(TOTAL_ACTIVITIES - 1, idx)),
+            }))
+          }
+          onResetJourney={() => {
+            setJourneyState((prev) => ({
+              ...getDefaultJourneyState(),
+              settings: prev.settings,
+            }));
+          }}
+          onTestIndividualGame={handleOpenGame}
+          onOpenFreePlayHub={() => navigateTo({ view: 'free-play-hub' })}
+          onOpenParentInsights={() => navigateTo({ view: 'parent-insights' })}
+          onOpenProfiles={() => navigateTo({ view: 'profiles', returnTo: 'parent-settings' })}
+          onBack={navigateToHub}
+        />
+      );
+    }
+
+    if (screen.view === 'free-play-hub') {
+      return (
+        <GameHubPage
+          profiles={profiles}
+          isFreePlayPreview
+          onBackToActivityBook={navigateToHub}
+          onOpenGame={handleOpenGame}
+          onOpenProfiles={() => navigateTo({ view: 'profiles', returnTo: 'free-play-hub' })}
+          onOpenParentInsights={() => navigateTo({ view: 'parent-insights' })}
+        />
+      );
+    }
+
+    if (screen.view === 'journey-play') {
+      const activeActivity = curriculum[screen.activityIndex] ?? curriculum[0];
+      const journeyContext: JourneyBoardContext = {
+        chapterNumber: activeActivity.chapterNumber,
+        activityNumberInChapter: activeActivity.numberInChapter,
+        totalInChapter: ACTIVITIES_PER_CHAPTER,
+        globalActivityNumber: activeActivity.activityNumber,
+        onActivityComplete: () => {
+          isGameActiveRef.current = false;
+          clearSavedGameById(activeActivity.gameId);
+          setJourneyState((prev) => markJourneyActivityCompleted(prev, activeActivity));
+          setCompletedActivity(activeActivity);
+        },
+      };
+
+      const { payload } = activeActivity;
+      if (payload.gameId === 'memory-match') {
+        return (
+          <MemoryBoard
+            key={screen.gameKey}
+            gameKey={screen.gameKey}
+            config={payload.config}
+            profiles={profiles}
+            soundEnabled={soundEnabled}
+            onToggleSound={toggleSound}
+            onChangeSetup={() => undefined}
+            onBackToHub={navigateToHub}
+            onGameActiveChange={handleGameActiveChange}
+            journeyContext={journeyContext}
+          />
+        );
+      }
+      if (payload.gameId === 'letter-train') {
+        return (
+          <LetterTrainBoard
+            key={screen.gameKey}
+            gameKey={screen.gameKey}
+            config={payload.config}
+            childProfile={profiles[0]}
+            soundEnabled={soundEnabled}
+            onToggleSound={toggleSound}
+            onChangeSetup={() => undefined}
+            onBackToHub={navigateToHub}
+            onGameActiveChange={handleGameActiveChange}
+            journeyContext={journeyContext}
+          />
+        );
+      }
+      if (payload.gameId === 'letter-river') {
+        return (
+          <LetterRiverBoard
+            key={screen.gameKey}
+            gameKey={screen.gameKey}
+            config={payload.config}
+            childProfile={profiles[0]}
+            soundEnabled={soundEnabled}
+            onToggleSound={toggleSound}
+            onChangeSetup={() => undefined}
+            onBackToHub={navigateToHub}
+            onGameActiveChange={handleGameActiveChange}
+            journeyContext={journeyContext}
+          />
+        );
+      }
+      if (payload.gameId === 'picture-sudoku') {
+        return (
+          <PictureSudokuBoard
+            key={screen.gameKey}
+            gameKey={screen.gameKey}
+            config={payload.config}
+            childProfile={profiles[0]}
+            soundEnabled={soundEnabled}
+            onToggleSound={toggleSound}
+            onChangeSetup={() => undefined}
+            onBackToHub={navigateToHub}
+            onGameActiveChange={handleGameActiveChange}
+            journeyContext={journeyContext}
+          />
+        );
+      }
+      if (payload.gameId === 'word-fun') {
+        return (
+          <WordFunBoard
+            key={screen.gameKey}
+            gameKey={screen.gameKey}
+            config={payload.config}
+            profiles={profiles}
+            soundEnabled={soundEnabled}
+            onToggleSound={toggleSound}
+            onChangeSetup={() => undefined}
+            onBackToHub={navigateToHub}
+            onGameActiveChange={handleGameActiveChange}
+            journeyContext={journeyContext}
+          />
+        );
+      }
+      return (
+        <SafariBoard
+          key={screen.gameKey}
+          gameKey={screen.gameKey}
+          config={payload.config}
+          profiles={profiles}
+          soundEnabled={soundEnabled}
+          onToggleSound={toggleSound}
+          onChangeSetup={() => undefined}
+          onBackToHub={navigateToHub}
+          onGameActiveChange={handleGameActiveChange}
+          journeyContext={journeyContext}
+        />
+      );
+    }
+
+    if (screen.view === 'parent-insights') {
+      return (
+        <ParentInsightsPage
+          profiles={profiles}
+          onUpdateProfile={updateProfile}
+          onOpenGame={handleOpenGame}
+          onBackToHub={() => navigateBack({ view: 'hub' })}
+        />
+      );
+    }
 
   if (screen.view === 'memory-setup') {
     return (
@@ -910,13 +1163,123 @@ function PebbleRouter() {
     );
   }
 
+    if (journeyState.settings.guidedModeEnabled) {
+      return (
+        <ActivityBookPage
+          childProfile={profiles[0]}
+          curriculum={curriculum}
+          journeyState={journeyState}
+          onStartActivity={(act) => setIntroActivity(act)}
+          onOpenParentGate={() => setShowParentGate(true)}
+        />
+      );
+    }
+
+    return (
+      <GameHubPage
+        profiles={profiles}
+        onOpenGame={handleOpenGame}
+        onOpenProfiles={() => navigateTo({ view: 'profiles', returnTo: 'hub' })}
+        onOpenParentInsights={() => navigateTo({ view: 'parent-insights' })}
+        onOpenJourneySettings={() => setShowParentGate(true)}
+      />
+    );
+  };
+
+  const nextCompletedActivity =
+    completedActivity && completedActivity.index + 1 < curriculum.length
+      ? curriculum[completedActivity.index + 1]
+      : null;
+
+  const completedInChapterCount = completedActivity
+    ? journeyState.completedActivityIndices.filter(
+        (idx) => Math.floor(idx / ACTIVITIES_PER_CHAPTER) + 1 === completedActivity.chapterNumber,
+      ).length
+    : 0;
+
   return (
-    <GameHubPage
-      profiles={profiles}
-      onOpenGame={handleOpenGame}
-      onOpenProfiles={() => navigateTo({ view: 'profiles', returnTo: 'hub' })}
-      onOpenParentInsights={() => navigateTo({ view: 'parent-insights' })}
-    />
+    <>
+      {renderScreen()}
+
+      {showLeaveConfirm && screen.view === 'journey-play' && (
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="leave-journey-headline"
+        >
+          <div className="winner-modal">
+            <h2 id="leave-journey-headline">Leave current activity?</h2>
+            <p className="winner-subtitle">
+              Your current activity progress will reset so you can start fresh next time.
+            </p>
+            <div className="winner-actions">
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ width: '100%' }}
+                onClick={() => setShowLeaveConfirm(false)}
+              >
+                Keep Playing
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ width: '100%' }}
+                onClick={forceLeaveToHub}
+              >
+                Back to Activity Book
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {completedActivity && screen.view === 'journey-play' && (
+        <ActivityCompleteModal
+          activity={completedActivity}
+          nextActivity={nextCompletedActivity}
+          completedInChapter={completedInChapterCount}
+          childProfile={profiles[0]}
+          onNextActivity={() => {
+            setCompletedActivity(null);
+            if (nextCompletedActivity) {
+              setIntroActivity(nextCompletedActivity);
+            }
+          }}
+          onBackToBook={() => {
+            setCompletedActivity(null);
+            forceLeaveToHub();
+          }}
+        />
+      )}
+
+      {introActivity && (
+        <ActivityIntroModal
+          key={introActivity.index}
+          activity={introActivity}
+          soundEnabled={soundEnabled}
+          waitForVoiceIntro={journeyState.settings.waitForVoiceIntro}
+          onConfirmStart={() => handleConfirmStartActivity(introActivity)}
+          onCancel={() => {
+            setIntroActivity(null);
+            if (screenRef.current.view === 'journey-play') {
+              forceLeaveToHub();
+            }
+          }}
+        />
+      )}
+
+      {showParentGate && (
+        <ParentGateModal
+          onSuccess={() => {
+            setShowParentGate(false);
+            navigateTo({ view: 'parent-settings' });
+          }}
+          onCancel={() => setShowParentGate(false)}
+        />
+      )}
+    </>
   );
 }
 

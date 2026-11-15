@@ -1,0 +1,410 @@
+{
+  "clips": {
+    "memory-match": {
+      "id": "memory-match",
+      "text": "Flip two cards to find the matching pictures!",
+      "audioPath": "audio/journey/memory-match.mp3",
+      "durationMs": 2488,
+      "words": [
+        {
+          "word": "Flip",
+          "startMs": 0,
+          "endMs": 289
+        },
+        {
+          "word": "two",
+          "startMs": 289,
+          "endMs": 534
+        },
+        {
+          "word": "cards",
+          "startMs": 534,
+          "endMs": 781
+        },
+        {
+          "word": "to",
+          "startMs": 781,
+          "endMs": 931
+        },
+        {
+          "word": "find",
+          "startMs": 931,
+          "endMs": 1046
+        },
+        {
+          "word": "the",
+          "startMs": 1046,
+          "endMs": 1276
+        },
+        {
+          "word": "matching",
+          "startMs": 1276,
+          "endMs": 1704
+        },
+        {
+          "word": "pictures!",
+          "startMs": 1704,
+          "endMs": 2488
+        }
+      ]
+    },
+    "letter-train": {
+      "id": "letter-train",
+      "text": "Load the pictures starting with this letter onto the train!",
+      "audioPath": "audio/journey/letter-train.mp3",
+      "durationMs": 2990,
+      "words": [
+        {
+          "word": "Load",
+          "startMs": 0,
+          "endMs": 315
+        },
+        {
+          "word": "the",
+          "startMs": 315,
+          "endMs": 445
+        },
+        {
+          "word": "pictures",
+          "startMs": 445,
+          "endMs": 1056
+        },
+        {
+          "word": "starting",
+          "startMs": 1056,
+          "endMs": 1297
+        },
+        {
+          "word": "with",
+          "startMs": 1297,
+          "endMs": 1652
+        },
+        {
+          "word": "this",
+          "startMs": 1652,
+          "endMs": 1743
+        },
+        {
+          "word": "letter",
+          "startMs": 1743,
+          "endMs": 2079
+        },
+        {
+          "word": "onto",
+          "startMs": 2079,
+          "endMs": 2526
+        },
+        {
+          "word": "the",
+          "startMs": 2526,
+          "endMs": 2615
+        },
+        {
+          "word": "train!",
+          "startMs": 2615,
+          "endMs": 2990
+        }
+      ]
+    },
+    "letter-river": {
+      "id": "letter-river",
+      "text": "Scoop each swimming fish into the matching letter bucket!",
+      "audioPath": "audio/journey/letter-river.mp3",
+      "durationMs": 2956,
+      "words": [
+        {
+          "word": "Scoop",
+          "startMs": 0,
+          "endMs": 183
+        },
+        {
+          "word": "each",
+          "startMs": 183,
+          "endMs": 422
+        },
+        {
+          "word": "swimming",
+          "startMs": 422,
+          "endMs": 967
+        },
+        {
+          "word": "fish",
+          "startMs": 967,
+          "endMs": 1132
+        },
+        {
+          "word": "into",
+          "startMs": 1132,
+          "endMs": 1526
+        },
+        {
+          "word": "the",
+          "startMs": 1526,
+          "endMs": 1713
+        },
+        {
+          "word": "matching",
+          "startMs": 1713,
+          "endMs": 2023
+        },
+        {
+          "word": "letter",
+          "startMs": 2023,
+          "endMs": 2542
+        },
+        {
+          "word": "bucket!",
+          "startMs": 2542,
+          "endMs": 2956
+        }
+      ]
+    },
+    "picture-sudoku": {
+      "id": "picture-sudoku",
+      "text": "Place each missing picture so every row and column has one!",
+      "audioPath": "audio/journey/picture-sudoku.mp3",
+      "durationMs": 3497,
+      "words": [
+        {
+          "word": "Place",
+          "startMs": 0,
+          "endMs": 337
+        },
+        {
+          "word": "each",
+          "startMs": 337,
+          "endMs": 486
+        },
+        {
+          "word": "missing",
+          "startMs": 486,
+          "endMs": 955
+        },
+        {
+          "word": "picture",
+          "startMs": 955,
+          "endMs": 1380
+        },
+        {
+          "word": "so",
+          "startMs": 1380,
+          "endMs": 1485
+        },
+        {
+          "word": "every",
+          "startMs": 1485,
+          "endMs": 2009
+        },
+        {
+          "word": "row",
+          "startMs": 2009,
+          "endMs": 2325
+        },
+        {
+          "word": "and",
+          "startMs": 2325,
+          "endMs": 2395
+        },
+        {
+          "word": "column",
+          "startMs": 2395,
+          "endMs": 2883
+        },
+        {
+          "word": "has",
+          "startMs": 2883,
+          "endMs": 3004
+        },
+        {
+          "word": "one!",
+          "startMs": 3004,
+          "endMs": 3497
+        }
+      ]
+    },
+    "word-fun": {
+      "id": "word-fun",
+      "text": "Tap the letter blocks in order to spell the picture word!",
+      "audioPath": "audio/journey/word-fun.mp3",
+      "durationMs": 2789,
+      "words": [
+        {
+          "word": "Tap",
+          "startMs": 0,
+          "endMs": 297
+        },
+        {
+          "word": "the",
+          "startMs": 297,
+          "endMs": 342
+        },
+        {
+          "word": "letter",
+          "startMs": 342,
+          "endMs": 754
+        },
+        {
+          "word": "blocks",
+          "startMs": 754,
+          "endMs": 1038
+        },
+        {
+          "word": "in",
+          "startMs": 1038,
+          "endMs": 1173
+        },
+        {
+          "word": "order",
+          "startMs": 1173,
+          "endMs": 1556
+        },
+        {
+          "word": "to",
+          "startMs": 1556,
+          "endMs": 1781
+        },
+        {
+          "word": "spell",
+          "startMs": 1781,
+          "endMs": 1993
+        },
+        {
+          "word": "the",
+          "startMs": 1993,
+          "endMs": 2100
+        },
+        {
+          "word": "picture",
+          "startMs": 2100,
+          "endMs": 2567
+        },
+        {
+          "word": "word!",
+          "startMs": 2567,
+          "endMs": 2789
+        }
+      ]
+    },
+    "number-safari-count": {
+      "id": "number-safari-count",
+      "text": "Tap each animal to count them, then pick the number block!",
+      "audioPath": "audio/journey/number-safari-count.mp3",
+      "durationMs": 3320,
+      "words": [
+        {
+          "word": "Tap",
+          "startMs": 0,
+          "endMs": 295
+        },
+        {
+          "word": "each",
+          "startMs": 295,
+          "endMs": 514
+        },
+        {
+          "word": "animal",
+          "startMs": 514,
+          "endMs": 1163
+        },
+        {
+          "word": "to",
+          "startMs": 1163,
+          "endMs": 1218
+        },
+        {
+          "word": "count",
+          "startMs": 1218,
+          "endMs": 1467
+        },
+        {
+          "word": "them,",
+          "startMs": 1467,
+          "endMs": 1956
+        },
+        {
+          "word": "then",
+          "startMs": 1956,
+          "endMs": 2045
+        },
+        {
+          "word": "pick",
+          "startMs": 2045,
+          "endMs": 2419
+        },
+        {
+          "word": "the",
+          "startMs": 2419,
+          "endMs": 2479
+        },
+        {
+          "word": "number",
+          "startMs": 2479,
+          "endMs": 3059
+        },
+        {
+          "word": "block!",
+          "startMs": 3059,
+          "endMs": 3320
+        }
+      ]
+    },
+    "number-safari-add": {
+      "id": "number-safari-add",
+      "text": "Count both animal groups together, then pick the total number!",
+      "audioPath": "audio/journey/number-safari-add.mp3",
+      "durationMs": 3528,
+      "words": [
+        {
+          "word": "Count",
+          "startMs": 0,
+          "endMs": 304
+        },
+        {
+          "word": "both",
+          "startMs": 304,
+          "endMs": 400
+        },
+        {
+          "word": "animal",
+          "startMs": 400,
+          "endMs": 1079
+        },
+        {
+          "word": "groups",
+          "startMs": 1079,
+          "endMs": 1266
+        },
+        {
+          "word": "together,",
+          "startMs": 1266,
+          "endMs": 2089
+        },
+        {
+          "word": "then",
+          "startMs": 2089,
+          "endMs": 2145
+        },
+        {
+          "word": "pick",
+          "startMs": 2145,
+          "endMs": 2406
+        },
+        {
+          "word": "the",
+          "startMs": 2406,
+          "endMs": 2579
+        },
+        {
+          "word": "total",
+          "startMs": 2579,
+          "endMs": 3001
+        },
+        {
+          "word": "number!",
+          "startMs": 3001,
+          "endMs": 3528
+        }
+      ]
+    }
+  }
+}
