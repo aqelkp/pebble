@@ -1,7 +1,7 @@
 import { assetUrl } from '../../utils/assets';
 
 export type SafariModeId = 'count-5' | 'count-10' | 'add-10';
-export type SafariLengthId = '8-stops' | '6-stops' | '12-stops';
+export type SafariLengthId = '4-stops' | '8-stops' | '6-stops' | '12-stops';
 
 export interface SafariAnimalSpec {
   id: string;
@@ -104,6 +104,12 @@ export const SAFARI_LENGTHS: readonly SafariLengthSpec[] = [
     description: 'Grand tour • 12 points',
     stops: 12,
   },
+  {
+    id: '4-stops',
+    label: '4 Stops',
+    description: 'Mini safari • 4 points',
+    stops: 4,
+  },
 ];
 
 export const SAFARI_ANIMALS: readonly SafariAnimalSpec[] = [
@@ -186,7 +192,7 @@ export function isValidSafariModeId(value: unknown): value is SafariModeId {
 }
 
 export function isValidSafariLengthId(value: unknown): value is SafariLengthId {
-  return value === '8-stops' || value === '6-stops' || value === '12-stops';
+  return value === '4-stops' || value === '8-stops' || value === '6-stops' || value === '12-stops';
 }
 
 export function getSafariModeSpec(modeId: SafariModeId): SafariModeSpec {

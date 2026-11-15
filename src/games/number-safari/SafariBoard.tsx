@@ -4,6 +4,7 @@ import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import {
   buildSafariTrail,
   getSafariLengthSpec,
@@ -29,6 +30,7 @@ interface SafariBoardProps {
   onChangeSetup: () => void;
   onBackToHub: () => void;
   onGameActiveChange?: (active: boolean) => void;
+  journeyContext?: JourneyBoardContext;
 }
 
 type SafariPhase = 'idle' | 'resolving-correct' | 'resolving-wrong' | 'finished';
@@ -227,6 +229,7 @@ export function SafariBoard({
   onChangeSetup,
   onBackToHub,
   onGameActiveChange,
+  journeyContext,
 }: SafariBoardProps) {
   const modeSpec = useMemo(() => getSafariModeSpec(config.modeId), [config.modeId]);
   const lengthSpec = useMemo(() => getSafariLengthSpec(config.lengthId), [config.lengthId]);
@@ -288,9 +291,24 @@ export function SafariBoard({
     return () => clearPendingTimers();
   }, [clearPendingTimers]);
 
+  const journeyOnCompleteRef = useRef(journeyContext?.onActivityComplete);
+  journeyOnCompleteRef.current = journeyContext?.onActivityComplete;
+  const journeyCompletedFiredRef = useRef(false);
+  const isJourneyMode = Boolean(journeyContext);
+
   useEffect(() => {
     onGameActiveChange?.(phase !== 'finished');
   }, [onGameActiveChange, phase]);
+
+  useEffect(() => {
+    if (!isJourneyMode || phase !== 'finished' || journeyCompletedFiredRef.current) return;
+    const timer = window.setTimeout(() => {
+      if (journeyCompletedFiredRef.current) return;
+      journeyCompletedFiredRef.current = true;
+      journeyOnCompleteRef.current?.();
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [isJourneyMode, phase]);
 
   useEffect(() => {
     try {
@@ -567,15 +585,21 @@ export function SafariBoard({
             type="button"
             className="icon-pill-btn icon-pill-btn--compact"
             onClick={onBackToHub}
-            aria-label="Back to Game Hub"
+            aria-label={journeyContext ? 'Back to Activity Book' : 'Back to Game Hub'}
           >
             <span aria-hidden="true">←</span>
-            <span>Games</span>
+            <span>{journeyContext ? 'Activity Book' : 'Games'}</span>
           </button>
           <BrandLogo size="sm" />
         </div>
 
         <div className="top-bar__right">
+          {journeyContext && (
+            <span className="section-pill section-pill--journey">
+              Ch. {journeyContext.chapterNumber} • #{journeyContext.activityNumberInChapter}/
+              {journeyContext.totalInChapter}
+            </span>
+          )}
           <span
             className="section-pill"
             aria-label={`Safari stop ${Math.min(trail.length, currentStopIdx + 1)} of ${trail.length}`}
@@ -590,13 +614,15 @@ export function SafariBoard({
           >
             <span>{soundEnabled ? 'Sound On' : 'Muted'}</span>
           </button>
-          <button
-            type="button"
-            className="icon-pill-btn icon-pill-btn--compact"
-            onClick={onChangeSetup}
-          >
-            <span>Setup</span>
-          </button>
+          {!journeyContext && (
+            <button
+              type="button"
+              className="icon-pill-btn icon-pill-btn--compact"
+              onClick={onChangeSetup}
+            >
+              <span>Setup</span>
+            </button>
+          )}
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--compact"
@@ -766,7 +792,7 @@ export function SafariBoard({
         </section>
       </main>
 
-      {phase === 'finished' && (
+      {phase === 'finished' && !journeyContext && (
         <WinnerModal
           standings={standings}
           totalPairs={completedStopsCount}

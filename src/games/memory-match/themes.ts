@@ -14,7 +14,7 @@ export type ThemeId =
 
 export type ThemeCategory = 'stories' | 'world';
 
-export type BoardSizeId = '4x5' | '4x4' | '5x6';
+export type BoardSizeId = '4x3' | '4x5' | '4x4' | '5x6';
 
 export interface CharacterCardSpec {
   pairId: string;
@@ -77,6 +77,15 @@ export const BOARD_SIZES: readonly BoardSizeSpec[] = [
     rows: 6,
     cardsCount: 30,
     pairs: 15,
+  },
+  {
+    id: '4x3',
+    label: '4 × 3',
+    description: '12 cards • Mini game',
+    cols: 4,
+    rows: 3,
+    cardsCount: 12,
+    pairs: 6,
   },
 ];
 

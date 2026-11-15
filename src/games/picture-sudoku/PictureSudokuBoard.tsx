@@ -3,6 +3,7 @@ import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { assetUrl } from '../../utils/assets';
+import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import { getThemeSpec, type CharacterCardSpec } from '../memory-match/themes';
 import type { PictureSudokuConfig } from './PictureSudokuSetup';
 import {
@@ -41,6 +42,7 @@ interface PictureSudokuBoardProps {
   onChangeSetup: () => void;
   onBackToHub: () => void;
   onGameActiveChange: (active: boolean) => void;
+  journeyContext?: JourneyBoardContext;
 }
 
 interface PlacedCellMeta {
@@ -84,6 +86,7 @@ export function PictureSudokuBoard({
   onChangeSetup,
   onBackToHub,
   onGameActiveChange,
+  journeyContext,
 }: PictureSudokuBoardProps) {
   const theme = getThemeSpec(config.themeId);
   const sizeSpec = getSudokuSizeSpec(config.size);
@@ -144,9 +147,24 @@ export function PictureSudokuBoard({
     onGameActiveChange(true);
   }, [config.size, onGameActiveChange, theme.characters]);
 
+  const journeyOnCompleteRef = useRef(journeyContext?.onActivityComplete);
+  journeyOnCompleteRef.current = journeyContext?.onActivityComplete;
+  const journeyCompletedFiredRef = useRef(false);
+  const isJourneyMode = Boolean(journeyContext);
+
   useEffect(() => {
     onGameActiveChange(!solved);
   }, [onGameActiveChange, solved]);
+
+  useEffect(() => {
+    if (!isJourneyMode || !solved || journeyCompletedFiredRef.current) return;
+    const timer = window.setTimeout(() => {
+      if (journeyCompletedFiredRef.current) return;
+      journeyCompletedFiredRef.current = true;
+      journeyOnCompleteRef.current?.();
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [isJourneyMode, solved]);
 
   useEffect(() => {
     return () => {
@@ -451,11 +469,18 @@ export function PictureSudokuBoard({
         <div className="top-bar__left">
           <button type="button" className="icon-pill-btn" onClick={onBackToHub}>
             <span aria-hidden="true">←</span>
-            <span>Games</span>
+            <span>{journeyContext ? 'Activity Book' : 'Games'}</span>
           </button>
-          <button type="button" className="icon-pill-btn" onClick={onChangeSetup}>
-            <span>Setup</span>
-          </button>
+          {journeyContext ? (
+            <span className="section-pill section-pill--journey">
+              Ch. {journeyContext.chapterNumber} • #{journeyContext.activityNumberInChapter}/
+              {journeyContext.totalInChapter}
+            </span>
+          ) : (
+            <button type="button" className="icon-pill-btn" onClick={onChangeSetup}>
+              <span>Setup</span>
+            </button>
+          )}
         </div>
 
         <div className="ps-player-pill">
@@ -679,7 +704,7 @@ export function PictureSudokuBoard({
         </div>
       )}
 
-      {solved && (
+      {solved && !journeyContext && (
         <div
           className="modal-backdrop"
           role="dialog"
