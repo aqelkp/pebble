@@ -11,6 +11,7 @@ import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { useGameLoop } from '../../engine';
 import { pickWeightedAdaptive } from '../../learning/adaptiveSelector';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import { preloadLettersAudio, preloadWordsAudio } from '../../utils/wordAudio';
@@ -763,17 +764,17 @@ export function LetterRiverBoard({
     totalScore,
   ]);
 
-  // Measure river container width and update fish transforms at 60fps via refs
+  const applyFishTransform = useCallback((fish: SwimmingFish, xPct: number, width: number) => {
+    const node = fishDomRefs.current.get(fish.uid);
+    if (!node) return;
+    const xPx = (xPct / 100) * Math.max(width, 320);
+    node.style.transform = `translate3d(${xPx}px, 0, 0)`;
+  }, []);
+
+  // Measure river container width and resync fish positions on resize or wave changes
   useEffect(() => {
     const el = riverLanesRef.current;
     if (!el) return;
-
-    const applyTransform = (fish: SwimmingFish, xPct: number, width: number) => {
-      const node = fishDomRefs.current.get(fish.uid);
-      if (!node) return;
-      const xPx = (xPct / 100) * Math.max(width, 320);
-      node.style.transform = `translate3d(${xPx}px, 0, 0)`;
-    };
 
     const syncAllPositions = () => {
       const width = el.getBoundingClientRect().width;
@@ -782,7 +783,7 @@ export function LetterRiverBoard({
       }
       for (const fish of fishListRef.current) {
         const xPct = fishPosRef.current.get(fish.uid) ?? fish.spawnXPct;
-        applyTransform(fish, xPct, riverWidthRef.current);
+        applyFishTransform(fish, xPct, riverWidthRef.current);
       }
     };
 
@@ -792,21 +793,19 @@ export function LetterRiverBoard({
       syncAllPositions();
     });
     observer.observe(el);
+    return () => observer.disconnect();
+  }, [applyFishTransform, fishList]);
 
-    let rafId = 0;
-    let lastTs = performance.now();
-
-    const step = (now: number) => {
-      const dtSec = Math.min(0.05, Math.max(0, (now - lastTs) / 1000));
-      lastTs = now;
+  // Update swimming fish transforms at 60fps via shared Pebble game loop
+  useGameLoop(
+    (dtSec) => {
       const width = riverWidthRef.current;
-
       for (const fish of fishListRef.current) {
         const isPaused =
           dragFishIdRef.current === fish.uid || hookedFishIdRef.current === fish.uid;
         let xPct = fishPosRef.current.get(fish.uid) ?? fish.spawnXPct;
 
-        if (!isPaused && !finished) {
+        if (!isPaused) {
           const speed = LANE_SPEEDS_PCT_PER_SEC[fish.lane];
           xPct += fish.direction * speed * dtSec;
           if (fish.direction === 1 && xPct > 112) {
@@ -825,18 +824,11 @@ export function LetterRiverBoard({
           fishPosRef.current.set(fish.uid, xPct);
         }
 
-        applyTransform(fish, xPct, width);
+        applyFishTransform(fish, xPct, width);
       }
-
-      rafId = window.requestAnimationFrame(step);
-    };
-
-    rafId = window.requestAnimationFrame(step);
-    return () => {
-      window.cancelAnimationFrame(rafId);
-      observer.disconnect();
-    };
-  }, [finished, fishList]);
+    },
+    { enabled: !finished },
+  );
 
   const hitTestBucket = useCallback(
     (clientX: number, clientY: number): number | null => {

@@ -1,6 +1,13 @@
+import { useMemo, useState } from 'react';
 import { BrandLogo } from '../components/BrandLogo';
 import { getAvatarSrc, type FamilyProfile } from '../context/FamilyProfilesContext';
-import { GAME_REGISTRY, type GameRegistryEntry } from '../games/registry';
+import { preloadGamePlugin } from '../games/plugins';
+import {
+  GAME_REGISTRY,
+  HUB_SHELVES,
+  type GameRegistryEntry,
+  type HubShelfId,
+} from '../games/registry';
 import { assetUrl } from '../utils/assets';
 
 interface GameHubPageProps {
@@ -22,6 +29,25 @@ export function GameHubPage({
   onBackToActivityBook,
   onOpenJourneySettings,
 }: GameHubPageProps) {
+  const [activeShelf, setActiveShelf] = useState<'all' | HubShelfId>('all');
+
+  const populatedShelves = useMemo(
+    () =>
+      HUB_SHELVES.map((shelf) => ({
+        ...shelf,
+        count: GAME_REGISTRY.filter((game) => game.shelf === shelf.id).length,
+      })).filter((shelf) => shelf.count > 0),
+    [],
+  );
+
+  const visibleGames = useMemo(
+    () =>
+      activeShelf === 'all'
+        ? GAME_REGISTRY
+        : GAME_REGISTRY.filter((game) => game.shelf === activeShelf),
+    [activeShelf],
+  );
+
   const primaryChild = profiles[0];
   const isCustomChildName =
     primaryChild && primaryChild.name.trim().toLowerCase() !== 'child';
@@ -99,14 +125,45 @@ export function GameHubPage({
         <span className="section-pill">Portrait Tablet Ready</span>
       </div>
 
+      <nav className="hub-shelf-bar" aria-label="Game categories">
+        <button
+          type="button"
+          className={`hub-shelf-pill ${activeShelf === 'all' ? 'hub-shelf-pill--active' : ''}`}
+          aria-pressed={activeShelf === 'all'}
+          onClick={() => setActiveShelf('all')}
+        >
+          <span>All Games</span>
+          <span className="hub-shelf-pill__count">{GAME_REGISTRY.length}</span>
+        </button>
+
+        {populatedShelves.map((shelf) => {
+          const isActive = activeShelf === shelf.id;
+          return (
+            <button
+              key={shelf.id}
+              type="button"
+              className={`hub-shelf-pill ${isActive ? 'hub-shelf-pill--active' : ''}`}
+              aria-pressed={isActive}
+              onClick={() => setActiveShelf(shelf.id)}
+            >
+              <span>{shelf.label}</span>
+              <span className="hub-shelf-pill__count">{shelf.count}</span>
+            </button>
+          );
+        })}
+      </nav>
+
       <main className="hub-grid">
-        {GAME_REGISTRY.map((game) => {
+        {visibleGames.map((game) => {
           const isAvailable = game.status === 'available';
+          const showFeatured = Boolean(
+            game.featured && (activeShelf === 'all' || visibleGames.length === 1),
+          );
 
           return (
             <article
               key={game.id}
-              className={`game-card ${game.featured ? 'game-card--featured' : ''} ${
+              className={`game-card ${showFeatured ? 'game-card--featured' : ''} ${
                 isAvailable ? 'game-card--interactive' : 'game-card--coming-soon'
               }`}
             >
@@ -138,6 +195,8 @@ export function GameHubPage({
                     <button
                       type="button"
                       className="btn-primary"
+                      onPointerEnter={() => preloadGamePlugin(game.id)}
+                      onFocus={() => preloadGamePlugin(game.id)}
                       onClick={() => onOpenGame(game.id)}
                     >
                       Play {game.title}
