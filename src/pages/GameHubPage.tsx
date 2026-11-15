@@ -175,7 +175,11 @@ export function GameHubPage({
                 <div className="game-card__badge-row">
                   <span
                     className={`badge-pill ${
-                      isAvailable ? 'badge-pill--mint' : 'badge-pill--muted'
+                      !isAvailable
+                        ? 'badge-pill--muted'
+                        : game.activityRole === 'reward'
+                          ? 'badge-pill--coral'
+                          : 'badge-pill--mint'
                     }`}
                   >
                     {game.badgeText}

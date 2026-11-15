@@ -54,6 +54,24 @@ const SafariBoard = lazy(() =>
   import('./number-safari/SafariBoard').then((m) => ({ default: m.SafariBoard })),
 );
 
+const RescueRoadSetup = lazy(() =>
+  import('./rescue-road/RescueRoadSetup').then((m) => ({ default: m.RescueRoadSetup })),
+);
+const RescueRoadBoard = lazy(() =>
+  import('./rescue-road/RescueRoadBoard').then((m) => ({ default: m.RescueRoadBoard })),
+);
+
+const StickerJigsawSetup = lazy(() =>
+  import('./sticker-jigsaw/StickerJigsawSetup').then((m) => ({
+    default: m.StickerJigsawSetup,
+  })),
+);
+const StickerJigsawBoard = lazy(() =>
+  import('./sticker-jigsaw/StickerJigsawBoard').then((m) => ({
+    default: m.StickerJigsawBoard,
+  })),
+);
+
 export interface LeaveGameCopy {
   headline: string;
   subtitle: string;
@@ -402,6 +420,97 @@ const GAME_PLUGINS: GamePluginRegistry = {
         gameKey={gameKey}
         config={config}
         profiles={profiles}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'rescue-road': {
+    id: 'rescue-road',
+    activeSessionStorageKey: 'pebble.rescueRoad.v1',
+    leaveCopy: {
+      headline: 'Leave Rescue Road?',
+      subtitle: 'Your current rescue road progress will reset.',
+      keepPlayingLabel: 'Keep Driving',
+    },
+    ...makeConfigAccessors('rescue-road'),
+    preloadChunks: () =>
+      Promise.all([import('./rescue-road/RescueRoadSetup'), import('./rescue-road/RescueRoadBoard')]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onStartGame }) => (
+      <RescueRoadSetup
+        initialConfig={initialConfig ?? getDefaultGameConfig('rescue-road', profiles)}
+        onBackToHub={onBackToHub}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <RescueRoadBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'sticker-jigsaw': {
+    id: 'sticker-jigsaw',
+    activeSessionStorageKey: 'pebble.stickerJigsaw.v1',
+    leaveCopy: {
+      headline: 'Leave Sticker Jigsaw?',
+      subtitle: 'Your current sticker puzzle progress will reset.',
+      keepPlayingLabel: 'Keep Building',
+    },
+    ...makeConfigAccessors('sticker-jigsaw'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./sticker-jigsaw/StickerJigsawSetup'),
+        import('./sticker-jigsaw/StickerJigsawBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onStartGame }) => (
+      <StickerJigsawSetup
+        initialConfig={initialConfig ?? getDefaultGameConfig('sticker-jigsaw', profiles)}
+        onBackToHub={onBackToHub}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <StickerJigsawBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
         soundEnabled={soundEnabled}
         onToggleSound={onToggleSound}
         onChangeSetup={onChangeSetup}

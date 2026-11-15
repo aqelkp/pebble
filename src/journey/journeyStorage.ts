@@ -3,6 +3,7 @@ import { ALL_LETTERS, isValidLetterId } from '../games/letter-train/letterData';
 import { GAME_REGISTRY, type GameRegistryEntry } from '../games/registry';
 import {
   TOTAL_ACTIVITIES,
+  type FunBreakPacingMode,
   type JourneyActivity,
   type JourneyDurationMode,
   type JourneyPlayerMode,
@@ -20,6 +21,14 @@ const JOURNEY_STORAGE_KEY = 'pebble.journey.v1';
 
 const ALL_GAME_IDS: GameRegistryEntry['id'][] = GAME_REGISTRY.map((g) => g.id);
 const VALID_GAME_ID_SET = new Set<string>(ALL_GAME_IDS);
+const LEGACY_PRE_FUN_GAMES: GameRegistryEntry['id'][] = [
+  'memory-match',
+  'letter-train',
+  'letter-river',
+  'picture-sudoku',
+  'number-safari',
+  'word-fun',
+];
 
 export function getDefaultJourneySettings(): JourneySettings {
   return {
@@ -28,8 +37,10 @@ export function getDefaultJourneySettings(): JourneySettings {
     durationMode: 'short',
     waitForVoiceIntro: true,
     playerMode: 'solo',
+    funBreakPacing: 'balanced',
     selectedLetters: [...ALL_LETTERS],
     enabledGames: [...ALL_GAME_IDS],
+    knownGames: [...ALL_GAME_IDS],
   };
 }
 
@@ -55,7 +66,23 @@ function normalizeLettersList(raw: unknown, fallback: LetterId[]): LetterId[] {
   return ALL_LETTERS.filter((letter) => unique.has(letter));
 }
 
-function normalizeEnabledGames(raw: unknown): GameRegistryEntry['id'][] {
+function normalizeKnownGames(raw: unknown): Set<GameRegistryEntry['id']> {
+  if (!Array.isArray(raw)) {
+    return new Set<GameRegistryEntry['id']>(LEGACY_PRE_FUN_GAMES);
+  }
+  const set = new Set<GameRegistryEntry['id']>();
+  for (const item of raw) {
+    if (typeof item === 'string' && VALID_GAME_ID_SET.has(item)) {
+      set.add(item as GameRegistryEntry['id']);
+    }
+  }
+  return set;
+}
+
+function normalizeEnabledGames(
+  raw: unknown,
+  knownSet: Set<GameRegistryEntry['id']>,
+): GameRegistryEntry['id'][] {
   if (!Array.isArray(raw)) return [...ALL_GAME_IDS];
   const unique = new Set<GameRegistryEntry['id']>();
   for (const item of raw) {
@@ -63,8 +90,21 @@ function normalizeEnabledGames(raw: unknown): GameRegistryEntry['id'][] {
       unique.add(item as GameRegistryEntry['id']);
     }
   }
+  // Auto-enroll newly introduced games for existing saved localStorage profiles
+  for (const gameId of ALL_GAME_IDS) {
+    if (!knownSet.has(gameId)) {
+      unique.add(gameId);
+    }
+  }
   if (unique.size === 0) return [...ALL_GAME_IDS];
   return ALL_GAME_IDS.filter((id) => unique.has(id));
+}
+
+function normalizeFunBreakPacing(raw: unknown): FunBreakPacingMode {
+  if (raw === 'balanced' || raw === 'every-2' || raw === 'every-3' || raw === 'off') {
+    return raw;
+  }
+  return 'balanced';
 }
 
 function sanitizeSettings(raw: unknown): JourneySettings {
@@ -85,6 +125,8 @@ function sanitizeSettings(raw: unknown): JourneySettings {
   const playerMode: JourneyPlayerMode =
     candidate.playerMode === 'two-player' ? 'two-player' : 'solo';
 
+  const knownSet = normalizeKnownGames(candidate.knownGames);
+
   return {
     guidedModeEnabled:
       typeof candidate.guidedModeEnabled === 'boolean'
@@ -97,8 +139,10 @@ function sanitizeSettings(raw: unknown): JourneySettings {
         ? candidate.waitForVoiceIntro
         : defaults.waitForVoiceIntro,
     playerMode,
+    funBreakPacing: normalizeFunBreakPacing(candidate.funBreakPacing),
     selectedLetters: normalizeLettersList(candidate.selectedLetters, defaults.selectedLetters),
-    enabledGames: normalizeEnabledGames(candidate.enabledGames),
+    enabledGames: normalizeEnabledGames(candidate.enabledGames, knownSet),
+    knownGames: [...ALL_GAME_IDS],
   };
 }
 

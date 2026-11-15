@@ -19,6 +19,16 @@ import {
 import type { PictureSudokuConfig } from './picture-sudoku/PictureSudokuSetup';
 import { DEFAULT_SUDOKU_SIZE } from './picture-sudoku/sudokuEngine';
 import type { GameId } from './registry';
+import {
+  getDefaultRescueRoadConfig,
+  isValidRescueRoadConfig,
+  type RescueRoadConfig,
+} from './rescue-road/roadEngine';
+import {
+  getDefaultStickerJigsawConfig,
+  isValidStickerJigsawConfig,
+  type StickerJigsawConfig,
+} from './sticker-jigsaw/jigsawEngine';
 import type { WordGameConfig } from './word-fun/WordFunSetup';
 import {
   DEFAULT_WORD_HELPER_MODE,
@@ -41,6 +51,8 @@ export interface GameConfigMap {
   'picture-sudoku': PictureSudokuConfig;
   'word-fun': WordGameConfig;
   'number-safari': SafariGameConfig;
+  'rescue-road': RescueRoadConfig;
+  'sticker-jigsaw': StickerJigsawConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -138,6 +150,8 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'picture-sudoku': isValidPictureSudokuConfig,
   'word-fun': isValidWordGameConfig,
   'number-safari': isValidSafariConfig,
+  'rescue-road': isValidRescueRoadConfig,
+  'sticker-jigsaw': isValidStickerJigsawConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -188,5 +202,9 @@ export function getDefaultGameConfig<K extends GameId>(
         lengthId: DEFAULT_SAFARI_LENGTH_ID,
         playerIds: getDefaultFamilyPlayerIds(profiles),
       } as GameConfigMap[K];
+    case 'rescue-road':
+      return getDefaultRescueRoadConfig() as GameConfigMap[K];
+    case 'sticker-jigsaw':
+      return getDefaultStickerJigsawConfig() as GameConfigMap[K];
   }
 }

@@ -25,7 +25,7 @@ pebble/
 │   │   ├── ui/                 # Bundled UI voice clips (think-again, mistake explanations, daily-time-over.mp3)
 │   │   └── words/              # 173 spoken word MP3 clips synced from wordCatalog.json
 │   ├── avatars/                # 6 family avatar 512x512 PNGs
-│   ├── hub/                    # 5 hub illustration 512x512 PNGs (memory-match, letter-train, letter-river, number-safari, word-fun)
+│   ├── hub/                    # 8 hub illustration 512x512 PNGs (memory-match, letter-train, letter-river, picture-sudoku, number-safari, word-fun, rescue-road, sticker-jigsaw)
 │   ├── themes/
 │   │   ├── lion-king/          # 16 character 512x512 PNGs
 │   │   ├── kung-fu-panda/      # 16 character 512x512 PNGs
@@ -57,6 +57,8 @@ pebble/
 │   │   ├── memory-match/       # themes.ts, memoryStats.ts, soundEffects.ts, MemorySetup.tsx, MemoryBoard.tsx, MemoryRecordsModal.tsx
 │   │   ├── number-safari/      # safariData.ts, safariSounds.ts, SafariSetup.tsx, SafariBoard.tsx
 │   │   ├── picture-sudoku/     # sudokuEngine.ts, sudokuSounds.ts, PictureSudokuSetup.tsx, PictureSudokuBoard.tsx
+│   │   ├── rescue-road/        # roadEngine.ts, roadSounds.ts, RescueRoadSetup.tsx, RescueRoadBoard.tsx
+│   │   ├── sticker-jigsaw/     # jigsawEngine.ts, jigsawSounds.ts, StickerJigsawSetup.tsx, StickerJigsawBoard.tsx
 │   │   └── word-fun/           # wordBank.ts, WordFunArt.tsx, wordSounds.ts, WordFunSetup.tsx, WordFunBoard.tsx
 │   ├── pages/                  # ActivityBookPage, GameHubPage, FamilyProfilesPage, ParentInsightsPage, ParentJourneySettingsPage
 │   ├── styles/tokens.css

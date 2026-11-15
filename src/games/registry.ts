@@ -6,7 +6,9 @@ export type GameId =
   | 'letter-river'
   | 'picture-sudoku'
   | 'number-safari'
-  | 'word-fun';
+  | 'word-fun'
+  | 'rescue-road'
+  | 'sticker-jigsaw';
 
 export type HubShelfId =
   | 'letters-words'
@@ -166,6 +168,46 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['numeracy', 'self-regulation'],
       targetSkills: ['quantity_counting', 'group_joining'],
       conceptUnitLabel: 'Numbers 1–10 & Joining',
+    },
+  },
+  {
+    id: 'rescue-road',
+    title: 'Rescue Road',
+    description:
+      'Snap curved and straight road tiles into empty spots to connect the garage to the finish flag and send the rescue truck driving across!',
+    badgeText: 'Fun Break',
+    ageHint: 'Ages 3–6 • Spatial Paths',
+    artPath: 'hub/rescue-road.png',
+    shelf: 'fun-rewards',
+    status: 'available',
+    featured: false,
+    activityRole: 'reward',
+    learningIntent: {
+      summary:
+        'Joyful Fun Break reward game that builds spatial path planning, directional curves, and road connectivity without pressure.',
+      domains: ['cognition', 'self-regulation'],
+      targetSkills: ['grid_deduction'],
+      conceptUnitLabel: 'Spatial Path Building',
+    },
+  },
+  {
+    id: 'sticker-jigsaw',
+    title: 'Sticker Jigsaw',
+    description:
+      'Drag and tap chunky illustrated pieces onto the silhouette board to snap together favorite character stickers from every Pebble theme!',
+    badgeText: 'Fun Break',
+    ageHint: 'Ages 3–6 • Sticker Puzzles',
+    artPath: 'hub/sticker-jigsaw.png',
+    shelf: 'fun-rewards',
+    status: 'available',
+    featured: false,
+    activityRole: 'reward',
+    learningIntent: {
+      summary:
+        'Calm Fun Break reward game strengthening visual part-to-whole matching, shape awareness, and fine motor placement.',
+      domains: ['cognition', 'self-regulation'],
+      targetSkills: ['visual_recall'],
+      conceptUnitLabel: 'Visual Jigsaw Matching',
     },
   },
 ];

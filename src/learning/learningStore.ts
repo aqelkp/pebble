@@ -72,6 +72,8 @@ const VALID_GAME_IDS = new Set<GameId>([
   'picture-sudoku',
   'number-safari',
   'word-fun',
+  'rescue-road',
+  'sticker-jigsaw',
 ]);
 
 const VALID_SKILL_TYPES = new Set<SkillType>([

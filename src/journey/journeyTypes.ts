@@ -6,6 +6,8 @@ import type { ThemeId } from '../games/memory-match/themes';
 import type { SafariGameConfig } from '../games/number-safari/SafariSetup';
 import type { PictureSudokuConfig } from '../games/picture-sudoku/PictureSudokuSetup';
 import type { GameRegistryEntry } from '../games/registry';
+import type { RescueRoadConfig } from '../games/rescue-road/roadEngine';
+import type { StickerJigsawConfig } from '../games/sticker-jigsaw/jigsawEngine';
 import type { WordGameConfig } from '../games/word-fun/WordFunSetup';
 
 export const TOTAL_CHAPTERS = 20;
@@ -15,6 +17,7 @@ export const TOTAL_ACTIVITIES = TOTAL_CHAPTERS * ACTIVITIES_PER_CHAPTER;
 export type JourneyDurationMode = 'short' | 'standard';
 export type LettersPerLesson = 3 | 4 | 5;
 export type JourneyPlayerMode = 'solo' | 'two-player';
+export type FunBreakPacingMode = 'balanced' | 'every-2' | 'every-3' | 'off';
 
 export type JourneyVoiceClipId =
   | 'memory-match'
@@ -23,7 +26,9 @@ export type JourneyVoiceClipId =
   | 'picture-sudoku'
   | 'word-fun'
   | 'number-safari-count'
-  | 'number-safari-add';
+  | 'number-safari-add'
+  | 'rescue-road'
+  | 'sticker-jigsaw';
 
 export interface JourneyBoardContext {
   chapterNumber: number;
@@ -39,8 +44,10 @@ export interface JourneySettings {
   durationMode: JourneyDurationMode;
   waitForVoiceIntro: boolean;
   playerMode: JourneyPlayerMode;
+  funBreakPacing: FunBreakPacingMode;
   selectedLetters: LetterId[];
   enabledGames: GameRegistryEntry['id'][];
+  knownGames?: GameRegistryEntry['id'][];
 }
 
 export interface JourneyProgressState {
@@ -57,7 +64,9 @@ export type JourneyActivityPayload =
   | { gameId: 'letter-river'; config: LetterRiverConfig }
   | { gameId: 'picture-sudoku'; config: PictureSudokuConfig }
   | { gameId: 'word-fun'; config: WordGameConfig }
-  | { gameId: 'number-safari'; config: SafariGameConfig };
+  | { gameId: 'number-safari'; config: SafariGameConfig }
+  | { gameId: 'rescue-road'; config: RescueRoadConfig }
+  | { gameId: 'sticker-jigsaw'; config: StickerJigsawConfig };
 
 export interface JourneyActivity {
   index: number;
@@ -65,6 +74,7 @@ export interface JourneyActivity {
   chapterNumber: number;
   numberInChapter: number;
   gameId: GameRegistryEntry['id'];
+  isFunBreak?: boolean;
   title: string;
   subtitle: string;
   detailLine: string;
@@ -107,6 +117,6 @@ export interface JourneyActivityAdapter {
   gameId: GameRegistryEntry['id'];
   title: string;
   artPath: string;
-  category: 'phonics' | 'math' | 'logic' | 'memory' | 'words';
+  category: 'phonics' | 'math' | 'logic' | 'memory' | 'words' | 'fun';
   buildActivity: (ctx: JourneyAdapterContext) => JourneyGeneratedFields;
 }

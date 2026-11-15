@@ -4,6 +4,7 @@ import { CARD_THEMES, type BoardSizeId } from '../games/memory-match/themes';
 import { getSafariModeSpec, type SafariLengthId, type SafariModeId } from '../games/number-safari/safariData';
 import type { SudokuSize } from '../games/picture-sudoku/sudokuEngine';
 import type { GameRegistryEntry } from '../games/registry';
+import { RESCUE_VEHICLES } from '../games/rescue-road/roadEngine';
 import { getWordPackSpec, type WordPackId, type WordRoundSizeId } from '../games/word-fun/wordBank';
 import type { JourneyActivityAdapter } from './journeyTypes';
 
@@ -240,6 +241,74 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
             modeId,
             lengthId,
             playerIds: ctx.playerIds,
+          },
+        },
+      };
+    },
+  },
+
+  'rescue-road': {
+    gameId: 'rescue-road',
+    title: 'Rescue Road',
+    artPath: 'hub/rescue-road.png',
+    category: 'fun',
+    buildActivity: (ctx) => {
+      const size =
+        ctx.settings.durationMode === 'short' || ctx.chapterNumber <= 4 ? '3x3' : '3x4';
+      const roundSize = ctx.settings.durationMode === 'short' ? '2-roads' : '3-roads';
+      const roadsCount = roundSize === '2-roads' ? 2 : 3;
+      const vehicle = RESCUE_VEHICLES[ctx.gameOrdinal % RESCUE_VEHICLES.length];
+      const theme = CARD_THEMES[(ctx.gameOrdinal * 3 + 1) % CARD_THEMES.length];
+
+      return {
+        title: 'Rescue Road',
+        subtitle: `${vehicle.label} • ${roadsCount} roads`,
+        detailLine: `Fun Break · Connect road tiles for ${theme.title}`,
+        artPath: 'hub/rescue-road.png',
+        voiceClipId: 'rescue-road',
+        previewThemeId: theme.id,
+        payload: {
+          gameId: 'rescue-road',
+          config: {
+            size,
+            roundSize,
+            vehicleId: vehicle.id,
+            themeId: theme.id,
+          },
+        },
+      };
+    },
+  },
+
+  'sticker-jigsaw': {
+    gameId: 'sticker-jigsaw',
+    title: 'Sticker Jigsaw',
+    artPath: 'hub/sticker-jigsaw.png',
+    category: 'fun',
+    buildActivity: (ctx) => {
+      const size =
+        ctx.settings.durationMode === 'short'
+          ? '2x2'
+          : ctx.chapterNumber >= 5 && ctx.gameOrdinal % 3 === 2
+            ? '3x3'
+            : '2x3';
+      const roundSize = ctx.settings.durationMode === 'short' ? '2-puzzles' : '3-puzzles';
+      const puzzlesCount = roundSize === '2-puzzles' ? 2 : 3;
+      const theme = CARD_THEMES[(ctx.gameOrdinal * 5 + 2) % CARD_THEMES.length];
+
+      return {
+        title: 'Sticker Jigsaw',
+        subtitle: `${theme.title} • ${puzzlesCount} stickers`,
+        detailLine: `Fun Break · Snap ${size.replace('x', '×')} ${theme.title} stickers`,
+        artPath: 'hub/sticker-jigsaw.png',
+        voiceClipId: 'sticker-jigsaw',
+        previewThemeId: theme.id,
+        payload: {
+          gameId: 'sticker-jigsaw',
+          config: {
+            size,
+            roundSize,
+            themeId: theme.id,
           },
         },
       };

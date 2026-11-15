@@ -121,6 +121,66 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     );
   }
 
+  if (activity.gameId === 'rescue-road') {
+    return (
+      <div className="intro-demo-stage intro-demo-stage--road" aria-hidden="true">
+        <div className="intro-demo-road-strip">
+          <span className="intro-demo-road-end">Garage</span>
+          <div className="intro-demo-road-slot">
+            <svg viewBox="0 0 100 100" className="intro-demo-road-drop">
+              <rect x="4" y="4" width="92" height="92" rx="16" fill="#EAF5EF" />
+              <path d="M 0 50 L 100 50" stroke="#D5C39D" strokeWidth="46" fill="none" />
+              <path d="M 0 50 L 100 50" stroke="#4C556A" strokeWidth="36" fill="none" />
+              <path
+                d="M 8 50 L 92 50"
+                stroke="#FFF8EA"
+                strokeWidth="5"
+                strokeDasharray="10 10"
+                fill="none"
+              />
+            </svg>
+          </div>
+          <span className="intro-demo-road-end intro-demo-road-end--finish">Finish</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (activity.gameId === 'sticker-jigsaw') {
+    const theme = getThemeSpec(activity.previewThemeId ?? 'lion-king');
+    const char = theme.characters[0];
+    return (
+      <div className="intro-demo-stage intro-demo-stage--jigsaw" aria-hidden="true">
+        <div className="intro-demo-jigsaw-grid">
+          {[0, 1, 2, 3].map((idx) => {
+            const r = Math.floor(idx / 2);
+            const c = idx % 2;
+            const isTarget = idx === 3;
+            return (
+              <div
+                key={idx}
+                className={`intro-demo-jigsaw-cell ${isTarget ? 'intro-demo-jigsaw-cell--target' : ''}`}
+              >
+                <div className={`sj-crop-box ${isTarget ? 'intro-demo-sudoku-drop' : ''}`}>
+                  <img
+                    src={assetUrl(char.imagePath)}
+                    alt=""
+                    style={{
+                      width: '200%',
+                      height: '200%',
+                      left: `${-c * 100}%`,
+                      top: `${-r * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="intro-demo-stage intro-demo-stage--safari" aria-hidden="true">
       <div className="intro-demo-safari-animals">

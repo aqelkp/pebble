@@ -201,6 +201,9 @@ export function ActivityBookPage({
               <span className="badge-pill badge-pill--indigo">
                 Activity #{currentActivity.activityNumber} • Up Next
               </span>
+              {currentActivity.isFunBreak && (
+                <span className="badge-pill badge-pill--coral">Fun Break</span>
+              )}
               <span className="badge-pill badge-pill--mint">
                 {durationLabel}
               </span>
@@ -243,11 +246,11 @@ export function ActivityBookPage({
               <button
                 key={act.index}
                 type="button"
-                className={`ab-node ${statusClass}`}
+                className={`ab-node ${statusClass} ${act.isFunBreak ? 'ab-node--fun' : ''}`}
                 disabled={!isCurrent}
                 aria-label={`Activity #${act.activityNumber}: ${act.title}, ${act.subtitle}${
-                  isDone ? ', completed' : isCurrent ? ', current activity' : ', locked'
-                }`}
+                  act.isFunBreak ? ', fun break' : ''
+                }${isDone ? ', completed' : isCurrent ? ', current activity' : ', locked'}`}
                 onClick={() => {
                   if (isCurrent) {
                     onStartActivity(act);
@@ -256,6 +259,9 @@ export function ActivityBookPage({
               >
                 <div className="ab-node__top">
                   <span className="ab-node__num">#{act.activityNumber}</span>
+                  {act.isFunBreak && !isDone && !isCurrent && (
+                    <span className="ab-node__fun-tag">Fun</span>
+                  )}
                   {isDone && (
                     <span className="ab-node__badge ab-node__badge--done" aria-hidden="true">
                       ✓
