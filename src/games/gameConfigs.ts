@@ -63,6 +63,11 @@ import {
   isValidWordPeekabooConfig,
   type WordPeekabooConfig,
 } from './word-peekaboo/peekabooData';
+import {
+  getDefaultQuestConfigForSkin,
+  isValidQuestGameConfig,
+  type QuestGameConfig,
+} from '../curriculum/questEngine/questTypes';
 
 // TODO(security): Pebble runs 100% locally in the browser as a static client-only PWA with no
 // backend server, authentication, or database. All saved game configuration objects restored from
@@ -83,6 +88,10 @@ export interface GameConfigMap {
   'spot-the-twin': SpotTheTwinConfig;
   'dot-to-dot': DotToDotConfig;
   'word-peekaboo': WordPeekabooConfig;
+  'mystery-express': QuestGameConfig;
+  'pebble-creek': QuestGameConfig;
+  'cloud-balloon': QuestGameConfig;
+  'treasure-keys': QuestGameConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -193,6 +202,10 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'spot-the-twin': isValidSpotTheTwinConfig,
   'dot-to-dot': isValidDotToDotConfig,
   'word-peekaboo': isValidWordPeekabooConfig,
+  'mystery-express': isValidQuestGameConfig,
+  'pebble-creek': isValidQuestGameConfig,
+  'cloud-balloon': isValidQuestGameConfig,
+  'treasure-keys': isValidQuestGameConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -257,5 +270,13 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultDotToDotConfig() as GameConfigMap[K];
     case 'word-peekaboo':
       return getDefaultWordPeekabooConfig() as GameConfigMap[K];
+    case 'mystery-express':
+      return getDefaultQuestConfigForSkin('mystery-express') as GameConfigMap[K];
+    case 'pebble-creek':
+      return getDefaultQuestConfigForSkin('pebble-creek') as GameConfigMap[K];
+    case 'cloud-balloon':
+      return getDefaultQuestConfigForSkin('cloud-balloon') as GameConfigMap[K];
+    case 'treasure-keys':
+      return getDefaultQuestConfigForSkin('treasure-keys') as GameConfigMap[K];
   }
 }

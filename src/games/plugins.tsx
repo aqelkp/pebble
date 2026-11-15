@@ -1,5 +1,6 @@
 import { lazy, type ReactNode } from 'react';
 import type { FamilyProfile } from '../context/FamilyProfilesContext';
+import type { AdventureSkinId } from '../curriculum/questEngine/questTypes';
 import type { JourneyBoardContext } from '../journey/journeyTypes';
 import {
   getDefaultGameConfig,
@@ -120,6 +121,16 @@ const WordPeekabooBoard = lazy(() =>
     default: m.WordPeekabooBoard,
   })),
 );
+const QuestAdventureSetup = lazy(() =>
+  import('./quest-adventures/QuestAdventureSetup').then((m) => ({
+    default: m.QuestAdventureSetup,
+  })),
+);
+const QuestAdventureBoard = lazy(() =>
+  import('./quest-adventures/QuestAdventureBoard').then((m) => ({
+    default: m.QuestAdventureBoard,
+  })),
+);
 
 export interface LeaveGameCopy {
   headline: string;
@@ -189,6 +200,59 @@ function makeConfigAccessors<K extends GameId>(gameId: K) {
       isValidGameConfig(gameId, value),
     getDefaultConfig: (profiles: readonly FamilyProfile[]): GameConfigMap[K] =>
       getDefaultGameConfig(gameId, profiles),
+  };
+}
+
+function makeQuestPlugin<K extends AdventureSkinId>(
+  skinId: K,
+  leaveCopy: LeaveGameCopy,
+): GamePlugin<K> {
+  return {
+    id: skinId,
+    activeSessionStorageKey: `pebble.quest.${skinId}.active.v1`,
+    leaveCopy,
+    ...makeConfigAccessors(skinId),
+    preloadChunks: () =>
+      Promise.all([
+        import('./quest-adventures/QuestAdventureSetup'),
+        import('./quest-adventures/QuestAdventureBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onStartGame }) => (
+      <QuestAdventureSetup
+        skinId={skinId}
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig(skinId, profiles)}
+        onBackToHub={onBackToHub}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <QuestAdventureBoard
+        key={gameKey}
+        skinId={skinId}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
   };
 }
 
@@ -838,6 +902,30 @@ const GAME_PLUGINS: GamePluginRegistry = {
       />
     ),
   },
+
+  'mystery-express': makeQuestPlugin('mystery-express', {
+    headline: 'Leave Mystery Express?',
+    subtitle: 'Your train progress across this route will reset.',
+    keepPlayingLabel: 'Keep Riding',
+  }),
+
+  'pebble-creek': makeQuestPlugin('pebble-creek', {
+    headline: 'Leave Pebble Creek Bridge?',
+    subtitle: 'Your stepping stones across the stream will reset.',
+    keepPlayingLabel: 'Keep Crossing',
+  }),
+
+  'cloud-balloon': makeQuestPlugin('cloud-balloon', {
+    headline: 'Leave Cloud Balloon Quest?',
+    subtitle: 'Your balloon sky trip will reset.',
+    keepPlayingLabel: 'Keep Floating',
+  }),
+
+  'treasure-keys': makeQuestPlugin('treasure-keys', {
+    headline: 'Leave 5-Key Treasure Chest?',
+    subtitle: 'Your unlocked keys on this chest will reset.',
+    keepPlayingLabel: 'Keep Unlocking',
+  }),
 };
 
 const preloadedPlugins = new Set<GameId>();

@@ -13,11 +13,16 @@ export type GameId =
   | 'sticker-scene'
   | 'spot-the-twin'
   | 'dot-to-dot'
-  | 'word-peekaboo';
+  | 'word-peekaboo'
+  | 'mystery-express'
+  | 'pebble-creek'
+  | 'cloud-balloon'
+  | 'treasure-keys';
 
 export type HubShelfId =
   | 'letters-words'
   | 'numbers-logic'
+  | 'world-discovery'
   | 'draw-create'
   | 'fun-rewards';
 
@@ -29,6 +34,7 @@ export interface HubShelfSpec {
 export const HUB_SHELVES: readonly HubShelfSpec[] = [
   { id: 'letters-words', label: 'Letters & Words' },
   { id: 'numbers-logic', label: 'Numbers & Logic' },
+  { id: 'world-discovery', label: 'World & Discovery' },
   { id: 'draw-create', label: 'Draw & Color' },
   { id: 'fun-rewards', label: 'Fun & Rewards' },
 ];
@@ -296,12 +302,92 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     },
   },
   {
+    id: 'mystery-express',
+    title: 'Mystery Express',
+    description:
+      'Solve stopped railway gate puzzles — Numbers 0–50, Tens & Ones, Ordinals, Shapes, Reading Phrases, or World Discovery — to chug across 5 stations!',
+    badgeText: 'K1 Quest',
+    ageHint: 'K1 / LKG • Any K1 Topic',
+    artPath: 'hub/mystery-express.png',
+    shelf: 'numbers-logic',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Narrative railway puzzle gates powered by the Universal K1 Quest Engine across numbers 0–50, place value, shapes, reading phrases, and general awareness.',
+      domains: ['numeracy', 'cognition', 'literacy', 'general-awareness', 'self-regulation'],
+      targetSkills: ['number_sense_50', 'shapes_premath', 'sequence_order', 'phrase_reading', 'general_awareness'],
+      conceptUnitLabel: 'Numbers 0–50 & K1 Quests',
+    },
+  },
+  {
+    id: 'pebble-creek',
+    title: 'Pebble Creek Bridge',
+    description:
+      'Splash smooth stepping stones into the stream by solving 2D & 3D shapes, ABAB patterns, volume beakers, bar graphs, or any K1 quest pack!',
+    badgeText: 'K1 Quest',
+    ageHint: 'K1 / LKG • Shapes & Pre-Math',
+    artPath: 'hub/pebble-creek.png',
+    shelf: 'numbers-logic',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'River stepping-stone adventure building 2D/3D shape recognition, repeating patterns, informal measurement, spatial directions, and bar graph reading.',
+      domains: ['numeracy', 'cognition', 'general-awareness', 'self-regulation'],
+      targetSkills: ['shapes_premath', 'sequence_order', 'number_sense_50', 'general_awareness'],
+      conceptUnitLabel: 'Shapes, Patterns & Pre-Math',
+    },
+  },
+  {
+    id: 'cloud-balloon',
+    title: 'Cloud Balloon Quest',
+    description:
+      'Float your hot-air balloon up to the stars by exploring 5 senses, community helpers, animal & plant lifecycles, transport, 3Rs, and the solar system!',
+    badgeText: 'K1 Quest',
+    ageHint: 'K1 / LKG • World & Science',
+    artPath: 'hub/cloud-balloon.png',
+    shelf: 'world-discovery',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Skyward balloon quest covering K1 General Awareness: 5 senses, healthy food, professions, butterfly/frog/plant lifecycles, 3Rs, and Sun/Moon/Planets.',
+      domains: ['general-awareness', 'cognition', 'self-regulation'],
+      targetSkills: ['general_awareness', 'sequence_order', 'picture_recognition'],
+      conceptUnitLabel: 'General Awareness & Science',
+    },
+  },
+  {
+    id: 'treasure-keys',
+    title: '5-Key Treasure Chest',
+    description:
+      'Read short sight-word + CVC phrases silently, blend middle & ending sounds, or mix any K1 quest pack to unlock all 5 golden keyholes!',
+    badgeText: 'K1 Quest',
+    ageHint: 'K1 / LKG • Phrases & Phonics',
+    artPath: 'hub/treasure-keys.png',
+    shelf: 'world-discovery',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Five-lock treasure chest adventure testing independent short phrase reading, CVC middle/ending sound discrimination, and rotating K1 quests.',
+      domains: ['literacy', 'general-awareness', 'numeracy', 'self-regulation'],
+      targetSkills: ['phrase_reading', 'sight_word_reading', 'word_spelling', 'general_awareness'],
+      conceptUnitLabel: 'Short Phrases & K1 Discovery',
+    },
+  },
+  {
     id: 'dot-to-dot',
     title: 'Dot-to-Dot',
     description:
-      'Connect numbered or lettered pebbles in order around each mystery shadow to watch full color bloom!',
-    badgeText: '1–10 & A–J',
-    ageHint: 'Ages 3–7 • Draw & Count',
+      'Connect pebbles 1–20, count backward 10→0, or follow letters A–T around each mystery shadow to watch full color bloom!',
+    badgeText: '1–20 & 10→0',
+    ageHint: 'Ages 3–7 • Forward & Countdown',
     artPath: 'hub/dot-to-dot.png',
     shelf: 'draw-create',
     status: 'available',
@@ -309,10 +395,10 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     activityRole: 'learning',
     learningIntent: {
       summary:
-        'Tactile sequential number counting (1–10) and alphabet ordering (A–J) with pencil-drag motor control and picture Color Bloom reveals.',
+        'Tactile sequential number counting (1–20), backward countdown (10→0), and alphabet ordering with pencil-drag motor control.',
       domains: ['numeracy', 'literacy', 'self-regulation'],
-      targetSkills: ['quantity_counting', 'letter_formation', 'picture_recognition'],
-      conceptUnitLabel: 'Dot Sequence Reveal',
+      targetSkills: ['quantity_counting', 'sequence_order', 'letter_formation', 'picture_recognition'],
+      conceptUnitLabel: 'Dot Sequence & Countdown',
     },
   },
 ];

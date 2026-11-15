@@ -16,9 +16,12 @@ import {
   loadTraceMastery,
   type LetterTraceConfig,
   type TraceCaseMode,
+  type TraceContentMode,
+  type TraceNumberRange,
   type TraceOrderMode,
   type TraceRoundSize,
 } from './traceData';
+import { ALL_SHAPE_TRACE_IDS, TRACEABLE_WORDS, getNumbersForRange } from './k1ExtraTraces';
 
 interface LetterTraceSetupProps {
   childProfile: FamilyProfile;
@@ -55,6 +58,12 @@ export function LetterTraceSetup({
   );
   const [orderMode, setOrderMode] = useState<TraceOrderMode>(
     initialConfig?.orderMode ?? defaults.orderMode,
+  );
+  const [traceMode, setTraceMode] = useState<TraceContentMode>(
+    initialConfig?.traceMode ?? 'letters',
+  );
+  const [numberRange, setNumberRange] = useState<TraceNumberRange>(
+    initialConfig?.numberRange ?? '0-50',
   );
   const [mastery] = useState(() => loadTraceMastery());
   const [letterHint, setLetterHint] = useState<string | null>(null);
@@ -101,16 +110,32 @@ export function LetterTraceSetup({
       caseMode,
       roundSize,
       orderMode,
+      traceMode,
+      numberRange,
     });
   };
 
-  const effectiveCount = Math.min(roundSize, selectedLetters.length);
+  const poolLength =
+    traceMode === 'letters'
+      ? selectedLetters.length
+      : traceMode === 'shapes'
+        ? ALL_SHAPE_TRACE_IDS.length
+        : traceMode === 'words'
+          ? TRACEABLE_WORDS.length
+          : getNumbersForRange(numberRange).length;
+  const effectiveCount = Math.min(roundSize, poolLength);
   const caseSummary =
-    caseMode === 'both'
-      ? 'Both (A a)'
-      : caseMode === 'upper'
-        ? 'Capitals (A)'
-        : 'Small (a)';
+    traceMode === 'numbers'
+      ? `Numbers (${numberRange})`
+      : traceMode === 'shapes'
+        ? '2D Shapes'
+        : traceMode === 'words'
+          ? 'Sight & CVC Words'
+          : caseMode === 'both'
+            ? 'Both (A a)'
+            : caseMode === 'upper'
+              ? 'Capitals (A)'
+              : 'Small (a)';
 
   return (
     <div className="app-shell">
@@ -147,13 +172,68 @@ export function LetterTraceSetup({
           <span className="tr-hero-low">a</span>
         </div>
         <div className="tr-setup-hero__copy">
-          <h1 className="tr-setup-hero__title">Letter Trace</h1>
+          <h1 className="tr-setup-hero__title">Letter, Number &amp; Word Trace</h1>
           <p className="tr-setup-hero__sub">
-            Follow the numbered circles and arrows in strict order — only the active stroke unlocks!
+            Follow the numbered circles and arrows in strict order — write A–Z, Numbers 0–50, 2D Shapes, or K1 Words!
           </p>
         </div>
       </section>
 
+      <section className="setup-card" style={{ marginBottom: 14 }}>
+        <h2 className="setup-section-title" style={{ marginBottom: 8 }}>
+          What to Write Today
+        </h2>
+        <div className="tr-preset-row" role="radiogroup" aria-label="Writing topic">
+          {(
+            [
+              ['letters', 'Letters A–Z'],
+              ['numbers', 'Numbers 0–50'],
+              ['words', 'Sight & CVC Words'],
+              ['shapes', '2D Shapes'],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={traceMode === id}
+              className={`tr-preset-btn ${traceMode === id ? 'is-active' : ''}`}
+              data-testid={`trace-mode-${id}`}
+              onClick={() => setTraceMode(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {traceMode === 'numbers' && (
+          <div style={{ marginTop: 12 }}>
+            <span className="tr-sub-label">Number Range (0 to 50)</span>
+            <div className="tr-preset-row" role="group" aria-label="Number range">
+              {(
+                [
+                  ['0-50', 'All 0–50 Mix'],
+                  ['0-9', 'Digits 0–9'],
+                  ['10-20', 'Teens 10–20'],
+                  ['21-50', 'Big Numbers 21–50'],
+                ] as const
+              ).map(([rangeId, label]) => (
+                <button
+                  key={rangeId}
+                  type="button"
+                  className={`tr-preset-btn ${numberRange === rangeId ? 'is-active' : ''}`}
+                  data-testid={`trace-num-range-${rangeId}`}
+                  onClick={() => setNumberRange(rangeId)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {traceMode === 'letters' && (
       <section className="setup-card" style={{ marginBottom: 14 }}>
         <div className="tr-section-header">
           <div>
@@ -258,12 +338,14 @@ export function LetterTraceSetup({
           </p>
         )}
       </section>
+      )}
 
       <section className="setup-card" style={{ marginBottom: 14 }}>
         <h2 className="setup-section-title" style={{ marginBottom: 10 }}>
-          2. Tracing Style & Round
+          {traceMode === 'letters' ? '2. Tracing Style & Round' : 'Round Length & Order'}
         </h2>
 
+        {traceMode === 'letters' && (
         <div className="tr-case-grid" role="radiogroup" aria-label="Case display mode">
           <button
             type="button"
@@ -305,6 +387,7 @@ export function LetterTraceSetup({
             <small>Lowercase curves, fence tops &amp; root tails</small>
           </button>
         </div>
+        )}
 
         <div className="tr-options-split">
           <div>

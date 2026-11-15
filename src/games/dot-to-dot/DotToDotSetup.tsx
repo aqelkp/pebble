@@ -67,9 +67,11 @@ export function DotToDotSetup({
   const modeSummary =
     sequenceMode === 'numbers'
       ? `Numbers 1–${dotCount}`
-      : sequenceMode === 'letters'
-        ? `Letters A–${String.fromCharCode(64 + dotCount)}`
-        : `Mix (${dotCount} dots)`;
+      : sequenceMode === 'countdown'
+        ? `Countdown ${dotCount}→0`
+        : sequenceMode === 'letters'
+          ? `Letters A–${String.fromCharCode(64 + dotCount)}`
+          : `Mix (${dotCount} dots)`;
 
   return (
     <div className="app-shell">
@@ -127,7 +129,20 @@ export function DotToDotSetup({
           >
             <span className="dtd-mode-card__pill">1 → {dotCount}</span>
             <strong>Numbers</strong>
-            <small>Count out loud around every shadow</small>
+            <small>Count forward 1 to {dotCount}</small>
+          </button>
+
+          <button
+            type="button"
+            role="radio"
+            aria-checked={sequenceMode === 'countdown'}
+            className={`dtd-mode-card ${sequenceMode === 'countdown' ? 'is-selected' : ''}`}
+            data-testid="dot-mode-countdown"
+            onClick={() => setSequenceMode('countdown')}
+          >
+            <span className="dtd-mode-card__pill">{dotCount} → 0</span>
+            <strong>Countdown</strong>
+            <small>Count backward down to Zero</small>
           </button>
 
           <button
@@ -142,7 +157,7 @@ export function DotToDotSetup({
               A → {String.fromCharCode(64 + dotCount)}
             </span>
             <strong>Letters</strong>
-            <small>Follow alphabetical order A, B, C...</small>
+            <small>Alphabetical order A, B, C...</small>
           </button>
 
           <button
@@ -153,9 +168,9 @@ export function DotToDotSetup({
             data-testid="dot-mode-mix"
             onClick={() => setSequenceMode('mix')}
           >
-            <span className="dtd-mode-card__pill">1 + A</span>
+            <span className="dtd-mode-card__pill">1 + 0 + A</span>
             <strong>Surprise Mix</strong>
-            <small>Alternate numbers and letters each picture</small>
+            <small>Forward, countdown &amp; letters</small>
           </button>
         </div>
 
@@ -163,7 +178,7 @@ export function DotToDotSetup({
           <div>
             <span className="dtd-sub-label">Dots per Picture</span>
             <div className="dtd-seg-row" role="group" aria-label="Dots per picture">
-              {([6, 8, 10] as const).map((count) => (
+              {([6, 8, 10, 15, 20] as const).map((count) => (
                 <button
                   key={count}
                   type="button"
@@ -171,7 +186,7 @@ export function DotToDotSetup({
                   data-testid={`dot-count-${count}`}
                   onClick={() => setDotCount(count)}
                 >
-                  {count} Dots
+                  {count}
                 </button>
               ))}
             </div>

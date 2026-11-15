@@ -380,6 +380,34 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     );
   }
 
+  if (
+    activity.gameId === 'mystery-express' ||
+    activity.gameId === 'pebble-creek' ||
+    activity.gameId === 'cloud-balloon' ||
+    activity.gameId === 'treasure-keys'
+  ) {
+    return (
+      <div className="intro-demo-stage intro-demo-stage--train" aria-hidden="true">
+        <img
+          src={assetUrl(activity.artPath)}
+          alt=""
+          style={{
+            width: 88,
+            height: 88,
+            borderRadius: 20,
+            objectFit: 'cover',
+            boxShadow: '0 6px 16px rgba(30, 36, 51, 0.14)',
+          }}
+        />
+        <span className="intro-demo-arrow">→</span>
+        <div className="intro-demo-train-car">
+          <span className="intro-demo-train-car__letter">5</span>
+          <span className="intro-demo-train-car__sub">Quests</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="intro-demo-stage intro-demo-stage--safari" aria-hidden="true">
       <div className="intro-demo-safari-animals">

@@ -83,6 +83,22 @@ const JOURNEY_PROMPTS = [
     id: 'word-peekaboo',
     text: 'Listen to each word and tap it to uncover the hidden friend!',
   },
+  {
+    id: 'mystery-express',
+    text: 'Solve each puzzle at the railway gate to send the train chugging ahead!',
+  },
+  {
+    id: 'pebble-creek',
+    text: 'Solve each river puzzle to drop a stepping stone across Pebble Creek!',
+  },
+  {
+    id: 'cloud-balloon',
+    text: 'Solve each sky puzzle to float your hot air balloon higher into the clouds!',
+  },
+  {
+    id: 'treasure-keys',
+    text: 'Solve five puzzles to turn the golden keys and pop open the treasure chest!',
+  },
 ];
 
 const UI_PROMPTS = [
@@ -93,6 +109,10 @@ const UI_PROMPTS = [
   {
     id: 'trace-in-order',
     text: "Let's write in order! Start at the numbered circle and follow the arrow.",
+  },
+  {
+    id: 'look-closely-hint',
+    text: "Let's look closely at the clue together!",
   },
 ];
 

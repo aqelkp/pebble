@@ -1,6 +1,6 @@
 import { CANONICAL_WORDS } from '../../data/wordBank';
 
-export type WordPackId = 'all' | 'animals' | 'home' | 'play' | 'nature';
+export type WordPackId = 'all' | 'sight' | 'animals' | 'home' | 'play' | 'nature';
 
 export type WordRoundSizeId = '4' | '8' | '6' | '12';
 
@@ -38,7 +38,15 @@ export type WordArtId =
   | 'bug'
   | 'gem'
   | 'sky'
-  | 'sea';
+  | 'sea'
+  | 'the'
+  | 'see'
+  | 'can'
+  | 'you'
+  | 'are'
+  | 'she'
+  | 'all'
+  | 'for';
 
 export interface WordEntry {
   id: WordArtId;
@@ -84,9 +92,16 @@ export const WORD_PACKS: readonly WordPackSpec[] = [
   {
     id: 'all',
     title: 'All Cozy Words',
-    subtitle: '32 favorite words',
+    subtitle: '40 CVC & sight words',
     accentColor: '#5B5BD6',
     previewIds: ['cat', 'sun'],
+  },
+  {
+    id: 'sight',
+    title: 'K1 Sight Words',
+    subtitle: 'the, see, can, you...',
+    accentColor: '#6C5CE7',
+    previewIds: ['see', 'the'],
   },
   {
     id: 'animals',
@@ -160,18 +175,32 @@ export const WORD_HELPER_MODES: readonly WordHelperModeSpec[] = [
   },
 ];
 
-export const WORD_CATALOG: readonly WordEntry[] = CANONICAL_WORDS.flatMap((entry) => {
-  if (!entry.wordFun) return [];
-  return [
-    {
-      id: entry.id as WordArtId,
-      word: entry.word.toUpperCase(),
-      packId: entry.wordFun.packId,
-      clue: entry.wordFun.clue,
-      phonics: entry.wordFun.phonics,
-    },
-  ];
-});
+const SIGHT_WORD_ENTRIES: readonly WordEntry[] = [
+  { id: 'the', word: 'THE', packId: 'sight', clue: 'Open book story word: THE!', phonics: 'th - e' },
+  { id: 'see', word: 'SEE', packId: 'sight', clue: 'Two bright eyes that SEE!', phonics: 's - ee' },
+  { id: 'can', word: 'CAN', packId: 'sight', clue: 'I CAN jump and do it!', phonics: 'c - a - n' },
+  { id: 'you', word: 'YOU', packId: 'sight', clue: 'Pointing to wonderful YOU!', phonics: 'y - ou' },
+  { id: 'are', word: 'ARE', packId: 'sight', clue: 'Two happy pals ARE smiling!', phonics: 'ar - e' },
+  { id: 'she', word: 'SHE', packId: 'sight', clue: 'Friendly girl: SHE waves hi!', phonics: 'sh - e' },
+  { id: 'all', word: 'ALL', packId: 'sight', clue: 'Every pebble together: ALL!', phonics: 'a - ll' },
+  { id: 'for', word: 'FOR', packId: 'sight', clue: 'A cozy gift box FOR a friend!', phonics: 'f - or' },
+];
+
+export const WORD_CATALOG: readonly WordEntry[] = [
+  ...CANONICAL_WORDS.flatMap((entry) => {
+    if (!entry.wordFun) return [];
+    return [
+      {
+        id: entry.id as WordArtId,
+        word: entry.word.toUpperCase(),
+        packId: entry.wordFun.packId,
+        clue: entry.wordFun.clue,
+        phonics: entry.wordFun.phonics,
+      },
+    ];
+  }),
+  ...SIGHT_WORD_ENTRIES,
+];
 
 const DISTRACTOR_ALPHABET = [
   'A',

@@ -234,6 +234,10 @@ export function buildJourneyCurriculum(
     'spot-the-twin': 0,
     'dot-to-dot': 0,
     'word-peekaboo': 0,
+    'mystery-express': 0,
+    'pebble-creek': 0,
+    'cloud-balloon': 0,
+    'treasure-keys': 0,
   };
 
   return gameSequence.map((gameId, slotIndex) => {

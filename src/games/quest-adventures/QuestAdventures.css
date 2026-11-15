@@ -1,0 +1,468 @@
+.quest-board-wrap {
+  width: 100%;
+  height: 100%;
+  max-width: 736px;
+  margin: 0 auto;
+  padding: 4px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.quest-world-strip {
+  position: relative;
+  flex: 0 0 auto;
+  height: clamp(132px, 18.5dvh, 176px);
+  border-radius: 22px;
+  overflow: hidden;
+  border: 2px solid rgba(30, 36, 51, 0.08);
+  box-shadow: 0 6px 18px rgba(30, 36, 51, 0.06);
+  background: #eaf6f3;
+}
+
+.quest-world-strip__hud {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.quest-world-pill {
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.84rem;
+  box-shadow: 0 2px 6px rgba(30, 36, 51, 0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quest-crown-pill {
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #b57c14;
+  box-shadow: 0 2px 6px rgba(30, 36, 51, 0.08);
+  transition: opacity 200ms ease;
+}
+
+.quest-crown-pill--dimmed {
+  color: var(--text-secondary);
+  opacity: 0.72;
+}
+
+.quest-prompt-card {
+  flex: 1 1 auto;
+  min-height: 0;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 2px solid #e7e3d8;
+  box-shadow: 0 8px 24px rgba(30, 36, 51, 0.05);
+  padding: 12px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.quest-prompt-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.quest-prompt-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.quest-prompt-badge {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #ecebff;
+  color: #5b5bd6;
+}
+
+.quest-prompt-text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.06rem, 2.2vw, 1.28rem);
+  font-weight: 700;
+  line-height: 1.24;
+  color: var(--text-primary);
+}
+
+.quest-prompt-subtext {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+
+.quest-speaker-btn {
+  flex: 0 0 auto;
+  padding: 8px 13px;
+  border-radius: 999px;
+  border: 2px solid #dcd8ff;
+  background: #f5f4ff;
+  color: #5b5bd6;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: transform 140ms ease, background 140ms ease;
+}
+
+.quest-speaker-btn:active {
+  transform: scale(0.96);
+}
+
+.quest-feedback-banner {
+  flex: 0 0 auto;
+  min-height: 44px;
+  border-radius: 14px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.96rem;
+  line-height: 1.28;
+}
+
+.quest-feedback-banner--success {
+  background: #e4f6f3;
+  border: 2px solid #3ba99c;
+  color: #1d6b61;
+}
+
+.quest-feedback-banner--teach {
+  background: #f8f6f1;
+  border: 2px solid #d5cfc2;
+  color: #363e52;
+}
+
+.quest-widget-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.quest-prompt-hero {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+/* 1. ChoiceGrid */
+.quest-choice-grid {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  align-content: center;
+}
+
+.quest-choice-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.quest-choice-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.quest-choice-grid--4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.quest-choice-btn {
+  min-height: 108px;
+  max-height: 186px;
+  padding: 12px 10px;
+  border-radius: 20px;
+  border: 2.5px solid #e5e0d5;
+  background: #fcfbf8;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.quest-choice-btn:hover:not(:disabled) {
+  border-color: #b7b5f5;
+  background: #ffffff;
+}
+
+.quest-choice-btn--correct {
+  background: #e4f6f3 !important;
+  border-color: #3ba99c !important;
+  transform: scale(1.03);
+}
+
+.quest-choice-btn--wrong-nudge {
+  background: #f4f2ec !important;
+  border-color: #c8c2b4 !important;
+  transform: translateX(3px);
+}
+
+.quest-choice-btn__large {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.05;
+  color: #1e2433;
+}
+
+.quest-choice-btn__label {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: #1e2433;
+  text-align: center;
+}
+
+.quest-choice-btn__sub {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* 2. SequenceStrip */
+.quest-seq-slots {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quest-seq-slot {
+  min-height: 104px;
+  border-radius: 18px;
+  border: 2.5px dashed #c8c4e8;
+  background: #f8f7ff;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+}
+
+.quest-seq-slot--active {
+  border-color: #5b5bd6;
+  background: #ecebff;
+}
+
+.quest-seq-slot--filled {
+  border-style: solid;
+  border-color: #3ba99c;
+  background: #e4f6f3;
+}
+
+.quest-seq-slot__num {
+  position: absolute;
+  top: 6px;
+  left: 7px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #5b5bd6;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quest-seq-pool {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quest-seq-card {
+  min-height: 108px;
+  border-radius: 18px;
+  border: 2.5px solid #e5e0d5;
+  background: #ffffff;
+  padding: 8px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+.quest-seq-card:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* 3. MiniSorter */
+.quest-sort-tray {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quest-sort-item {
+  min-height: 98px;
+  border-radius: 18px;
+  border: 2.5px solid #e5e0d5;
+  background: #ffffff;
+  padding: 8px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.quest-sort-item--selected {
+  border-color: #5b5bd6;
+  background: #ecebff;
+  box-shadow: 0 0 0 3px rgba(91, 91, 214, 0.18);
+}
+
+.quest-sort-item--sorted {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.quest-sort-baskets {
+  display: grid;
+  gap: 12px;
+}
+
+.quest-sort-basket {
+  min-height: 106px;
+  border-radius: 20px;
+  border: 3px dashed #c8c2b4;
+  background: #fcfbf8;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* 4. TensOnesTray */
+.quest-tens-workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.quest-tens-zone {
+  border-radius: 20px;
+  border: 2.5px solid #e5e0d5;
+  background: #fcfbf8;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.quest-tens-visual {
+  min-height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.quest-tens-controls {
+  display: flex;
+  gap: 8px;
+}
+
+/* 5. VisualStrip */
+.quest-strip-box {
+  border-radius: 18px;
+  background: #f8f6f1;
+  border: 2px solid #e7e3d8;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Setup grid */
+.quest-pack-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quest-pack-tile {
+  border-radius: 18px;
+  border: 2.5px solid #e5e0d5;
+  background: #ffffff;
+  padding: 10px 10px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.quest-pack-tile--active {
+  border-color: #5b5bd6;
+  background: #f4f3ff;
+}
+
+@media (max-width: 620px) {
+  .quest-pack-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

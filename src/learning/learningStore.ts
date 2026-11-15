@@ -84,6 +84,10 @@ const VALID_GAME_IDS = new Set<GameId>([
   'spot-the-twin',
   'dot-to-dot',
   'word-peekaboo',
+  'mystery-express',
+  'pebble-creek',
+  'cloud-balloon',
+  'treasure-keys',
 ]);
 
 const VALID_SKILL_TYPES = new Set<SkillType>([
@@ -96,6 +100,11 @@ const VALID_SKILL_TYPES = new Set<SkillType>([
   'grid_deduction',
   'visual_recall',
   'sight_word_reading',
+  'phrase_reading',
+  'number_sense_50',
+  'shapes_premath',
+  'general_awareness',
+  'sequence_order',
 ]);
 
 function clampInt(value: unknown, min: number, max: number, fallback: number): number {

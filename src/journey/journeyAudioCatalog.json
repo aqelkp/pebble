@@ -896,6 +896,303 @@
           "endMs": 3512
         }
       ]
+    },
+    "mystery-express": {
+      "id": "mystery-express",
+      "text": "Solve each puzzle at the railway gate to send the train chugging ahead!",
+      "audioPath": "audio/journey/mystery-express.mp3",
+      "durationMs": 4093,
+      "words": [
+        {
+          "word": "Solve",
+          "startMs": 0,
+          "endMs": 372
+        },
+        {
+          "word": "each",
+          "startMs": 372,
+          "endMs": 454
+        },
+        {
+          "word": "puzzle",
+          "startMs": 454,
+          "endMs": 948
+        },
+        {
+          "word": "at",
+          "startMs": 948,
+          "endMs": 1226
+        },
+        {
+          "word": "the",
+          "startMs": 1226,
+          "endMs": 1348
+        },
+        {
+          "word": "railway",
+          "startMs": 1348,
+          "endMs": 1828
+        },
+        {
+          "word": "gate",
+          "startMs": 1828,
+          "endMs": 2200
+        },
+        {
+          "word": "to",
+          "startMs": 2200,
+          "endMs": 2417
+        },
+        {
+          "word": "send",
+          "startMs": 2417,
+          "endMs": 2529
+        },
+        {
+          "word": "the",
+          "startMs": 2529,
+          "endMs": 2902
+        },
+        {
+          "word": "train",
+          "startMs": 2902,
+          "endMs": 2998
+        },
+        {
+          "word": "chugging",
+          "startMs": 2998,
+          "endMs": 3487
+        },
+        {
+          "word": "ahead!",
+          "startMs": 3487,
+          "endMs": 4093
+        }
+      ]
+    },
+    "pebble-creek": {
+      "id": "pebble-creek",
+      "text": "Solve each river puzzle to drop a stepping stone across Pebble Creek!",
+      "audioPath": "audio/journey/pebble-creek.mp3",
+      "durationMs": 4141,
+      "words": [
+        {
+          "word": "Solve",
+          "startMs": 0,
+          "endMs": 231
+        },
+        {
+          "word": "each",
+          "startMs": 231,
+          "endMs": 551
+        },
+        {
+          "word": "river",
+          "startMs": 551,
+          "endMs": 1068
+        },
+        {
+          "word": "puzzle",
+          "startMs": 1068,
+          "endMs": 1530
+        },
+        {
+          "word": "to",
+          "startMs": 1530,
+          "endMs": 1746
+        },
+        {
+          "word": "drop",
+          "startMs": 1746,
+          "endMs": 1832
+        },
+        {
+          "word": "a",
+          "startMs": 1832,
+          "endMs": 2163
+        },
+        {
+          "word": "stepping",
+          "startMs": 2163,
+          "endMs": 2665
+        },
+        {
+          "word": "stone",
+          "startMs": 2665,
+          "endMs": 2785
+        },
+        {
+          "word": "across",
+          "startMs": 2785,
+          "endMs": 3407
+        },
+        {
+          "word": "Pebble",
+          "startMs": 3407,
+          "endMs": 3754
+        },
+        {
+          "word": "Creek!",
+          "startMs": 3754,
+          "endMs": 4141
+        }
+      ]
+    },
+    "cloud-balloon": {
+      "id": "cloud-balloon",
+      "text": "Solve each sky puzzle to float your hot air balloon higher into the clouds!",
+      "audioPath": "audio/journey/cloud-balloon.mp3",
+      "durationMs": 4637,
+      "words": [
+        {
+          "word": "Solve",
+          "startMs": 0,
+          "endMs": 386
+        },
+        {
+          "word": "each",
+          "startMs": 386,
+          "endMs": 601
+        },
+        {
+          "word": "sky",
+          "startMs": 601,
+          "endMs": 785
+        },
+        {
+          "word": "puzzle",
+          "startMs": 785,
+          "endMs": 1369
+        },
+        {
+          "word": "to",
+          "startMs": 1369,
+          "endMs": 1477
+        },
+        {
+          "word": "float",
+          "startMs": 1477,
+          "endMs": 1748
+        },
+        {
+          "word": "your",
+          "startMs": 1748,
+          "endMs": 2118
+        },
+        {
+          "word": "hot",
+          "startMs": 2118,
+          "endMs": 2368
+        },
+        {
+          "word": "air",
+          "startMs": 2368,
+          "endMs": 2627
+        },
+        {
+          "word": "balloon",
+          "startMs": 2627,
+          "endMs": 3011
+        },
+        {
+          "word": "higher",
+          "startMs": 3011,
+          "endMs": 3470
+        },
+        {
+          "word": "into",
+          "startMs": 3470,
+          "endMs": 4042
+        },
+        {
+          "word": "the",
+          "startMs": 4042,
+          "endMs": 4321
+        },
+        {
+          "word": "clouds!",
+          "startMs": 4321,
+          "endMs": 4637
+        }
+      ]
+    },
+    "treasure-keys": {
+      "id": "treasure-keys",
+      "text": "Solve five puzzles to turn the golden keys and pop open the treasure chest!",
+      "audioPath": "audio/journey/treasure-keys.mp3",
+      "durationMs": 4625,
+      "words": [
+        {
+          "word": "Solve",
+          "startMs": 0,
+          "endMs": 380
+        },
+        {
+          "word": "five",
+          "startMs": 380,
+          "endMs": 509
+        },
+        {
+          "word": "puzzles",
+          "startMs": 509,
+          "endMs": 1038
+        },
+        {
+          "word": "to",
+          "startMs": 1038,
+          "endMs": 1300
+        },
+        {
+          "word": "turn",
+          "startMs": 1300,
+          "endMs": 1480
+        },
+        {
+          "word": "the",
+          "startMs": 1480,
+          "endMs": 1748
+        },
+        {
+          "word": "golden",
+          "startMs": 1748,
+          "endMs": 2211
+        },
+        {
+          "word": "keys",
+          "startMs": 2211,
+          "endMs": 2600
+        },
+        {
+          "word": "and",
+          "startMs": 2600,
+          "endMs": 2834
+        },
+        {
+          "word": "pop",
+          "startMs": 2834,
+          "endMs": 3042
+        },
+        {
+          "word": "open",
+          "startMs": 3042,
+          "endMs": 3533
+        },
+        {
+          "word": "the",
+          "startMs": 3533,
+          "endMs": 3752
+        },
+        {
+          "word": "treasure",
+          "startMs": 3752,
+          "endMs": 4196
+        },
+        {
+          "word": "chest!",
+          "startMs": 4196,
+          "endMs": 4625
+        }
+      ]
     }
   }
 }

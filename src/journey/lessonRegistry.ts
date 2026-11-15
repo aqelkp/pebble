@@ -12,9 +12,26 @@ import {
   type PeekabooPackId,
   type PeekabooRoundLength,
 } from '../games/word-peekaboo/peekabooData';
+import {
+  getQuestPackSpec,
+  type AdventureSkinId,
+  type QuestPackId,
+  type QuestRoundLength,
+} from '../curriculum/questEngine/questTypes';
 import type { JourneyActivityAdapter } from './journeyTypes';
 
-const WORD_PACK_ROTATION: readonly WordPackId[] = ['animals', 'home', 'play', 'nature', 'all'];
+const WORD_PACK_ROTATION: readonly WordPackId[] = ['animals', 'sight', 'home', 'play', 'nature', 'all'];
+const QUEST_PACK_SPIRAL: readonly QuestPackId[] = [
+  'numbers-50',
+  'shapes-patterns',
+  'about-me-helpers',
+  'reading-phrases',
+  'place-value-lines',
+  'animals-nature',
+  'pre-math',
+  'world-transport',
+  'smart-mix',
+];
 const PEEKABOO_PACK_ROTATION: readonly PeekabooPackId[] = [
   'sight-1',
   'cvc-ai',
@@ -518,7 +535,50 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
       };
     },
   },
+
+  'mystery-express': buildQuestJourneyAdapter('mystery-express', 'Mystery Express', 0, 'math'),
+  'pebble-creek': buildQuestJourneyAdapter('pebble-creek', 'Pebble Creek Bridge', 1, 'logic'),
+  'cloud-balloon': buildQuestJourneyAdapter('cloud-balloon', 'Cloud Balloon Quest', 2, 'words'),
+  'treasure-keys': buildQuestJourneyAdapter('treasure-keys', '5-Key Treasure Chest', 3, 'words'),
 };
+
+function buildQuestJourneyAdapter(
+  skinId: AdventureSkinId,
+  skinTitle: string,
+  packOffset: number,
+  category: JourneyActivityAdapter['category'],
+): JourneyActivityAdapter {
+  const artPath = `hub/${skinId}.png`;
+  return {
+    gameId: skinId,
+    title: skinTitle,
+    artPath,
+    category,
+    buildActivity: (ctx) => {
+      const packId =
+        QUEST_PACK_SPIRAL[
+          (ctx.chapterNumber - 1 + ctx.gameOrdinal + packOffset * 2) % QUEST_PACK_SPIRAL.length
+        ];
+      const pack = getQuestPackSpec(packId);
+      const roundLength: QuestRoundLength = ctx.settings.durationMode === 'short' ? 5 : 8;
+      return {
+        title: `${skinTitle}: ${pack.shortTitle}`,
+        subtitle: `${pack.syllabusBadge} • ${roundLength} stops`,
+        detailLine: pack.subtitle,
+        artPath,
+        voiceClipId: skinId,
+        payload: {
+          gameId: skinId,
+          config: {
+            packId,
+            roundLength,
+            rotateWorlds: false,
+          },
+        },
+      };
+    },
+  };
+}
 
 export function getJourneyAdapter(gameId: GameRegistryEntry['id']): JourneyActivityAdapter {
   return JOURNEY_LESSON_ADAPTERS[gameId];

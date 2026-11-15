@@ -38,6 +38,10 @@ export const ALL_JOURNEY_VOICE_CLIP_IDS: readonly JourneyVoiceClipId[] = [
   'spot-the-twin',
   'dot-to-dot',
   'word-peekaboo',
+  'mystery-express',
+  'pebble-creek',
+  'cloud-balloon',
+  'treasure-keys',
 ];
 
 const warmedVoiceElements = new Map<JourneyVoiceClipId, HTMLAudioElement>();
