@@ -110,6 +110,16 @@ const DotToDotBoard = lazy(() =>
     default: m.DotToDotBoard,
   })),
 );
+const WordPeekabooSetup = lazy(() =>
+  import('./word-peekaboo/WordPeekabooSetup').then((m) => ({
+    default: m.WordPeekabooSetup,
+  })),
+);
+const WordPeekabooBoard = lazy(() =>
+  import('./word-peekaboo/WordPeekabooBoard').then((m) => ({
+    default: m.WordPeekabooBoard,
+  })),
+);
 
 export interface LeaveGameCopy {
   headline: string;
@@ -763,6 +773,57 @@ const GAME_PLUGINS: GamePluginRegistry = {
       journeyContext,
     }) => (
       <DotToDotBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'word-peekaboo': {
+    id: 'word-peekaboo',
+    activeSessionStorageKey: 'pebble.wordPeekaboo.v1',
+    leaveCopy: {
+      headline: 'Leave Word Peekaboo?',
+      subtitle: 'Your hidden character discovery on this board will reset.',
+      keepPlayingLabel: 'Keep Reading',
+    },
+    ...makeConfigAccessors('word-peekaboo'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./word-peekaboo/WordPeekabooSetup'),
+        import('./word-peekaboo/WordPeekabooBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onEditProfiles, onStartGame }) => (
+      <WordPeekabooSetup
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig('word-peekaboo', profiles)}
+        onBackToHub={onBackToHub}
+        onEditProfiles={onEditProfiles}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <WordPeekabooBoard
         key={gameKey}
         gameKey={gameKey}
         config={config}

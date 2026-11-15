@@ -5,8 +5,8 @@
 - **Framework:** React 19 + TypeScript (`strict` mode, `noUnusedLocals`, `noUnusedParameters`)
 - **Bundler:** Vite 6 with `base: './'` (`vite.config.ts`) so static builds work cleanly at root (`/`) and subpaths (`/pebble/` on GitHub Pages)
 - **Styling:** Plain modular CSS variables and utility classes (`src/styles/tokens.css`), zero runtime CSS-in-JS dependencies
-- **Storage:** Client-only `localStorage` under `pebble.family.v1`, `pebble.journey.v1`, `pebble.daily-limit.v1` (silent 20-minute default daily screen-time tracker customizable to 1–180 min or Off across `ParentJourneySettingsPage` and `ParentInsightsPage`, with local-midnight rollover in `src/utils/dailyPlayLimit.ts`), `pebble.letter-train.mastery.v1`, and `pebble.letter-river.mastery.v1` with schema sanitization (`src/context/FamilyProfilesContext.tsx`), plus `sessionStorage` active-game recovery (`pebble.nav.v1`, `pebble.memory.active.v1`, `pebble.letter-train.active.v1`, `pebble.letter-river.active.v1`, `pebble.safari.active.v1`, `pebble.wordfun.active.v1`)
-- **Audio & Word Bank:** Synthesized Web Audio feedback chimes plus bundled offline Kokoro TTS MP3 speech clips (`public/audio/letters/*.mp3`, `public/audio/words/*.mp3`) driven from a single source-of-truth catalog (`src/data/wordCatalog.json` + `src/data/wordBank.ts`) via `src/utils/wordAudio.ts`, with silent Setup/lookahead prefetching and `speechSynthesis` fallback (`src/games/memory-match/soundEffects.ts`, `src/games/letter-train/trainSounds.ts`, `src/games/letter-river/riverSounds.ts`, `src/games/number-safari/safariSounds.ts`, `src/games/word-fun/wordSounds.ts`)
+- **Storage:** Client-only `localStorage` under `pebble.family.v1`, `pebble.journey.v1`, `pebble.daily-limit.v1` (silent 20-minute default daily screen-time tracker customizable to 1–180 min or Off across `ParentJourneySettingsPage` and `ParentInsightsPage`, with local-midnight rollover in `src/utils/dailyPlayLimit.ts`), `pebble.letter-train.mastery.v1`, `pebble.letter-river.mastery.v1`, and `pebble.word-peekaboo.mastery.v1` with schema sanitization (`src/context/FamilyProfilesContext.tsx`), plus `sessionStorage` active-game recovery (`pebble.nav.v1`, `pebble.memory.active.v1`, `pebble.letter-train.active.v1`, `pebble.letter-river.active.v1`, `pebble.safari.active.v1`, `pebble.wordfun.active.v1`, `pebble.wordPeekaboo.v1`)
+- **Audio & Word Bank:** Synthesized Web Audio feedback chimes plus bundled offline Kokoro TTS MP3 speech clips (`public/audio/letters/*.mp3`, `public/audio/words/*.mp3`, `public/audio/peekaboo/**/*.mp3`) driven from single source-of-truth catalogs (`src/data/wordCatalog.json` + `src/data/wordBank.ts`, `src/games/word-peekaboo/peekabooData.ts`) via `src/utils/wordAudio.ts`, with silent Setup/lookahead prefetching and `speechSynthesis` fallback (`src/games/memory-match/soundEffects.ts`, `src/games/letter-train/trainSounds.ts`, `src/games/letter-river/riverSounds.ts`, `src/games/number-safari/safariSounds.ts`, `src/games/word-fun/wordSounds.ts`, `src/games/word-peekaboo/peekabooSounds.ts`)
 - **PWA Offline Cache:** `public/sw.js` (registered in `src/main.tsx` for production builds) caches visited audio, images, and app assets (`pebble-assets-v1`) so replay and offline sessions work without loading screens
 
 ## Directory Layout
@@ -22,6 +22,7 @@ pebble/
 ├── public/
 │   ├── audio/
 │   │   ├── letters/            # 26 spoken letter MP3 clips (a.mp3 - z.mp3)
+│   │   ├── peekaboo/           # 160 Word Peekaboo clips (words/, thats/, intro/, found/)
 │   │   ├── ui/                 # Bundled UI voice clips (think-again, mistake explanations, daily-time-over.mp3)
 │   │   ├── numbers/            # 10 spoken number MP3 clips (1.mp3 - 10.mp3)
 │   │   └── words/              # 173 spoken word MP3 clips synced from wordCatalog.json
@@ -42,6 +43,7 @@ pebble/
 │   └── sw.js                   # Production PWA service worker (cache-first static assets)
 ├── scripts/
 │   ├── release.sh              # Build, commit, annotated tag, push main --follow-tags
+│   ├── sync-peekaboo-audio.mjs # Incremental Kokoro TTS -> MP3 generator for Word Peekaboo clips
 │   ├── sync-word-audio.mjs     # Incremental Kokoro TTS -> MP3 generator for wordCatalog.json
 │   └── visual-verify-helper.mjs # Playwright 768x1024 screenshot & WebM video helper
 ├── src/
@@ -63,7 +65,8 @@ pebble/
 │   │   ├── sticker-jigsaw/     # jigsawEngine.ts, jigsawSounds.ts, StickerJigsawSetup.tsx, StickerJigsawBoard.tsx
 │   │   ├── sticker-scene/      # sceneEngine.ts, StickerCutoutCanvas.tsx, StickerSceneSetup.tsx, StickerSceneBoard.tsx
 │   │   ├── dot-to-dot/         # dotEngine.ts, dotSounds.ts, DotToDot.css, DotToDotSetup.tsx, DotToDotBoard.tsx
-│   │   └── word-fun/           # wordBank.ts, WordFunArt.tsx, wordSounds.ts, WordFunSetup.tsx, WordFunBoard.tsx
+│   │   ├── word-fun/           # wordBank.ts, WordFunArt.tsx, wordSounds.ts, WordFunSetup.tsx, WordFunBoard.tsx
+│   │   └── word-peekaboo/      # peekabooData.ts, peekabooSounds.ts, WordPeekaboo.css, WordPeekabooSetup.tsx, WordPeekabooBoard.tsx
 │   ├── pages/                  # ActivityBookPage, GameHubPage, FamilyProfilesPage, ParentInsightsPage, ParentJourneySettingsPage
 │   ├── styles/tokens.css
 │   └── utils/                  # assets.ts (BASE_URL-aware), wordAudio.ts (MP3 playback & prefetcher)

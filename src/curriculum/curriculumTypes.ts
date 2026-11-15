@@ -14,7 +14,8 @@ export type SkillType =
   | 'quantity_counting'
   | 'group_joining'
   | 'grid_deduction'
-  | 'visual_recall';
+  | 'visual_recall'
+  | 'sight_word_reading';
 
 export type WordCategory = 'animals' | 'food' | 'nature' | 'vehicles' | 'home' | 'concepts';
 
@@ -86,6 +87,10 @@ export const SKILL_LABELS: Record<SkillType, { label: string; question: string }
   visual_recall: {
     label: 'Visual Working Memory',
     question: 'Can he remember and match card locations?',
+  },
+  sight_word_reading: {
+    label: 'Sight & CVC Word Reading',
+    question: 'Can he hear a spoken word and find it in print?',
   },
 };
 

@@ -58,6 +58,11 @@ import {
   isValidWordPackId,
   isValidWordRoundSizeId,
 } from './word-fun/wordBank';
+import {
+  getDefaultWordPeekabooConfig,
+  isValidWordPeekabooConfig,
+  type WordPeekabooConfig,
+} from './word-peekaboo/peekabooData';
 
 // TODO(security): Pebble runs 100% locally in the browser as a static client-only PWA with no
 // backend server, authentication, or database. All saved game configuration objects restored from
@@ -77,6 +82,7 @@ export interface GameConfigMap {
   'sticker-scene': StickerSceneConfig;
   'spot-the-twin': SpotTheTwinConfig;
   'dot-to-dot': DotToDotConfig;
+  'word-peekaboo': WordPeekabooConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -186,6 +192,7 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'sticker-scene': isValidStickerSceneConfig,
   'spot-the-twin': isValidSpotTheTwinConfig,
   'dot-to-dot': isValidDotToDotConfig,
+  'word-peekaboo': isValidWordPeekabooConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -248,5 +255,7 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultSpotTheTwinConfig() as GameConfigMap[K];
     case 'dot-to-dot':
       return getDefaultDotToDotConfig() as GameConfigMap[K];
+    case 'word-peekaboo':
+      return getDefaultWordPeekabooConfig() as GameConfigMap[K];
   }
 }

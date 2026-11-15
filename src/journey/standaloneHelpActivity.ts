@@ -7,6 +7,7 @@ import type { GameId } from '../games/registry';
 import { getVehicleSpec } from '../games/rescue-road/roadEngine';
 import { getTwinItemsPerCard } from '../games/spot-the-twin/twinEngine';
 import { getWordPackSpec } from '../games/word-fun/wordBank';
+import { getPeekabooPackSpec, getPeekabooWorldSpec } from '../games/word-peekaboo/peekabooData';
 import type { JourneyActivity } from './journeyTypes';
 
 function resolveConfig<K extends GameId>(
@@ -225,6 +226,23 @@ export function buildStandaloneHelpActivity(
         detailLine: 'Connect the dots in order around the shadow to watch full color bloom!',
         artPath: 'hub/dot-to-dot.png',
         voiceClipId: 'dot-to-dot',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'word-peekaboo': {
+      const cfg = resolveConfig('word-peekaboo', rawConfig, profiles);
+      const pack = getPeekabooPackSpec(cfg.packId);
+      const world = getPeekabooWorldSpec(cfg.worldId);
+      return {
+        ...base,
+        gameId,
+        title: 'Word Peekaboo',
+        subtitle: `${pack.title} • ${world.title}`,
+        detailLine:
+          'Listen closely for the one spoken word, tap it to peel a tile, and uncover the hidden friend!',
+        artPath: 'hub/word-peekaboo.png',
+        voiceClipId: 'word-peekaboo',
         payload: { gameId, config: cfg },
       };
     }
