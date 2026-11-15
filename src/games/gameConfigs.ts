@@ -1,4 +1,9 @@
 import type { FamilyProfile } from '../context/FamilyProfilesContext';
+import {
+  getDefaultDotToDotConfig,
+  isValidDotToDotConfig,
+  type DotToDotConfig,
+} from './dot-to-dot/dotEngine';
 import type { LetterRiverConfig } from './letter-river/LetterRiverSetup';
 import {
   getDefaultLetterTraceConfig,
@@ -71,6 +76,7 @@ export interface GameConfigMap {
   'sticker-jigsaw': StickerJigsawConfig;
   'sticker-scene': StickerSceneConfig;
   'spot-the-twin': SpotTheTwinConfig;
+  'dot-to-dot': DotToDotConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -179,6 +185,7 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'sticker-jigsaw': isValidStickerJigsawConfig,
   'sticker-scene': isValidStickerSceneConfig,
   'spot-the-twin': isValidSpotTheTwinConfig,
+  'dot-to-dot': isValidDotToDotConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -239,5 +246,7 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultStickerSceneConfig() as GameConfigMap[K];
     case 'spot-the-twin':
       return getDefaultSpotTheTwinConfig() as GameConfigMap[K];
+    case 'dot-to-dot':
+      return getDefaultDotToDotConfig() as GameConfigMap[K];
   }
 }

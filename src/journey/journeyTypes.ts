@@ -9,6 +9,7 @@ import type { PictureSudokuConfig } from '../games/picture-sudoku/PictureSudokuS
 import type { GameRegistryEntry } from '../games/registry';
 import type { RescueRoadConfig } from '../games/rescue-road/roadEngine';
 import type { StickerJigsawConfig } from '../games/sticker-jigsaw/jigsawEngine';
+import type { DotToDotConfig } from '../games/dot-to-dot/dotEngine';
 import type { SpotTheTwinConfig } from '../games/spot-the-twin/twinEngine';
 import type { StickerSceneConfig } from '../games/sticker-scene/sceneEngine';
 import type { WordGameConfig } from '../games/word-fun/WordFunSetup';
@@ -34,7 +35,8 @@ export type JourneyVoiceClipId =
   | 'rescue-road'
   | 'sticker-jigsaw'
   | 'sticker-scene'
-  | 'spot-the-twin';
+  | 'spot-the-twin'
+  | 'dot-to-dot';
 
 export interface JourneyBoardContext {
   chapterNumber: number;
@@ -78,7 +80,8 @@ export type JourneyActivityPayload =
   | { gameId: 'rescue-road'; config: RescueRoadConfig }
   | { gameId: 'sticker-jigsaw'; config: StickerJigsawConfig }
   | { gameId: 'sticker-scene'; config: StickerSceneConfig }
-  | { gameId: 'spot-the-twin'; config: SpotTheTwinConfig };
+  | { gameId: 'spot-the-twin'; config: SpotTheTwinConfig }
+  | { gameId: 'dot-to-dot'; config: DotToDotConfig };
 
 export interface JourneyActivity {
   index: number;

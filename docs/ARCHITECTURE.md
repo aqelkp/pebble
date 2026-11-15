@@ -23,9 +23,10 @@ pebble/
 │   ├── audio/
 │   │   ├── letters/            # 26 spoken letter MP3 clips (a.mp3 - z.mp3)
 │   │   ├── ui/                 # Bundled UI voice clips (think-again, mistake explanations, daily-time-over.mp3)
+│   │   ├── numbers/            # 10 spoken number MP3 clips (1.mp3 - 10.mp3)
 │   │   └── words/              # 173 spoken word MP3 clips synced from wordCatalog.json
 │   ├── avatars/                # 6 family avatar 512x512 PNGs
-│   ├── hub/                    # 8 hub illustration 512x512 PNGs (memory-match, letter-train, letter-river, picture-sudoku, number-safari, word-fun, rescue-road, sticker-jigsaw)
+│   ├── hub/                    # Hub illustration 512x512 PNGs (including dot-to-dot.png)
 │   ├── themes/
 │   │   ├── lion-king/          # 16 character 512x512 PNGs
 │   │   ├── kung-fu-panda/      # 16 character 512x512 PNGs
@@ -60,6 +61,8 @@ pebble/
 │   │   ├── picture-sudoku/     # sudokuEngine.ts, sudokuSounds.ts, PictureSudokuSetup.tsx, PictureSudokuBoard.tsx
 │   │   ├── rescue-road/        # roadEngine.ts, roadSounds.ts, RescueRoadSetup.tsx, RescueRoadBoard.tsx
 │   │   ├── sticker-jigsaw/     # jigsawEngine.ts, jigsawSounds.ts, StickerJigsawSetup.tsx, StickerJigsawBoard.tsx
+│   │   ├── sticker-scene/      # sceneEngine.ts, StickerCutoutCanvas.tsx, StickerSceneSetup.tsx, StickerSceneBoard.tsx
+│   │   ├── dot-to-dot/         # dotEngine.ts, dotSounds.ts, DotToDot.css, DotToDotSetup.tsx, DotToDotBoard.tsx
 │   │   └── word-fun/           # wordBank.ts, WordFunArt.tsx, wordSounds.ts, WordFunSetup.tsx, WordFunBoard.tsx
 │   ├── pages/                  # ActivityBookPage, GameHubPage, FamilyProfilesPage, ParentInsightsPage, ParentJourneySettingsPage
 │   ├── styles/tokens.css

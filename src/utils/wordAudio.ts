@@ -140,6 +140,8 @@ const THINK_OR_START_AGAIN_AUDIO_PATH = 'audio/ui/think-or-start-again.mp3';
 const TRACE_IN_ORDER_AUDIO_PATH = 'audio/ui/trace-in-order.mp3';
 const TRACE_IN_ORDER_FALLBACK =
   "Let's write in order! Start at the numbered circle and follow the arrow.";
+const MISTAKE_FIND_NEXT_AUDIO_PATH = 'audio/ui/mistake-find-next.mp3';
+const AWESOME_JOB_AUDIO_PATH = 'audio/ui/awesome-job.mp3';
 const DAILY_TIME_OVER_AUDIO_PATH = 'audio/ui/daily-time-over.mp3';
 const PERFECT_CHEER_CLIPS = [
   'audio/ui/perfect-cheer-1.mp3',
@@ -543,6 +545,72 @@ export function preloadLetterMistakeAudio(letters: readonly LetterId[]): void {
     ...uniqueLetters.map(getLetterStartsAudioPath),
     ...uniqueLetters.map(getLetterNotAudioPath),
   ]);
+}
+
+export function getNumberAudioPath(n: number): string {
+  const clamped = Math.min(10, Math.max(1, Math.round(n)));
+  return `audio/numbers/${clamped}.mp3`;
+}
+
+export function playNumberAudio(n: number, enabled: boolean): void {
+  const clamped = Math.min(10, Math.max(1, Math.round(n)));
+  playStaticClip(getNumberAudioPath(clamped), String(clamped), enabled);
+}
+
+export function preloadNumbersAudio(maxCount = 10): void {
+  const capped = Math.min(10, Math.max(1, Math.round(maxCount)));
+  const paths: string[] = [];
+  for (let i = 1; i <= capped; i += 1) {
+    paths.push(getNumberAudioPath(i));
+  }
+  preloadAudioPaths(paths);
+}
+
+export function playAwesomeJobVoice(enabled: boolean): void {
+  playStaticClip(AWESOME_JOB_AUDIO_PATH, 'Awesome job!', enabled);
+}
+
+/**
+ * Plays a calm Dot-to-Dot Teach-First cue:
+ * "Let's connect them in order! Find <next number or letter> next."
+ */
+export function playDotMistakeAudio(
+  targetLabel: string,
+  isLetter: boolean,
+  enabled: boolean,
+  onComplete?: () => void,
+): void {
+  const nextPath = isLetter
+    ? getLetterAudioPath(targetLabel.toUpperCase() as LetterId)
+    : getNumberAudioPath(Number(targetLabel) || 1);
+  playAudioSequence(
+    [
+      { relativePath: MISTAKE_FIND_NEXT_AUDIO_PATH, pauseAfterMs: 65 },
+      { relativePath: nextPath, pauseAfterMs: 0 },
+    ],
+    `Let's connect them in order! Find ${targetLabel} next.`,
+    enabled,
+    onComplete,
+  );
+}
+
+export function preloadDotMistakeAudio(
+  maxNumber: number,
+  letters: readonly LetterId[],
+): void {
+  const paths: string[] = [
+    MISTAKE_FIND_NEXT_AUDIO_PATH,
+    THINK_OR_START_AGAIN_AUDIO_PATH,
+    AWESOME_JOB_AUDIO_PATH,
+  ];
+  const capped = Math.min(10, Math.max(1, Math.round(maxNumber)));
+  for (let i = 1; i <= capped; i += 1) {
+    paths.push(getNumberAudioPath(i));
+  }
+  for (const letter of letters) {
+    paths.push(getLetterAudioPath(letter));
+  }
+  preloadAudioPaths(paths);
 }
 
 /**

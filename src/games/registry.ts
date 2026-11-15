@@ -11,7 +11,8 @@ export type GameId =
   | 'rescue-road'
   | 'sticker-jigsaw'
   | 'sticker-scene'
-  | 'spot-the-twin';
+  | 'spot-the-twin'
+  | 'dot-to-dot';
 
 export type HubShelfId =
   | 'letters-words'
@@ -271,6 +272,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['cognition', 'literacy', 'self-regulation'],
       targetSkills: ['picture_recognition', 'visual_recall'],
       conceptUnitLabel: 'Visual Twin Scanning',
+    },
+  },
+  {
+    id: 'dot-to-dot',
+    title: 'Dot-to-Dot',
+    description:
+      'Connect numbered or lettered pebbles in order around each mystery shadow to watch full color bloom!',
+    badgeText: '1–10 & A–J',
+    ageHint: 'Ages 3–7 • Draw & Count',
+    artPath: 'hub/dot-to-dot.png',
+    shelf: 'draw-create',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Tactile sequential number counting (1–10) and alphabet ordering (A–J) with pencil-drag motor control and picture Color Bloom reveals.',
+      domains: ['numeracy', 'literacy', 'self-regulation'],
+      targetSkills: ['quantity_counting', 'letter_formation', 'picture_recognition'],
+      conceptUnitLabel: 'Dot Sequence Reveal',
     },
   },
 ];

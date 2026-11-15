@@ -301,6 +301,58 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
           </div>
           <WordIllustration id="frog" size={42} />
         </div>
+        <span className="intro-demo-twin-caption">Find the ONE picture hiding on both cards!</span>
+      </div>
+    );
+  }
+
+  if (activity.gameId === 'dot-to-dot') {
+    const labels =
+      activity.payload.gameId === 'dot-to-dot' && activity.payload.config.sequenceMode === 'letters'
+        ? ['A', 'B', 'C', 'D', 'E']
+        : ['1', '2', '3', '4', '5'];
+    return (
+      <div className="intro-demo-stage intro-demo-stage--dots" aria-hidden="true">
+        <svg viewBox="0 0 240 120" className="intro-demo-dots-svg">
+          <path
+            d="M 42 84 L 74 36 L 122 26 L 170 40 L 196 84"
+            fill="none"
+            stroke="#5B5BD6"
+            strokeWidth="4.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="intro-demo-dots-line"
+          />
+          {[
+            { x: 42, y: 84, label: labels[0] },
+            { x: 74, y: 36, label: labels[1] },
+            { x: 122, y: 26, label: labels[2] },
+            { x: 170, y: 40, label: labels[3] },
+            { x: 196, y: 84, label: labels[4] },
+          ].map((pt, idx) => (
+            <g key={pt.label} transform={`translate(${pt.x}, ${pt.y})`}>
+              <circle
+                r="14"
+                fill={idx === 0 ? '#5B5BD6' : '#3BA99C'}
+                stroke="#FFFFFF"
+                strokeWidth="2.5"
+              />
+              <text
+                x="0"
+                y="1"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontFamily="Fredoka, sans-serif"
+                fontSize="13"
+                fontWeight="700"
+                fill="#FFFFFF"
+              >
+                {pt.label}
+              </text>
+            </g>
+          ))}
+        </svg>
+        <span className="intro-demo-twin-caption">Drag or tap dots in order to reveal color!</span>
       </div>
     );
   }

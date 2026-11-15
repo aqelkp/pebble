@@ -75,6 +75,10 @@ const JOURNEY_PROMPTS = [
     id: 'letter-trace',
     text: 'Start at circle one and trace each letter stroke in order along the arrows!',
   },
+  {
+    id: 'dot-to-dot',
+    text: 'Connect the numbered or letter pebbles in order to reveal the surprise picture!',
+  },
 ];
 
 const UI_PROMPTS = [

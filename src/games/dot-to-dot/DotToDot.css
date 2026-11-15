@@ -1,0 +1,619 @@
+/* ============================================================================
+ * Dot-to-Dot Game (Draw & Color Shelf)
+ * ============================================================================ */
+
+.dtd-setup-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, #ffffff 0%, #f1fbf8 100%);
+  border: 1.5px solid #d4efe9;
+}
+
+.dtd-setup-hero__art {
+  width: 78px;
+  height: 78px;
+  border-radius: 20px;
+  background: #e4f6f3;
+  border: 2px solid #bce8df;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 6px 14px rgba(59, 169, 156, 0.14);
+}
+
+.dtd-setup-hero__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dtd-setup-hero__copy h1 {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--ink-primary, #1e2433);
+  margin: 0 0 4px;
+}
+
+.dtd-setup-hero__copy p {
+  font-size: 0.94rem;
+  line-height: 1.42;
+  color: var(--ink-secondary, #5c6478);
+  margin: 0;
+}
+
+.dtd-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.dtd-mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 14px 10px;
+  border-radius: 18px;
+  border: 2px solid #e4e7ef;
+  background: #ffffff;
+  color: #1e2433;
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.dtd-mode-card:hover {
+  transform: translateY(-2px);
+  border-color: #b7b9ee;
+}
+
+.dtd-mode-card.is-selected {
+  border-color: #5b5bd6;
+  background: #ecebff;
+  box-shadow: 0 6px 14px rgba(91, 91, 214, 0.16);
+}
+
+.dtd-mode-card__pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #f5f3ee;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: #3ba99c;
+}
+
+.dtd-mode-card.is-selected .dtd-mode-card__pill {
+  background: #5b5bd6;
+  color: #ffffff;
+}
+
+.dtd-mode-card strong {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+.dtd-mode-card small {
+  font-size: 0.78rem;
+  color: #5c6478;
+  line-height: 1.3;
+}
+
+.dtd-split-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dtd-sub-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e2433;
+  margin-bottom: 8px;
+}
+
+.dtd-seg-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dtd-seg-btn {
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 2px solid #e4e7ef;
+  background: #ffffff;
+  color: #1e2433;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.dtd-seg-btn.is-selected {
+  border-color: #3ba99c;
+  background: #e4f6f3;
+  color: #18635b;
+}
+
+.dtd-world-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(122px, 1fr));
+  gap: 10px;
+}
+
+.dtd-world-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border-radius: 16px;
+  border: 2px solid #e4e7ef;
+  background: #ffffff;
+  color: #1e2433;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.dtd-world-chip:hover {
+  transform: translateY(-2px);
+}
+
+.dtd-world-chip.is-selected {
+  border-color: #5b5bd6;
+  background: #ecebff;
+}
+
+.dtd-world-chip__thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #f7f5f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.dtd-world-chip__thumb img {
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+}
+
+.dtd-world-chip__label {
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ============================================================================
+ * Gameplay Board (Strict 100dvh Zero-Scroll Layout)
+ * ============================================================================ */
+
+.dtd-screen {
+  height: 100dvh;
+  max-height: 100dvh;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 12px 16px 14px;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.dtd-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.dtd-top-bar__side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dtd-banner-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1.5px solid #e4e7ef;
+  box-shadow: 0 4px 12px rgba(30, 36, 51, 0.05);
+  min-height: 62px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.dtd-banner-card.is-bloom {
+  background: #e4f6f3;
+  border-color: #3ba99c;
+}
+
+.dtd-banner-card.is-warn {
+  background: #fff3ee;
+  border-color: #f27a5e;
+}
+
+.dtd-banner-card__player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dtd-banner-card__avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid #5b5bd6;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #f7f5f0;
+}
+
+.dtd-banner-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dtd-banner-card__eyebrow {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5c6478;
+}
+
+.dtd-banner-card__headline {
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #1e2433;
+  line-height: 1.22;
+}
+
+.dtd-round-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dtd-round-pill {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #eef0f6;
+  color: #5c6478;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.dtd-round-pill.is-done {
+  background: #3ba99c;
+  color: #ffffff;
+}
+
+.dtd-round-pill.is-current {
+  background: #5b5bd6;
+  color: #ffffff;
+  transform: scale(1.08);
+  box-shadow: 0 3px 8px rgba(91, 91, 214, 0.28);
+}
+
+.dtd-stage-shell {
+  min-height: 0;
+  min-width: 0;
+  container-type: size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.dtd-art-stage {
+  position: relative;
+  width: min(100cqw, 100cqh, 700px);
+  height: min(100cqw, 100cqh, 700px);
+  flex-shrink: 0;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 253, 248, 0.96) 100%);
+  border: 2px solid #e4dfd2;
+  box-shadow:
+    0 14px 32px rgba(30, 36, 51, 0.08),
+    inset 0 2px 0 rgba(255, 255, 255, 0.95);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dtd-art-stage--bloom {
+  border-color: #3ba99c;
+  box-shadow:
+    0 16px 38px rgba(59, 169, 156, 0.22),
+    0 0 0 4px rgba(59, 169, 156, 0.14);
+}
+
+.dtd-paper-dots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(#e5dfd1 1.25px, transparent 1.25px);
+  background-size: 22px 22px;
+  opacity: 0.45;
+}
+
+.dtd-cutout-frame {
+  position: absolute;
+  left: 16.1538%;
+  top: 16.1538%;
+  width: 67.6923%;
+  height: 67.6923%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dtd-cutout-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dtd-cutout-layer--silhouette {
+  opacity: 0.88;
+  transition: opacity 0.45s ease;
+}
+
+.dtd-cutout-layer--silhouette.is-hidden {
+  opacity: 0;
+}
+
+.dtd-cutout-layer--color {
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 0.62s ease, transform 0.62s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dtd-cutout-layer--color.is-revealed {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+.dtd-cutout-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
+
+.dtd-svg-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  display: block;
+}
+
+.dtd-bloom-badge {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 3;
+  background: rgba(255, 255, 255, 0.96);
+  border: 2px solid #3ba99c;
+  color: #1e2433;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(59, 169, 156, 0.22);
+  pointer-events: none;
+  animation: dtdPopIn 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  white-space: nowrap;
+}
+
+@keyframes dtdPopIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.dtd-dot-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dtdPulseRing 1.45s ease-in-out infinite;
+}
+
+@keyframes dtdPulseRing {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.78;
+  }
+  50% {
+    transform: scale(1.22);
+    opacity: 0.22;
+  }
+}
+
+.dtd-dot-group {
+  cursor: pointer;
+}
+
+.dtd-dot-group--muted {
+  opacity: 0.16;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+
+.dtd-footer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 60px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1.5px solid #e4e7ef;
+  box-shadow: 0 4px 12px rgba(30, 36, 51, 0.05);
+}
+
+.dtd-footer-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1 1 auto;
+  min-width: 120px;
+}
+
+.dtd-footer-progress__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1e2433;
+}
+
+.dtd-footer-progress__track {
+  height: 10px;
+  border-radius: 999px;
+  background: #eef0f6;
+  overflow: hidden;
+}
+
+.dtd-footer-progress__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #5b5bd6 0%, #3ba99c 100%);
+  transition: width 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dtd-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.dtd-next-btn {
+  padding: 10px 18px;
+  min-height: 44px;
+  border-radius: 999px;
+  border: none;
+  background: #3ba99c;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(59, 169, 156, 0.28);
+  transition: transform 0.14s ease, background-color 0.14s ease;
+}
+
+.dtd-next-btn:hover {
+  transform: translateY(-1px);
+  background: #319488;
+}
+
+/* Solo Win Modal Sticker Strip */
+.dtd-win-gallery {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0 18px;
+}
+
+.dtd-win-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: #f7f5f0;
+  border: 2px solid #e4e7ef;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dtd-win-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 640px) {
+  .dtd-mode-grid,
+  .dtd-split-row {
+    grid-template-columns: 1fr;
+  }
+  .dtd-screen {
+    padding: 10px 10px 12px;
+    gap: 8px;
+  }
+  .dtd-banner-card {
+    padding: 8px 10px;
+    min-height: 54px;
+  }
+  .dtd-banner-card__headline {
+    font-size: 0.96rem;
+  }
+  .dtd-round-pill {
+    width: 21px;
+    height: 21px;
+    font-size: 0.72rem;
+  }
+}

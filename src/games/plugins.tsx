@@ -100,6 +100,16 @@ const SpotTheTwinBoard = lazy(() =>
     default: m.SpotTheTwinBoard,
   })),
 );
+const DotToDotSetup = lazy(() =>
+  import('./dot-to-dot/DotToDotSetup').then((m) => ({
+    default: m.DotToDotSetup,
+  })),
+);
+const DotToDotBoard = lazy(() =>
+  import('./dot-to-dot/DotToDotBoard').then((m) => ({
+    default: m.DotToDotBoard,
+  })),
+);
 
 export interface LeaveGameCopy {
   headline: string;
@@ -702,6 +712,57 @@ const GAME_PLUGINS: GamePluginRegistry = {
       journeyContext,
     }) => (
       <SpotTheTwinBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'dot-to-dot': {
+    id: 'dot-to-dot',
+    activeSessionStorageKey: 'pebble.dotToDot.v1',
+    leaveCopy: {
+      headline: 'Leave Dot-to-Dot?',
+      subtitle: 'Your connected dots on this picture will reset.',
+      keepPlayingLabel: 'Keep Connecting',
+    },
+    ...makeConfigAccessors('dot-to-dot'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./dot-to-dot/DotToDotSetup'),
+        import('./dot-to-dot/DotToDotBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onEditProfiles, onStartGame }) => (
+      <DotToDotSetup
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig('dot-to-dot', profiles)}
+        onBackToHub={onBackToHub}
+        onEditProfiles={onEditProfiles}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <DotToDotBoard
         key={gameKey}
         gameKey={gameKey}
         config={config}

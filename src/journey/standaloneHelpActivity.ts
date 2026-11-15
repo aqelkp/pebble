@@ -1,4 +1,5 @@
 import type { FamilyProfile } from '../context/FamilyProfilesContext';
+import { getThemeLabel } from '../games/dot-to-dot/dotEngine';
 import { getDefaultGameConfig, isValidGameConfig, type GameConfigMap } from '../games/gameConfigs';
 import { getThemeSpec } from '../games/memory-match/themes';
 import { getSafariModeSpec } from '../games/number-safari/safariData';
@@ -204,6 +205,26 @@ export function buildStandaloneHelpActivity(
         detailLine: 'Compare both round cards and tap the ONE picture that matches!',
         artPath: 'hub/spot-the-twin.png',
         voiceClipId: 'spot-the-twin',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'dot-to-dot': {
+      const cfg = resolveConfig('dot-to-dot', rawConfig, profiles);
+      const seqLabel =
+        cfg.sequenceMode === 'numbers'
+          ? `1–${cfg.dotCount}`
+          : cfg.sequenceMode === 'letters'
+            ? `A–${String.fromCharCode(64 + cfg.dotCount)}`
+            : `1–${cfg.dotCount} & A–${String.fromCharCode(64 + cfg.dotCount)}`;
+      return {
+        ...base,
+        gameId,
+        title: 'Dot-to-Dot',
+        subtitle: `${getThemeLabel(cfg.themeId)} • ${seqLabel}`,
+        detailLine: 'Connect the dots in order around the shadow to watch full color bloom!',
+        artPath: 'hub/dot-to-dot.png',
+        voiceClipId: 'dot-to-dot',
         payload: { gameId, config: cfg },
       };
     }

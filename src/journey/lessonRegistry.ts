@@ -423,6 +423,49 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
       };
     },
   },
+
+  'dot-to-dot': {
+    gameId: 'dot-to-dot',
+    title: 'Dot-to-Dot',
+    artPath: 'hub/dot-to-dot.png',
+    category: 'math',
+    buildActivity: (ctx) => {
+      const sequenceMode =
+        ctx.gameOrdinal % 3 === 0 ? 'numbers' : ctx.gameOrdinal % 3 === 1 ? 'letters' : 'mix';
+      const dotCount =
+        ctx.settings.durationMode === 'short' && ctx.chapterNumber <= 2
+          ? 6
+          : ctx.chapterNumber >= 4
+            ? 10
+            : 8;
+      const roundLength = ctx.settings.durationMode === 'short' ? 3 : 5;
+      const theme = CARD_THEMES[(ctx.chapterNumber + ctx.gameOrdinal) % CARD_THEMES.length];
+
+      const modeLabel =
+        sequenceMode === 'numbers'
+          ? `1–${dotCount}`
+          : sequenceMode === 'letters'
+            ? `A–${String.fromCharCode(64 + dotCount)}`
+            : `Numbers & Letters (${dotCount} dots)`;
+
+      return {
+        title: `Dot-to-Dot: ${theme.title}`,
+        subtitle: `${modeLabel} • ${roundLength} pictures`,
+        detailLine: `Connect the dots in order around ${theme.title} shadows to watch color bloom!`,
+        artPath: 'hub/dot-to-dot.png',
+        voiceClipId: 'dot-to-dot',
+        payload: {
+          gameId: 'dot-to-dot',
+          config: {
+            themeId: theme.id,
+            sequenceMode,
+            dotCount,
+            roundLength,
+          },
+        },
+      };
+    },
+  },
 };
 
 export function getJourneyAdapter(gameId: GameRegistryEntry['id']): JourneyActivityAdapter {

@@ -755,6 +755,79 @@
           "endMs": 4328
         }
       ]
+    },
+    "dot-to-dot": {
+      "id": "dot-to-dot",
+      "text": "Connect the numbered or letter pebbles in order to reveal the surprise picture!",
+      "audioPath": "audio/journey/dot-to-dot.mp3",
+      "durationMs": 4369,
+      "words": [
+        {
+          "word": "Connect",
+          "startMs": 0,
+          "endMs": 354
+        },
+        {
+          "word": "the",
+          "startMs": 354,
+          "endMs": 667
+        },
+        {
+          "word": "numbered",
+          "startMs": 667,
+          "endMs": 1114
+        },
+        {
+          "word": "or",
+          "startMs": 1114,
+          "endMs": 1410
+        },
+        {
+          "word": "letter",
+          "startMs": 1410,
+          "endMs": 1741
+        },
+        {
+          "word": "pebbles",
+          "startMs": 1741,
+          "endMs": 2240
+        },
+        {
+          "word": "in",
+          "startMs": 2240,
+          "endMs": 2345
+        },
+        {
+          "word": "order",
+          "startMs": 2345,
+          "endMs": 2775
+        },
+        {
+          "word": "to",
+          "startMs": 2775,
+          "endMs": 2835
+        },
+        {
+          "word": "reveal",
+          "startMs": 2835,
+          "endMs": 3322
+        },
+        {
+          "word": "the",
+          "startMs": 3322,
+          "endMs": 3555
+        },
+        {
+          "word": "surprise",
+          "startMs": 3555,
+          "endMs": 3891
+        },
+        {
+          "word": "picture!",
+          "startMs": 3891,
+          "endMs": 4369
+        }
+      ]
     }
   }
 }

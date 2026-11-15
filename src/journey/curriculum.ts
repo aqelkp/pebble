@@ -232,6 +232,7 @@ export function buildJourneyCurriculum(
     'sticker-jigsaw': 0,
     'sticker-scene': 0,
     'spot-the-twin': 0,
+    'dot-to-dot': 0,
   };
 
   return gameSequence.map((gameId, slotIndex) => {
