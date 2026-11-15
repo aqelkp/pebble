@@ -6,9 +6,24 @@ import type { SudokuSize } from '../games/picture-sudoku/sudokuEngine';
 import type { GameRegistryEntry } from '../games/registry';
 import { RESCUE_VEHICLES } from '../games/rescue-road/roadEngine';
 import { getWordPackSpec, type WordPackId, type WordRoundSizeId } from '../games/word-fun/wordBank';
+import {
+  PEEKABOO_WORLDS,
+  getPeekabooPackSpec,
+  type PeekabooPackId,
+  type PeekabooRoundLength,
+} from '../games/word-peekaboo/peekabooData';
 import type { JourneyActivityAdapter } from './journeyTypes';
 
 const WORD_PACK_ROTATION: readonly WordPackId[] = ['animals', 'home', 'play', 'nature', 'all'];
+const PEEKABOO_PACK_ROTATION: readonly PeekabooPackId[] = [
+  'sight-1',
+  'cvc-ai',
+  'sight-2',
+  'cvc-o',
+  'cvc-e',
+  'all',
+];
+const PEEKABOO_WORLD_ROTATION = PEEKABOO_WORLDS.filter((w) => w.id !== 'all-stories');
 const TRICKY_REVIEW_LETTERS: readonly LetterId[] = ['B', 'D', 'P', 'Q'];
 
 function formatLettersLabel(letters: readonly LetterId[]): string {
@@ -460,6 +475,43 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
             themeId: theme.id,
             sequenceMode,
             dotCount,
+            roundLength,
+          },
+        },
+      };
+    },
+  },
+
+  'word-peekaboo': {
+    gameId: 'word-peekaboo',
+    title: 'Word Peekaboo',
+    artPath: 'hub/word-peekaboo.png',
+    category: 'words',
+    buildActivity: (ctx) => {
+      const packId =
+        PEEKABOO_PACK_ROTATION[
+          (ctx.chapterNumber - 1 + ctx.gameOrdinal) % PEEKABOO_PACK_ROTATION.length
+        ];
+      const world =
+        PEEKABOO_WORLD_ROTATION[
+          (ctx.chapterNumber + ctx.gameOrdinal) % PEEKABOO_WORLD_ROTATION.length
+        ];
+      const roundLength: PeekabooRoundLength =
+        ctx.settings.durationMode === 'short' ? 1 : 3;
+      const pack = getPeekabooPackSpec(packId);
+
+      return {
+        title: `Word Peekaboo: ${pack.title}`,
+        subtitle: `${pack.pageBadge} • ${world.title} (${roundLength} ${roundLength === 1 ? 'friend' : 'friends'})`,
+        detailLine: `Listen for one word at a time and peel away tiles to discover ${world.title}!`,
+        artPath: 'hub/word-peekaboo.png',
+        voiceClipId: 'word-peekaboo',
+        previewThemeId: world.id === 'all-stories' ? undefined : world.id,
+        payload: {
+          gameId: 'word-peekaboo',
+          config: {
+            packId,
+            worldId: world.id,
             roundLength,
           },
         },

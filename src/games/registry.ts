@@ -12,7 +12,8 @@ export type GameId =
   | 'sticker-jigsaw'
   | 'sticker-scene'
   | 'spot-the-twin'
-  | 'dot-to-dot';
+  | 'dot-to-dot'
+  | 'word-peekaboo';
 
 export type HubShelfId =
   | 'letters-words'
@@ -74,6 +75,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['cognition', 'self-regulation'],
       targetSkills: ['visual_recall'],
       conceptUnitLabel: 'Board & Theme Memory',
+    },
+  },
+  {
+    id: 'word-peekaboo',
+    title: 'Word Peekaboo',
+    description:
+      'Hear one sight or phonics word at a time and peel away tiles to discover hidden Cars, PAW Patrol, and Disney friends!',
+    badgeText: 'New Game',
+    ageHint: 'K1 / LKG • Sight & CVC Words',
+    artPath: 'hub/word-peekaboo.png',
+    shelf: 'letters-words',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Builds instant sight-word recognition and CVC word reading across 42 KLAY school workbook words without sentence clutter or guessing shortcuts.',
+      domains: ['literacy', 'self-regulation'],
+      targetSkills: ['sight_word_reading'],
+      conceptUnitLabel: 'KLAY Sight & CVC Words',
     },
   },
   {

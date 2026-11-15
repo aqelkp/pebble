@@ -79,6 +79,10 @@ const JOURNEY_PROMPTS = [
     id: 'dot-to-dot',
     text: 'Connect the numbered or letter pebbles in order to reveal the surprise picture!',
   },
+  {
+    id: 'word-peekaboo',
+    text: 'Listen to each word and tap it to uncover the hidden friend!',
+  },
 ];
 
 const UI_PROMPTS = [

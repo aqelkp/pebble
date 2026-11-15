@@ -233,6 +233,7 @@ export function buildJourneyCurriculum(
     'sticker-scene': 0,
     'spot-the-twin': 0,
     'dot-to-dot': 0,
+    'word-peekaboo': 0,
   };
 
   return gameSequence.map((gameId, slotIndex) => {

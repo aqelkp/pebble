@@ -37,6 +37,7 @@ export const ALL_JOURNEY_VOICE_CLIP_IDS: readonly JourneyVoiceClipId[] = [
   'sticker-scene',
   'spot-the-twin',
   'dot-to-dot',
+  'word-peekaboo',
 ];
 
 const warmedVoiceElements = new Map<JourneyVoiceClipId, HTMLAudioElement>();

@@ -357,6 +357,29 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     );
   }
 
+  if (activity.gameId === 'word-peekaboo') {
+    return (
+      <div className="intro-demo-stage intro-demo-stage--peekaboo" aria-hidden="true">
+        <div className="intro-demo-peekaboo-frame">
+          <img
+            src={assetUrl('themes/cars/01-mcqueen.png')}
+            alt=""
+            className="intro-demo-peekaboo-art"
+          />
+          <div className="intro-demo-peekaboo-grid">
+            <span className="intro-demo-peekaboo-tile is-peeled">was</span>
+            <span className="intro-demo-peekaboo-tile is-target">the</span>
+            <span className="intro-demo-peekaboo-tile">she</span>
+            <span className="intro-demo-peekaboo-tile">jet</span>
+          </div>
+        </div>
+        <span className="intro-demo-twin-caption">
+          Listen for one word &amp; peel tiles to discover friends!
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="intro-demo-stage intro-demo-stage--safari" aria-hidden="true">
       <div className="intro-demo-safari-animals">

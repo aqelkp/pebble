@@ -828,6 +828,74 @@
           "endMs": 4369
         }
       ]
+    },
+    "word-peekaboo": {
+      "id": "word-peekaboo",
+      "text": "Listen to each word and tap it to uncover the hidden friend!",
+      "audioPath": "audio/journey/word-peekaboo.mp3",
+      "durationMs": 3512,
+      "words": [
+        {
+          "word": "Listen",
+          "startMs": 0,
+          "endMs": 514
+        },
+        {
+          "word": "to",
+          "startMs": 514,
+          "endMs": 677
+        },
+        {
+          "word": "each",
+          "startMs": 677,
+          "endMs": 807
+        },
+        {
+          "word": "word",
+          "startMs": 807,
+          "endMs": 1143
+        },
+        {
+          "word": "and",
+          "startMs": 1143,
+          "endMs": 1385
+        },
+        {
+          "word": "tap",
+          "startMs": 1385,
+          "endMs": 1586
+        },
+        {
+          "word": "it",
+          "startMs": 1586,
+          "endMs": 1650
+        },
+        {
+          "word": "to",
+          "startMs": 1650,
+          "endMs": 1858
+        },
+        {
+          "word": "uncover",
+          "startMs": 1858,
+          "endMs": 2486
+        },
+        {
+          "word": "the",
+          "startMs": 2486,
+          "endMs": 2748
+        },
+        {
+          "word": "hidden",
+          "startMs": 2748,
+          "endMs": 3116
+        },
+        {
+          "word": "friend!",
+          "startMs": 3116,
+          "endMs": 3512
+        }
+      ]
     }
   }
 }
