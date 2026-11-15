@@ -185,15 +185,12 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
       const packId = WORD_PACK_ROTATION[ctx.gameOrdinal % WORD_PACK_ROTATION.length];
       const pack = getWordPackSpec(packId);
       const roundSizeId: WordRoundSizeId = ctx.settings.durationMode === 'short' ? '4' : '6';
-      const helperMode = ctx.chapterNumber <= 2 ? 'letter-trace' : 'sound-out';
+      const helperMode = 'sound-out';
 
       return {
         title: 'Word Fun',
         subtitle: `${pack.title} • ${roundSizeId} words`,
-        detailLine:
-          helperMode === 'letter-trace'
-            ? `Guided 3-letter spelling (${pack.title})`
-            : `Sound-out 3-letter spelling (${pack.title})`,
+        detailLine: `Spell ${roundSizeId} 3-letter words (${pack.title})`,
         artPath: 'hub/word-fun.png',
         voiceClipId: 'word-fun',
         payload: {
@@ -254,11 +251,20 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
     category: 'fun',
     buildActivity: (ctx) => {
       const size =
-        ctx.settings.durationMode === 'short' || ctx.chapterNumber <= 4 ? '3x3' : '3x4';
-      const roundSize = ctx.settings.durationMode === 'short' ? '2-roads' : '3-roads';
-      const roadsCount = roundSize === '2-roads' ? 2 : 3;
+        ctx.chapterNumber <= 2
+          ? '3x3'
+          : ctx.gameOrdinal % 2 === 1 && ctx.chapterNumber >= 3
+            ? '4x4'
+            : '3x4';
+      const roundSize =
+        ctx.settings.durationMode === 'short'
+          ? '3-roads'
+          : ctx.chapterNumber >= 3
+            ? '5-roads'
+            : '3-roads';
+      const roadsCount = roundSize === '5-roads' ? 5 : 3;
       const vehicle = RESCUE_VEHICLES[ctx.gameOrdinal % RESCUE_VEHICLES.length];
-      const theme = CARD_THEMES[(ctx.gameOrdinal * 3 + 1) % CARD_THEMES.length];
+      const theme = CARD_THEMES[(ctx.chapterNumber + ctx.gameOrdinal * 3) % CARD_THEMES.length];
 
       return {
         title: 'Rescue Road',
@@ -309,6 +315,70 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
             size,
             roundSize,
             themeId: theme.id,
+          },
+        },
+      };
+    },
+  },
+
+  'sticker-scene': {
+    gameId: 'sticker-scene',
+    title: 'Sticker Scene',
+    artPath: 'hub/sticker-scene.png',
+    category: 'fun',
+    buildActivity: (ctx) => {
+      const stickerCount =
+        ctx.settings.durationMode === 'short' || ctx.chapterNumber <= 2 ? 4 : 5;
+      const roundSize = ctx.settings.durationMode === 'short' ? '2-scenes' : '3-scenes';
+      const scenesCount = roundSize === '2-scenes' ? 2 : 3;
+      const theme = CARD_THEMES[(ctx.chapterNumber + ctx.gameOrdinal * 2) % CARD_THEMES.length];
+
+      return {
+        title: 'Sticker Scene',
+        subtitle: `${theme.title} • ${scenesCount} scenes`,
+        detailLine: `Fun Break · Match ${stickerCount} stickers onto shadows in ${theme.title}`,
+        artPath: 'hub/sticker-scene.png',
+        voiceClipId: 'sticker-scene',
+        previewThemeId: theme.id,
+        payload: {
+          gameId: 'sticker-scene',
+          config: {
+            stickerCount,
+            roundSize,
+            themeId: theme.id,
+          },
+        },
+      };
+    },
+  },
+
+  'spot-the-twin': {
+    gameId: 'spot-the-twin',
+    title: 'Spot the Twin',
+    artPath: 'hub/spot-the-twin.png',
+    category: 'fun',
+    buildActivity: (ctx) => {
+      const difficulty =
+        ctx.settings.durationMode === 'short' && ctx.chapterNumber <= 2
+          ? 'easy-4'
+          : ctx.chapterNumber >= 5 && ctx.gameOrdinal % 2 === 1
+            ? 'tricky-6'
+            : 'standard-5';
+      const roundSize = ctx.settings.durationMode === 'short' ? '5-cards' : '8-cards';
+      const pairsCount = roundSize === '5-cards' ? 5 : 8;
+      const picCount = difficulty === 'easy-4' ? 4 : difficulty === 'standard-5' ? 5 : 6;
+
+      return {
+        title: 'Spot the Twin',
+        subtitle: `${picCount} pictures • ${pairsCount} pairs`,
+        detailLine: `Fun Break · Spot the 1 matching picture across both cards!`,
+        artPath: 'hub/spot-the-twin.png',
+        voiceClipId: 'spot-the-twin',
+        payload: {
+          gameId: 'spot-the-twin',
+          config: {
+            difficulty,
+            roundSize,
           },
         },
       };

@@ -526,6 +526,157 @@
           "endMs": 2830
         }
       ]
+    },
+    "sticker-scene": {
+      "id": "sticker-scene",
+      "text": "Drag or tap each picture sticker onto its matching shadow in the scene!",
+      "audioPath": "audio/journey/sticker-scene.mp3",
+      "durationMs": 4068,
+      "words": [
+        {
+          "word": "Drag",
+          "startMs": 0,
+          "endMs": 205
+        },
+        {
+          "word": "or",
+          "startMs": 205,
+          "endMs": 547
+        },
+        {
+          "word": "tap",
+          "startMs": 547,
+          "endMs": 603
+        },
+        {
+          "word": "each",
+          "startMs": 603,
+          "endMs": 838
+        },
+        {
+          "word": "picture",
+          "startMs": 838,
+          "endMs": 1344
+        },
+        {
+          "word": "sticker",
+          "startMs": 1344,
+          "endMs": 1725
+        },
+        {
+          "word": "onto",
+          "startMs": 1725,
+          "endMs": 2289
+        },
+        {
+          "word": "its",
+          "startMs": 2289,
+          "endMs": 2505
+        },
+        {
+          "word": "matching",
+          "startMs": 2505,
+          "endMs": 2830
+        },
+        {
+          "word": "shadow",
+          "startMs": 2830,
+          "endMs": 3282
+        },
+        {
+          "word": "in",
+          "startMs": 3282,
+          "endMs": 3599
+        },
+        {
+          "word": "the",
+          "startMs": 3599,
+          "endMs": 3736
+        },
+        {
+          "word": "scene!",
+          "startMs": 3736,
+          "endMs": 4068
+        }
+      ]
+    },
+    "spot-the-twin": {
+      "id": "spot-the-twin",
+      "text": "Find the one picture that is the same on both cards and tap it!",
+      "audioPath": "audio/journey/spot-the-twin.mp3",
+      "durationMs": 3747,
+      "words": [
+        {
+          "word": "Find",
+          "startMs": 0,
+          "endMs": 290
+        },
+        {
+          "word": "the",
+          "startMs": 290,
+          "endMs": 480
+        },
+        {
+          "word": "one",
+          "startMs": 480,
+          "endMs": 893
+        },
+        {
+          "word": "picture",
+          "startMs": 893,
+          "endMs": 1443
+        },
+        {
+          "word": "that",
+          "startMs": 1443,
+          "endMs": 1533
+        },
+        {
+          "word": "is",
+          "startMs": 1533,
+          "endMs": 1779
+        },
+        {
+          "word": "the",
+          "startMs": 1779,
+          "endMs": 1974
+        },
+        {
+          "word": "same",
+          "startMs": 1974,
+          "endMs": 2334
+        },
+        {
+          "word": "on",
+          "startMs": 2334,
+          "endMs": 2525
+        },
+        {
+          "word": "both",
+          "startMs": 2525,
+          "endMs": 2775
+        },
+        {
+          "word": "cards",
+          "startMs": 2775,
+          "endMs": 3070
+        },
+        {
+          "word": "and",
+          "startMs": 3070,
+          "endMs": 3230
+        },
+        {
+          "word": "tap",
+          "startMs": 3230,
+          "endMs": 3481
+        },
+        {
+          "word": "it!",
+          "startMs": 3481,
+          "endMs": 3747
+        }
+      ]
     }
   }
 }

@@ -155,8 +155,8 @@ export const WORD_HELPER_MODES: readonly WordHelperModeSpec[] = [
   },
   {
     id: 'letter-trace',
-    label: 'Letter Trace',
-    description: 'Ages 3–4 • Match blocks onto guide letters',
+    label: 'Gentle Guides',
+    description: 'Ages 3–6 • Helper letters appear after 5 tries',
   },
 ];
 

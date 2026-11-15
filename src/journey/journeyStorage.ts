@@ -37,7 +37,10 @@ export function getDefaultJourneySettings(): JourneySettings {
     durationMode: 'short',
     waitForVoiceIntro: true,
     playerMode: 'solo',
-    funBreakPacing: 'balanced',
+    funBreakPacing: 'after-2',
+    boostedGames: ['rescue-road'],
+    speakChildName: true,
+    pacingVersion: 2,
     selectedLetters: [...ALL_LETTERS],
     enabledGames: [...ALL_GAME_IDS],
     knownGames: [...ALL_GAME_IDS],
@@ -100,11 +103,33 @@ function normalizeEnabledGames(
   return ALL_GAME_IDS.filter((id) => unique.has(id));
 }
 
-function normalizeFunBreakPacing(raw: unknown): FunBreakPacingMode {
-  if (raw === 'balanced' || raw === 'every-2' || raw === 'every-3' || raw === 'off') {
+function normalizeFunBreakPacing(raw: unknown, pacingVersion: unknown): FunBreakPacingMode {
+  if (pacingVersion !== 2 && (raw === 'balanced' || raw === undefined)) {
+    return 'after-2';
+  }
+  if (raw === 'every-2') return 'after-1';
+  if (raw === 'every-3') return 'after-2';
+  if (
+    raw === 'after-2' ||
+    raw === 'after-3' ||
+    raw === 'after-1' ||
+    raw === 'balanced' ||
+    raw === 'off'
+  ) {
     return raw;
   }
-  return 'balanced';
+  return 'after-2';
+}
+
+function normalizeBoostedGames(raw: unknown): GameRegistryEntry['id'][] {
+  if (!Array.isArray(raw)) return ['rescue-road'];
+  const unique = new Set<GameRegistryEntry['id']>();
+  for (const item of raw) {
+    if (typeof item === 'string' && VALID_GAME_ID_SET.has(item)) {
+      unique.add(item as GameRegistryEntry['id']);
+    }
+  }
+  return ALL_GAME_IDS.filter((id) => unique.has(id));
 }
 
 function sanitizeSettings(raw: unknown): JourneySettings {
@@ -139,7 +164,13 @@ function sanitizeSettings(raw: unknown): JourneySettings {
         ? candidate.waitForVoiceIntro
         : defaults.waitForVoiceIntro,
     playerMode,
-    funBreakPacing: normalizeFunBreakPacing(candidate.funBreakPacing),
+    funBreakPacing: normalizeFunBreakPacing(candidate.funBreakPacing, candidate.pacingVersion),
+    boostedGames: normalizeBoostedGames(candidate.boostedGames),
+    speakChildName:
+      typeof candidate.speakChildName === 'boolean'
+        ? candidate.speakChildName
+        : defaults.speakChildName,
+    pacingVersion: 2,
     selectedLetters: normalizeLettersList(candidate.selectedLetters, defaults.selectedLetters),
     enabledGames: normalizeEnabledGames(candidate.enabledGames, knownSet),
     knownGames: [...ALL_GAME_IDS],

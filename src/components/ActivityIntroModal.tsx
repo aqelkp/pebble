@@ -6,6 +6,7 @@ import { WordFunArt } from '../games/word-fun/WordFunArt';
 import { ACTIVITIES_PER_CHAPTER, type JourneyActivity } from '../journey/journeyTypes';
 import { getJourneyVoiceSpec } from '../journey/voiceInstructions';
 import { assetUrl } from '../utils/assets';
+import { normalizeSpokenName, speakChildNamePhrase, stopChildNameTts } from '../utils/childNameTts';
 import { stopAllSpokenAudio } from '../utils/wordAudio';
 import { PebbleMark } from './BrandLogo';
 
@@ -13,11 +14,36 @@ interface ActivityIntroModalProps {
   activity: JourneyActivity;
   soundEnabled: boolean;
   waitForVoiceIntro: boolean;
+  mode?: 'intro' | 'help';
+  childName?: string;
+  speakChildName?: boolean;
   onConfirmStart: () => void;
   onCancel: () => void;
 }
 
-const MAX_WAIT_SAFETY_MS = 5000;
+const MAX_WAIT_SAFETY_MS = 6500;
+const AUDIO_START_TIMEOUT_MS = 2400;
+
+function ReplayVoiceIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polygon points="10 6 5.5 9.5 2.5 9.5 2.5 14.5 5.5 14.5 10 18 10 6" fill="currentColor" fillOpacity="0.18" />
+      <polygon points="10 6 5.5 9.5 2.5 9.5 2.5 14.5 5.5 14.5 10 18 10 6" />
+      <path d="M14.5 8.5a5 5 0 0 1 7 3.5 5 5 0 0 1-5 5 4.8 4.8 0 0 1-3.3-1.3" />
+      <polyline points="14 6 14.5 9.2 17.7 8.7" />
+    </svg>
+  );
+}
 
 function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
   if (activity.gameId === 'memory-match') {
@@ -181,6 +207,46 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     );
   }
 
+  if (activity.gameId === 'sticker-scene') {
+    const theme = getThemeSpec(activity.previewThemeId ?? 'lion-king');
+    const stickerChar = theme.characters[0];
+    return (
+      <div className="intro-demo-stage intro-demo-stage--scene" aria-hidden="true">
+        <div className="intro-demo-scene-card">
+          <div className="intro-demo-scene-shadow">
+            <img src={assetUrl(stickerChar.imagePath)} alt="" />
+          </div>
+          <div className="intro-demo-scene-drop">
+            <img src={assetUrl(stickerChar.imagePath)} alt="" />
+          </div>
+        </div>
+        <span className="intro-demo-match-pill">Match Shadow!</span>
+      </div>
+    );
+  }
+
+  if (activity.gameId === 'spot-the-twin') {
+    return (
+      <div className="intro-demo-stage intro-demo-stage--twin" aria-hidden="true">
+        <div className="intro-demo-twin-card">
+          <WordIllustration id="duck" size={44} />
+          <WordIllustration id="apple" size={40} />
+          <div className="intro-demo-twin-highlight">
+            <WordIllustration id="sun" size={44} />
+          </div>
+        </div>
+        <div className="intro-demo-match-pill">Twin!</div>
+        <div className="intro-demo-twin-card">
+          <WordIllustration id="ball" size={42} />
+          <div className="intro-demo-twin-highlight">
+            <WordIllustration id="sun" size={44} />
+          </div>
+          <WordIllustration id="frog" size={42} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="intro-demo-stage intro-demo-stage--safari" aria-hidden="true">
       <div className="intro-demo-safari-animals">
@@ -207,23 +273,32 @@ export function ActivityIntroModal({
   activity,
   soundEnabled,
   waitForVoiceIntro,
+  mode = 'intro',
+  childName,
+  speakChildName = true,
   onConfirmStart,
   onCancel,
 }: ActivityIntroModalProps) {
+  const isHelpMode = mode === 'help';
+  const effectiveWait = !isHelpMode && waitForVoiceIntro;
   const voiceSpec = useMemo(() => getJourneyVoiceSpec(activity.voiceClipId), [activity.voiceClipId]);
+  const customChildName = useMemo(() => normalizeSpokenName(childName), [childName]);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [unlocked, setUnlocked] = useState(!waitForVoiceIntro);
+  const [isWaitingAudio, setIsWaitingAudio] = useState(false);
+  const [unlocked, setUnlocked] = useState(!effectiveWait);
   const [replayNonce, setReplayNonce] = useState(0);
+  const shouldPlayAudio = soundEnabled || replayNonce > 0 || isHelpMode;
 
   useEffect(() => {
-    setUnlocked(!waitForVoiceIntro);
-  }, [activity.index, waitForVoiceIntro]);
+    setUnlocked(!effectiveWait);
+  }, [activity.index, effectiveWait]);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const rafRef = useRef<number | null>(null);
 
   const stopPlayback = useCallback(() => {
+    stopChildNameTts();
     if (rafRef.current !== null) {
       window.cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -231,26 +306,60 @@ export function ActivityIntroModal({
     if (audioRef.current) {
       try {
         audioRef.current.pause();
-        audioRef.current.currentTime = 0;
+        audioRef.current.removeAttribute('src');
+        audioRef.current.load();
       } catch {
         // Ignore audio cleanup errors
       }
       audioRef.current = null;
     }
     setIsPlaying(false);
+    setIsWaitingAudio(false);
   }, []);
 
   useEffect(() => {
     stopAllSpokenAudio();
     stopPlayback();
 
-    const targetDurationMs = Math.min(MAX_WAIT_SAFETY_MS, Math.max(1200, voiceSpec.durationMs));
+    const shouldSpeakNameFirst =
+      !isHelpMode && speakChildName !== false && Boolean(customChildName) && shouldPlayAudio && replayNonce === 0;
+    const targetDurationMs = Math.min(
+      MAX_WAIT_SAFETY_MS + (shouldSpeakNameFirst ? 1200 : 0),
+      Math.max(1200, voiceSpec.durationMs + (shouldPlayAudio ? 2200 : 200)),
+    );
     let cancelled = false;
-    let fallbackStartedAt: number | null = null;
-    let usingAudioClock = false;
+    let cancelNameSpeech: (() => void) | null = null;
+    let clockMode: 'waiting-for-audio' | 'audio-playing' | 'fallback-timer' =
+      shouldPlayAudio && typeof Audio !== 'undefined' ? 'waiting-for-audio' : 'fallback-timer';
+    let fallbackStartedAt: number | null =
+      clockMode === 'fallback-timer' ? performance.now() : null;
+    let audioStartTimeout: number | null = null;
 
     setElapsedMs(0);
     setIsPlaying(true);
+    setIsWaitingAudio(clockMode === 'waiting-for-audio');
+
+    const switchToFallbackClock = () => {
+      if (cancelled || clockMode === 'fallback-timer') return;
+      if (audioStartTimeout !== null) {
+        window.clearTimeout(audioStartTimeout);
+        audioStartTimeout = null;
+      }
+      // Destroy pending audio so delayed network bytes never play out-of-sync later
+      if (audioRef.current) {
+        try {
+          audioRef.current.pause();
+          audioRef.current.removeAttribute('src');
+          audioRef.current.load();
+        } catch {
+          // Ignore cleanup errors
+        }
+        audioRef.current = null;
+      }
+      clockMode = 'fallback-timer';
+      fallbackStartedAt = performance.now();
+      setIsWaitingAudio(false);
+    };
 
     const safetyUnlockTimer = window.setTimeout(() => {
       if (!cancelled) {
@@ -260,17 +369,54 @@ export function ActivityIntroModal({
 
     const tick = () => {
       if (cancelled) return;
-      let currentMs = 0;
       const el = audioRef.current;
-      if (usingAudioClock && el && !el.paused) {
-        currentMs = el.currentTime * 1000;
-      } else {
-        if (fallbackStartedAt === null) {
-          fallbackStartedAt = performance.now();
+
+      if (clockMode === 'waiting-for-audio') {
+        if (el && !el.paused && el.currentTime > 0) {
+          if (audioStartTimeout !== null) {
+            window.clearTimeout(audioStartTimeout);
+            audioStartTimeout = null;
+          }
+          clockMode = 'audio-playing';
+          setIsWaitingAudio(false);
+        } else {
+          // Keep words in upcoming state while waiting for network/decode so text never leads audio
+          setElapsedMs(0);
+          rafRef.current = window.requestAnimationFrame(tick);
+          return;
         }
-        currentMs = performance.now() - fallbackStartedAt;
       }
 
+      if (clockMode === 'audio-playing') {
+        if (!el) {
+          switchToFallbackClock();
+        } else {
+          const rawMs = el.currentTime * 1000;
+          const mediaDurationMs =
+            Number.isFinite(el.duration) && el.duration > 0.2
+              ? el.duration * 1000
+              : voiceSpec.durationMs;
+          const normalizedMs = Math.min(
+            voiceSpec.durationMs,
+            Math.max(0, (rawMs / mediaDurationMs) * voiceSpec.durationMs),
+          );
+          setElapsedMs(normalizedMs);
+          if (el.ended) {
+            setElapsedMs(voiceSpec.durationMs);
+            setUnlocked(true);
+            setIsPlaying(false);
+            setIsWaitingAudio(false);
+            return;
+          }
+          rafRef.current = window.requestAnimationFrame(tick);
+          return;
+        }
+      }
+
+      if (fallbackStartedAt === null) {
+        fallbackStartedAt = performance.now();
+      }
+      const currentMs = performance.now() - fallbackStartedAt;
       setElapsedMs(currentMs);
       if (currentMs >= voiceSpec.durationMs) {
         setUnlocked(true);
@@ -280,52 +426,90 @@ export function ActivityIntroModal({
       rafRef.current = window.requestAnimationFrame(tick);
     };
 
-    if (soundEnabled && typeof Audio !== 'undefined') {
+    const startAudioClip = () => {
+      if (cancelled || clockMode !== 'waiting-for-audio') return;
       try {
         const audio = new Audio(assetUrl(voiceSpec.audioPath));
         audio.preload = 'auto';
         audio.volume = 0.95;
         audioRef.current = audio;
 
+        const handleAudioStarted = () => {
+          if (cancelled || clockMode === 'fallback-timer') return;
+          if (audioStartTimeout !== null) {
+            window.clearTimeout(audioStartTimeout);
+            audioStartTimeout = null;
+          }
+          clockMode = 'audio-playing';
+          setIsWaitingAudio(false);
+        };
+
+        audio.addEventListener('playing', handleAudioStarted);
+        audio.addEventListener('timeupdate', () => {
+          if (audio.currentTime > 0) {
+            handleAudioStarted();
+          }
+        });
+        audio.addEventListener('error', () => {
+          switchToFallbackClock();
+        });
         audio.addEventListener('ended', () => {
-          if (cancelled) return;
+          if (cancelled || clockMode === 'fallback-timer') return;
+          if (audioStartTimeout !== null) {
+            window.clearTimeout(audioStartTimeout);
+            audioStartTimeout = null;
+          }
           setElapsedMs(voiceSpec.durationMs);
           setUnlocked(true);
           setIsPlaying(false);
+          setIsWaitingAudio(false);
         });
 
+        audioStartTimeout = window.setTimeout(() => {
+          if (clockMode === 'waiting-for-audio') {
+            switchToFallbackClock();
+          }
+        }, AUDIO_START_TIMEOUT_MS);
+
         const playPromise = audio.play();
-        if (playPromise && typeof playPromise.then === 'function') {
-          playPromise
-            .then(() => {
-              if (!cancelled) {
-                usingAudioClock = true;
-              }
-            })
-            .catch(() => {
-              if (!cancelled) {
-                usingAudioClock = false;
-                fallbackStartedAt = performance.now();
-              }
-            });
-        } else {
-          usingAudioClock = true;
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(() => {
+            switchToFallbackClock();
+          });
         }
       } catch {
-        fallbackStartedAt = performance.now();
+        switchToFallbackClock();
       }
-    } else {
-      fallbackStartedAt = performance.now();
+    };
+
+    if (clockMode === 'waiting-for-audio') {
+      if (shouldSpeakNameFirst && customChildName) {
+        cancelNameSpeech = speakChildNamePhrase(`Ready, ${customChildName}?`, {
+          enabled: true,
+          soundEnabled: true,
+          onDone: startAudioClip,
+        });
+      } else {
+        startAudioClip();
+      }
     }
 
     rafRef.current = window.requestAnimationFrame(tick);
 
     return () => {
       cancelled = true;
+      cancelNameSpeech?.();
       window.clearTimeout(safetyUnlockTimer);
+      if (audioStartTimeout !== null) {
+        window.clearTimeout(audioStartTimeout);
+      }
       stopPlayback();
     };
-  }, [replayNonce, soundEnabled, stopPlayback, voiceSpec]);
+  }, [customChildName, isHelpMode, replayNonce, shouldPlayAudio, speakChildName, stopPlayback, voiceSpec]);
+
+  const handleReplay = useCallback(() => {
+    setReplayNonce((n) => n + 1);
+  }, []);
 
   const remainingSeconds = Math.max(
     1,
@@ -338,38 +522,51 @@ export function ActivityIntroModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="activity-intro-title"
+      data-testid="activity-intro-modal"
     >
       <div className="intro-shell">
         <header className="top-bar" style={{ minHeight: 42 }}>
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--compact"
+            data-testid="intro-back-btn"
             onClick={() => {
               stopPlayback();
               onCancel();
             }}
           >
             <span aria-hidden="true">←</span>
-            <span>Activity Book</span>
+            <span>{isHelpMode ? 'Back to Game' : 'Activity Book'}</span>
           </button>
 
           <span className="badge-pill badge-pill--indigo">
-            Chapter {activity.chapterNumber} • Activity {activity.numberInChapter} of{' '}
-            {ACTIVITIES_PER_CHAPTER}
+            {isHelpMode
+              ? 'How to Play'
+              : `Chapter ${activity.chapterNumber} • Activity ${activity.numberInChapter} of ${ACTIVITIES_PER_CHAPTER}`}
           </span>
 
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--compact"
-            onClick={() => setReplayNonce((n) => n + 1)}
+            onClick={handleReplay}
           >
-            <span>{isPlaying ? 'Listening…' : 'Replay Voice'}</span>
+            <ReplayVoiceIcon size={15} />
+            <span>{isPlaying ? 'Replay' : 'Replay Voice'}</span>
           </button>
         </header>
 
         <main className="intro-card">
           <div className="intro-card__header">
-            <span className="badge-pill badge-pill--mint">Get Ready • Watch & Listen</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span className="badge-pill badge-pill--mint">
+                {isHelpMode ? 'Game Guide • Watch & Listen' : 'Get Ready • Watch & Listen'}
+              </span>
+              {!isHelpMode && customChildName && (
+                <span className="badge-pill badge-pill--honey" data-testid="intro-name-greeting">
+                  Ready, {customChildName}!
+                </span>
+              )}
+            </div>
             <h1 id="activity-intro-title">
               {activity.title}: {activity.subtitle}
             </h1>
@@ -379,14 +576,30 @@ export function ActivityIntroModal({
           <ActivityPreviewStage activity={activity} />
 
           <section className="intro-karaoke-box" aria-label="Voice instruction captions">
-            <span className="badge-pill badge-pill--honey">
-              {soundEnabled ? 'Listen & Read Along' : 'Read Along (Muted)'}
-            </span>
+            <div className="intro-karaoke-head">
+              <span className="badge-pill badge-pill--honey">
+                {isWaitingAudio
+                  ? 'Loading Voice…'
+                  : shouldPlayAudio
+                    ? 'Listen & Read Along'
+                    : 'Read Along • Tap Replay for Voice'}
+              </span>
+              <button
+                type="button"
+                className="intro-replay-chip"
+                data-testid="intro-replay-chip"
+                onClick={handleReplay}
+                aria-label="Replay spoken instructions"
+              >
+                <ReplayVoiceIcon size={15} />
+                <span>{isPlaying ? 'Restart Voice' : 'Read Again'}</span>
+              </button>
+            </div>
             <div className="intro-karaoke-words">
               {voiceSpec.words.map((item, idx) => {
                 const isActive =
-                  isPlaying && elapsedMs >= item.startMs && elapsedMs < item.endMs;
-                const isSpoken = elapsedMs >= item.endMs || !isPlaying;
+                  isPlaying && !isWaitingAudio && elapsedMs >= item.startMs && elapsedMs < item.endMs;
+                const isSpoken = !isWaitingAudio && (elapsedMs >= item.endMs || !isPlaying);
                 return (
                   <span
                     key={`${item.word}-${idx}`}
@@ -405,24 +618,38 @@ export function ActivityIntroModal({
             </div>
           </section>
 
-          <button
-            type="button"
-            className={unlocked ? 'btn-primary intro-start-btn' : 'intro-wait-btn'}
-            disabled={!unlocked}
-            onClick={() => {
-              stopPlayback();
-              onConfirmStart();
-            }}
-          >
-            {unlocked ? (
-              <span>Let&apos;s Play! →</span>
-            ) : (
-              <>
-                <span className="intro-wait-ring" aria-hidden="true" />
-                <span>Listening to instructions… (Starts in {remainingSeconds}s)</span>
-              </>
-            )}
-          </button>
+          <div className="intro-actions-row">
+            <button
+              type="button"
+              className="btn-secondary intro-replay-main-btn"
+              data-testid="intro-replay-btn"
+              onClick={handleReplay}
+              aria-label="Read instructions again"
+            >
+              <ReplayVoiceIcon size={20} />
+              <span>Replay</span>
+            </button>
+
+            <button
+              type="button"
+              className={unlocked ? 'btn-primary intro-start-btn' : 'intro-wait-btn'}
+              data-testid="intro-confirm-btn"
+              disabled={!unlocked}
+              onClick={() => {
+                stopPlayback();
+                onConfirmStart();
+              }}
+            >
+              {unlocked ? (
+                <span>{isHelpMode ? 'Keep Playing →' : "Let's Play! →"}</span>
+              ) : (
+                <>
+                  <span className="intro-wait-ring" aria-hidden="true" />
+                  <span>Listening… ({remainingSeconds}s)</span>
+                </>
+              )}
+            </button>
+          </div>
         </main>
       </div>
     </div>

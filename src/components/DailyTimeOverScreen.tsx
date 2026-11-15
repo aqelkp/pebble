@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FamilyProfile } from '../context/FamilyProfilesContext';
+import { normalizeSpokenName, speakChildNamePhrase, stopChildNameTts } from '../utils/childNameTts';
 import { playDailyTimeOverChime } from '../utils/dailyPlayLimit';
 import { playDailyTimeOverVoice, stopAllSpokenAudio } from '../utils/wordAudio';
 import { BrandLogo } from './BrandLogo';
@@ -7,6 +8,7 @@ import { BrandLogo } from './BrandLogo';
 interface DailyTimeOverScreenProps {
   childProfile?: FamilyProfile;
   soundEnabled: boolean;
+  speakChildName?: boolean;
   onOpenParentGate: () => void;
 }
 
@@ -106,12 +108,14 @@ function RestingPebblesScene() {
 export function DailyTimeOverScreen({
   childProfile,
   soundEnabled,
+  speakChildName = true,
   onOpenParentGate,
 }: DailyTimeOverScreenProps) {
   const [needsGestureReplay, setNeedsGestureReplay] = useState(false);
 
   const trimmedName = childProfile?.name.trim() ?? '';
-  const hasCustomName = trimmedName.length > 0 && trimmedName.toLowerCase() !== 'child';
+  const spokenName = normalizeSpokenName(trimmedName);
+  const hasCustomName = Boolean(spokenName);
   const seeYouTomorrowLine = hasCustomName
     ? `See you tomorrow, ${trimmedName}!`
     : 'See you tomorrow!';
@@ -123,17 +127,30 @@ export function DailyTimeOverScreen({
     }
 
     playDailyTimeOverChime(true);
+    let cancelNameTts: (() => void) | null = null;
+    let nameTimer: number | null = null;
     const voiceTimer = window.setTimeout(() => {
       playDailyTimeOverVoice(true, () => {
         setNeedsGestureReplay(true);
       });
+      if (speakChildName && spokenName) {
+        nameTimer = window.setTimeout(() => {
+          cancelNameTts = speakChildNamePhrase(`See you tomorrow, ${spokenName}!`, {
+            enabled: true,
+            soundEnabled: true,
+          });
+        }, 3500);
+      }
     }, 280);
 
     return () => {
       window.clearTimeout(voiceTimer);
+      if (nameTimer !== null) window.clearTimeout(nameTimer);
+      cancelNameTts?.();
+      stopChildNameTts();
       stopAllSpokenAudio();
     };
-  }, [soundEnabled]);
+  }, [soundEnabled, speakChildName, spokenName]);
 
   useEffect(() => {
     if (!needsGestureReplay || !soundEnabled) return;

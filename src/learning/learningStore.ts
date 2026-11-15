@@ -74,6 +74,8 @@ const VALID_GAME_IDS = new Set<GameId>([
   'word-fun',
   'rescue-road',
   'sticker-jigsaw',
+  'sticker-scene',
+  'spot-the-twin',
 ]);
 
 const VALID_SKILL_TYPES = new Set<SkillType>([

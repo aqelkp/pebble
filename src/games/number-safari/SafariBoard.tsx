@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BrandLogo } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
+import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
@@ -31,6 +32,7 @@ interface SafariBoardProps {
   onChangeSetup: () => void;
   onBackToHub: () => void;
   onGameActiveChange?: (active: boolean) => void;
+  onRequestHelp?: () => void;
   journeyContext?: JourneyBoardContext;
 }
 
@@ -230,6 +232,7 @@ export function SafariBoard({
   onChangeSetup,
   onBackToHub,
   onGameActiveChange,
+  onRequestHelp,
   journeyContext,
 }: SafariBoardProps) {
   const modeSpec = useMemo(() => getSafariModeSpec(config.modeId), [config.modeId]);
@@ -649,6 +652,7 @@ export function SafariBoard({
           >
             Stop: <strong>{Math.min(trail.length, currentStopIdx + 1)}</strong>/{lengthSpec.stops}
           </span>
+          <GameHelpButton onClick={onRequestHelp} />
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--compact"

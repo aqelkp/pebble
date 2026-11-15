@@ -19,6 +19,7 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 
 const journeyAudioOutDir = path.join(repoRoot, 'public', 'audio', 'journey');
+const uiAudioOutDir = path.join(repoRoot, 'public', 'audio', 'ui');
 const catalogOutPath = path.join(repoRoot, 'src', 'journey', 'journeyAudioCatalog.json');
 
 const forceRegen = process.argv.includes('--force');
@@ -61,6 +62,21 @@ const JOURNEY_PROMPTS = [
   {
     id: 'sticker-jigsaw',
     text: 'Place each puzzle piece to build the picture sticker!',
+  },
+  {
+    id: 'sticker-scene',
+    text: 'Drag or tap each picture sticker onto its matching shadow in the scene!',
+  },
+  {
+    id: 'spot-the-twin',
+    text: 'Find the one picture that is the same on both cards and tap it!',
+  },
+];
+
+const UI_PROMPTS = [
+  {
+    id: 'awesome-job',
+    text: 'Awesome job!',
   },
 ];
 
@@ -257,12 +273,26 @@ async function main() {
     }
   }
 
-  if (jobs.length === 0) {
-    console.log('All journey audio clips and word timings are already up to date.');
+  const uiJobs = [];
+  for (const uiPrompt of UI_PROMPTS) {
+    const outPath = path.join(uiAudioOutDir, `${uiPrompt.id}.mp3`);
+    if (forceRegen || !fs.existsSync(outPath)) {
+      uiJobs.push({
+        id: uiPrompt.id,
+        text: uiPrompt.text,
+        outPath,
+      });
+    }
+  }
+
+  if (jobs.length === 0 && uiJobs.length === 0) {
+    console.log('All journey and UI audio clips are already up to date.');
     return;
   }
 
-  console.log(`Generating ${jobs.length} journey instruction clips via Kokoro (af_heart)...`);
+  console.log(
+    `Generating ${jobs.length} journey + ${uiJobs.length} UI audio clips via Kokoro (af_heart)...`,
+  );
   const kokoroEntry = resolveTtsPackage('kokoro-js');
   const lameEntry = resolveTtsPackage('@breezystack/lamejs', 'dist/lamejs.js');
 
@@ -306,8 +336,26 @@ async function main() {
     );
   }
 
+  if (uiJobs.length > 0) {
+    fs.mkdirSync(uiAudioOutDir, { recursive: true });
+    for (let i = 0; i < uiJobs.length; i += 1) {
+      const job = uiJobs[i];
+      const audio = await tts.generate(job.text, {
+        voice: 'af_heart',
+        speed: 0.94,
+      });
+      const int16 = trimAndNormalizeFloat32(audio.audio, audio.sampling_rate);
+      const mp3Buffer = encodeMonoMp3(Mp3Encoder, int16, audio.sampling_rate, 64);
+      fs.writeFileSync(job.outPath, mp3Buffer);
+      totalBytes += mp3Buffer.length;
+      console.log(`  [UI ${i + 1}/${uiJobs.length}] ${job.id}.mp3 (${mp3Buffer.length} B)`);
+    }
+  }
+
   fs.writeFileSync(catalogOutPath, `${JSON.stringify({ clips }, null, 2)}\n`, 'utf8');
-  console.log(`Done! Saved ${jobs.length} clips (${(totalBytes / 1024).toFixed(1)} KB total) and catalog.`);
+  console.log(
+    `Done! Saved ${jobs.length + uiJobs.length} clips (${(totalBytes / 1024).toFixed(1)} KB total) and catalog.`,
+  );
 }
 
 main().catch((err) => {

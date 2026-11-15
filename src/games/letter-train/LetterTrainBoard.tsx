@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
+import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { pickWeightedAdaptive } from '../../learning/adaptiveSelector';
@@ -54,6 +55,7 @@ interface LetterTrainBoardProps {
   onToggleSound: () => void;
   onChangeSetup: () => void;
   onBackToHub: () => void;
+  onRequestHelp?: () => void;
   onGameActiveChange?: (active: boolean) => void;
   journeyContext?: JourneyBoardContext;
 }
@@ -317,6 +319,7 @@ export function LetterTrainBoard({
   onToggleSound,
   onChangeSetup,
   onBackToHub,
+  onRequestHelp,
   onGameActiveChange,
   journeyContext,
 }: LetterTrainBoardProps) {
@@ -939,6 +942,7 @@ export function LetterTrainBoard({
               {journeyContext.totalInChapter}
             </span>
           )}
+          <GameHelpButton onClick={onRequestHelp} />
           <button
             type="button"
             className="icon-pill-btn icon-pill-btn--compact icon-pill-btn--square"

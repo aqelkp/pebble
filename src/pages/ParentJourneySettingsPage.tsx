@@ -39,10 +39,11 @@ const FUN_BREAK_PACING_OPTIONS: readonly {
   id: FunBreakPacingMode;
   label: string;
 }[] = [
-  { id: 'balanced', label: 'Balanced (Equal Mix)' },
-  { id: 'every-2', label: 'Every 2nd' },
-  { id: 'every-3', label: 'Every 3rd' },
-  { id: 'off', label: 'Standard Mix' },
+  { id: 'after-2', label: '2 Learn → 1 Fun' },
+  { id: 'after-3', label: '3 Learn → 1 Fun' },
+  { id: 'after-1', label: '1 Learn → 1 Fun' },
+  { id: 'balanced', label: 'Equal Mix' },
+  { id: 'off', label: 'Free Shuffle' },
 ];
 
 export function ParentJourneySettingsPage({
@@ -94,6 +95,15 @@ export function ParentJourneySettingsPage({
     onUpdateSettings({
       enabledGames: GAME_REGISTRY.map((g) => g.id).filter((id) => merged.has(id)),
     });
+  };
+
+  const handleToggleBoost = (gameId: GameRegistryEntry['id']) => {
+    const boosted = settings.boostedGames ?? ['rescue-road'];
+    const isBoosted = boosted.includes(gameId);
+    const next = isBoosted
+      ? boosted.filter((id) => id !== gameId)
+      : GAME_REGISTRY.map((g) => g.id).filter((id) => boosted.includes(id) || id === gameId);
+    onUpdateSettings({ boostedGames: next });
   };
 
   return (
@@ -241,8 +251,8 @@ export function ParentJourneySettingsPage({
               <div className="pjs-row__label">
                 <strong>Fun Break Pacing</strong>
                 <span>
-                  Weaves fun reward games at equal frequency with learning lessons across 400
-                  activities
+                  Choose how many learning lessons play before each fun break (default: 2 Learn → 1
+                  Fun)
                 </span>
               </div>
               <div className="pjs-pill-group">
@@ -250,6 +260,7 @@ export function ParentJourneySettingsPage({
                   <button
                     key={opt.id}
                     type="button"
+                    data-testid={`pacing-option-${opt.id}`}
                     className={`pjs-pill ${
                       settings.funBreakPacing === opt.id ? 'pjs-pill--active' : ''
                     }`}
@@ -258,6 +269,35 @@ export function ParentJourneySettingsPage({
                     {opt.label}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            <div className="pjs-row">
+              <div className="pjs-row__label">
+                <strong>Speak Child&apos;s Name (TTS)</strong>
+                <span>Warmly say your child&apos;s saved name before lessons and celebrations</span>
+              </div>
+              <div className="pjs-pill-group">
+                <button
+                  type="button"
+                  data-testid="speak-child-name-on"
+                  className={`pjs-pill ${
+                    settings.speakChildName !== false ? 'pjs-pill--active' : ''
+                  }`}
+                  onClick={() => onUpdateSettings({ speakChildName: true })}
+                >
+                  ON • Say Name
+                </button>
+                <button
+                  type="button"
+                  data-testid="speak-child-name-off"
+                  className={`pjs-pill ${
+                    settings.speakChildName === false ? 'pjs-pill--active' : ''
+                  }`}
+                  onClick={() => onUpdateSettings({ speakChildName: false })}
+                >
+                  OFF
+                </button>
               </div>
             </div>
 
@@ -346,23 +386,38 @@ export function ParentJourneySettingsPage({
           <div className="pjs-games-grid">
             {GAME_REGISTRY.map((game) => {
               const isEnabled = settings.enabledGames.includes(game.id);
+              const isBoosted = (settings.boostedGames ?? ['rescue-road']).includes(game.id);
               return (
-                <button
+                <div
                   key={game.id}
-                  type="button"
-                  className={`pjs-game-toggle ${isEnabled ? 'pjs-game-toggle--on' : ''}`}
-                  aria-pressed={isEnabled}
-                  onClick={() => handleToggleGame(game.id)}
+                  className={`pjs-game-card ${isEnabled ? 'pjs-game-card--on' : ''}`}
                 >
-                  <img src={assetUrl(game.artPath)} alt="" />
-                  <div className="pjs-game-toggle__meta">
-                    <strong>{game.title}</strong>
-                    <span>{game.learningIntent.conceptUnitLabel}</span>
-                  </div>
-                  <span className="pjs-game-toggle__check" aria-hidden="true">
-                    {isEnabled ? '✓' : '+'}
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    className={`pjs-game-toggle ${isEnabled ? 'pjs-game-toggle--on' : ''}`}
+                    aria-pressed={isEnabled}
+                    onClick={() => handleToggleGame(game.id)}
+                  >
+                    <img src={assetUrl(game.artPath)} alt="" />
+                    <div className="pjs-game-toggle__meta">
+                      <strong>{game.title}</strong>
+                      <span>{game.learningIntent.conceptUnitLabel}</span>
+                    </div>
+                    <span className="pjs-game-toggle__check" aria-hidden="true">
+                      {isEnabled ? '✓' : '+'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`pjs-boost-btn ${isBoosted ? 'pjs-boost-btn--on' : ''}`}
+                    data-testid={`boost-game-${game.id}`}
+                    aria-pressed={isBoosted}
+                    aria-label={`Play ${game.title} twice as often`}
+                    onClick={() => handleToggleBoost(game.id)}
+                  >
+                    <span>{isBoosted ? '2× More On' : '2× More'}</span>
+                  </button>
+                </div>
               );
             })}
           </div>

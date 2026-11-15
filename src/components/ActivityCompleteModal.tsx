@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import type { FamilyProfile } from '../context/FamilyProfilesContext';
 import { ACTIVITIES_PER_CHAPTER, type JourneyActivity } from '../journey/journeyTypes';
 import { assetUrl } from '../utils/assets';
+import { normalizeSpokenName, speakChildNamePhrase, stopChildNameTts } from '../utils/childNameTts';
 import { CrownIcon } from './BrandLogo';
 import { ConfettiBurst } from './ConfettiBurst';
 
@@ -9,6 +11,8 @@ interface ActivityCompleteModalProps {
   nextActivity: JourneyActivity | null;
   completedInChapter: number;
   childProfile: FamilyProfile;
+  soundEnabled?: boolean;
+  speakChildName?: boolean;
   onNextActivity: () => void;
   onBackToBook: () => void;
 }
@@ -18,10 +22,44 @@ export function ActivityCompleteModal({
   nextActivity,
   completedInChapter,
   childProfile,
+  soundEnabled = true,
+  speakChildName = true,
   onNextActivity,
   onBackToBook,
 }: ActivityCompleteModalProps) {
   const progressPct = Math.round((completedInChapter / ACTIVITIES_PER_CHAPTER) * 100);
+
+  useEffect(() => {
+    if (!soundEnabled) return;
+    const spokenName = speakChildName ? normalizeSpokenName(childProfile.name) : null;
+    if (spokenName) {
+      return speakChildNamePhrase(`Awesome job, ${spokenName}!`, {
+        enabled: true,
+        soundEnabled: true,
+      });
+    }
+
+    let audio: HTMLAudioElement | null = null;
+    try {
+      audio = new Audio(assetUrl('audio/ui/awesome-job.mp3'));
+      audio.volume = 0.92;
+      void audio.play().catch(() => {});
+    } catch {
+      audio = null;
+    }
+
+    return () => {
+      stopChildNameTts();
+      if (audio) {
+        try {
+          audio.pause();
+          audio.removeAttribute('src');
+        } catch {
+          // Ignore audio cleanup errors
+        }
+      }
+    };
+  }, [activity.index, childProfile.name, soundEnabled, speakChildName]);
 
   return (
     <div

@@ -73,3 +73,11 @@ export function playRescueHonkFanfare(enabled: boolean): void {
   playTone(ctx, 659.25, 0.58, 0.15, 0.1, 'sine');
   playTone(ctx, 783.99, 0.72, 0.28, 0.12, 'sine');
 }
+
+export function playRoadCheckpointChime(enabled: boolean): void {
+  if (!enabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  playTone(ctx, 783.99, 0, 0.11, 0.09, 'sine');
+  playTone(ctx, 1046.5, 0.08, 0.16, 0.1, 'sine');
+}
