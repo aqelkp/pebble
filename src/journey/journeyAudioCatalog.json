@@ -896,6 +896,84 @@
           "endMs": 3512
         }
       ]
+    },
+    "compare-quest": {
+      "id": "compare-quest",
+      "text": "Compare both sides and place greater than, less than, or equal in the middle!",
+      "audioPath": "audio/journey/compare-quest.mp3",
+      "durationMs": 4415,
+      "words": [
+        {
+          "word": "Compare",
+          "startMs": 0,
+          "endMs": 443
+        },
+        {
+          "word": "both",
+          "startMs": 443,
+          "endMs": 611
+        },
+        {
+          "word": "sides",
+          "startMs": 611,
+          "endMs": 1057
+        },
+        {
+          "word": "and",
+          "startMs": 1057,
+          "endMs": 1257
+        },
+        {
+          "word": "place",
+          "startMs": 1257,
+          "endMs": 1534
+        },
+        {
+          "word": "greater",
+          "startMs": 1534,
+          "endMs": 1902
+        },
+        {
+          "word": "than,",
+          "startMs": 1902,
+          "endMs": 2407
+        },
+        {
+          "word": "less",
+          "startMs": 2407,
+          "endMs": 2505
+        },
+        {
+          "word": "than,",
+          "startMs": 2505,
+          "endMs": 2905
+        },
+        {
+          "word": "or",
+          "startMs": 2905,
+          "endMs": 3176
+        },
+        {
+          "word": "equal",
+          "startMs": 3176,
+          "endMs": 3582
+        },
+        {
+          "word": "in",
+          "startMs": 3582,
+          "endMs": 3747
+        },
+        {
+          "word": "the",
+          "startMs": 3747,
+          "endMs": 3958
+        },
+        {
+          "word": "middle!",
+          "startMs": 3958,
+          "endMs": 4415
+        }
+      ]
     }
   }
 }

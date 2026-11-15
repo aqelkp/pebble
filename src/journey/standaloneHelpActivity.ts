@@ -8,6 +8,7 @@ import { getVehicleSpec } from '../games/rescue-road/roadEngine';
 import { getTwinItemsPerCard } from '../games/spot-the-twin/twinEngine';
 import { getWordPackSpec } from '../games/word-fun/wordBank';
 import { getPeekabooPackSpec, getPeekabooWorldSpec } from '../games/word-peekaboo/peekabooData';
+import { getCompareModeSpec } from '../games/compare-quest/compareData';
 import type { JourneyActivity } from './journeyTypes';
 
 function resolveConfig<K extends GameId>(
@@ -243,6 +244,22 @@ export function buildStandaloneHelpActivity(
           'Listen closely for the one spoken word, tap it to peel a tile, and uncover the hidden friend!',
         artPath: 'hub/word-peekaboo.png',
         voiceClipId: 'word-peekaboo',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'compare-quest': {
+      const cfg = resolveConfig('compare-quest', rawConfig, profiles);
+      const mode = getCompareModeSpec(cfg.modeId);
+      return {
+        ...base,
+        gameId,
+        title: 'Compare Quest',
+        subtitle: `${mode.title} (${mode.rangeBadge})`,
+        detailLine:
+          'Compare both sides — tap, drag, or write >, =, or < in the center box (wide side points to bigger)!',
+        artPath: 'hub/compare-quest.png',
+        voiceClipId: 'compare-quest',
         payload: { gameId, config: cfg },
       };
     }

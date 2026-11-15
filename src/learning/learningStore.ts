@@ -84,6 +84,7 @@ const VALID_GAME_IDS = new Set<GameId>([
   'spot-the-twin',
   'dot-to-dot',
   'word-peekaboo',
+  'compare-quest',
 ]);
 
 const VALID_SKILL_TYPES = new Set<SkillType>([

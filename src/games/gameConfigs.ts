@@ -63,6 +63,11 @@ import {
   isValidWordPeekabooConfig,
   type WordPeekabooConfig,
 } from './word-peekaboo/peekabooData';
+import {
+  getDefaultCompareQuestConfig,
+  isValidCompareQuestConfig,
+  type CompareQuestConfig,
+} from './compare-quest/compareData';
 
 // TODO(security): Pebble runs 100% locally in the browser as a static client-only PWA with no
 // backend server, authentication, or database. All saved game configuration objects restored from
@@ -83,6 +88,7 @@ export interface GameConfigMap {
   'spot-the-twin': SpotTheTwinConfig;
   'dot-to-dot': DotToDotConfig;
   'word-peekaboo': WordPeekabooConfig;
+  'compare-quest': CompareQuestConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -193,6 +199,7 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'spot-the-twin': isValidSpotTheTwinConfig,
   'dot-to-dot': isValidDotToDotConfig,
   'word-peekaboo': isValidWordPeekabooConfig,
+  'compare-quest': isValidCompareQuestConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -257,5 +264,7 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultDotToDotConfig() as GameConfigMap[K];
     case 'word-peekaboo':
       return getDefaultWordPeekabooConfig() as GameConfigMap[K];
+    case 'compare-quest':
+      return getDefaultCompareQuestConfig() as GameConfigMap[K];
   }
 }

@@ -380,6 +380,88 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     );
   }
 
+  if (activity.gameId === 'compare-quest') {
+    return (
+      <div
+        className="intro-demo-stage"
+        aria-hidden="true"
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div
+            style={{
+              background: '#FAF6EC',
+              border: '2px solid #DFC9A3',
+              borderRadius: 16,
+              padding: '8px 12px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <div style={{ display: 'flex', gap: 4 }}>
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+            </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+            </div>
+            <strong style={{ fontFamily: 'var(--font-display)', color: '#4949C0', fontSize: '1.1rem' }}>
+              5
+            </strong>
+          </div>
+
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 18,
+              background: '#E4F6F3',
+              border: '3px solid #3BA99C',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'var(--font-display)',
+              fontSize: '2.2rem',
+              fontWeight: 700,
+              color: '#1F786D',
+            }}
+          >
+            &gt;
+          </div>
+
+          <div
+            style={{
+              background: '#FAF6EC',
+              border: '2px solid #DFC9A3',
+              borderRadius: 16,
+              padding: '8px 12px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <div style={{ display: 'flex', gap: 4 }}>
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+            </div>
+            <strong style={{ fontFamily: 'var(--font-display)', color: '#4949C0', fontSize: '1.1rem' }}>
+              3
+            </strong>
+          </div>
+        </div>
+        <span className="intro-demo-twin-caption">
+          Wide open side points to the bigger side — tap, drag, or write &gt;, =, or &lt;!
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="intro-demo-stage intro-demo-stage--safari" aria-hidden="true">
       <div className="intro-demo-safari-animals">

@@ -13,7 +13,8 @@ export type GameId =
   | 'sticker-scene'
   | 'spot-the-twin'
   | 'dot-to-dot'
-  | 'word-peekaboo';
+  | 'word-peekaboo'
+  | 'compare-quest';
 
 export type HubShelfId =
   | 'letters-words'
@@ -213,6 +214,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['numeracy', 'self-regulation'],
       targetSkills: ['quantity_counting', 'group_joining'],
       conceptUnitLabel: 'Numbers 1–10 & Joining',
+    },
+  },
+  {
+    id: 'compare-quest',
+    title: 'Compare Quest',
+    description:
+      'Compare countable baskets, sticks & towers, juice jugs, and workbook numbers (0–10) — tap, drag, or write >, =, or < in the center box!',
+    badgeText: 'New Game',
+    ageHint: 'K1 / LKG • >, < & = (0–10)',
+    artPath: 'hub/compare-quest.png',
+    shelf: 'numbers-logic',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Connects concrete quantities (including 0), aligned lengths, liquid measures, and abstract numerals (0–10) to greater than (>), less than (<), and equal to (=).',
+      domains: ['numeracy', 'cognition', 'self-regulation'],
+      targetSkills: ['quantity_counting'],
+      conceptUnitLabel: 'Comparing >, < & = (0–10)',
     },
   },
   {

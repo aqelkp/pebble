@@ -12,7 +12,20 @@ import {
   type PeekabooPackId,
   type PeekabooRoundLength,
 } from '../games/word-peekaboo/peekabooData';
+import {
+  getCompareModeSpec,
+  type CompareModeId,
+  type CompareRoundSize,
+} from '../games/compare-quest/compareData';
 import type { JourneyActivityAdapter } from './journeyTypes';
+
+const COMPARE_MODE_ROTATION: readonly CompareModeId[] = [
+  'quantity',
+  'length',
+  'measure',
+  'numbers',
+  'mix',
+];
 
 const WORD_PACK_ROTATION: readonly WordPackId[] = ['animals', 'home', 'play', 'nature', 'all'];
 const PEEKABOO_PACK_ROTATION: readonly PeekabooPackId[] = [
@@ -513,6 +526,36 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
             packId,
             worldId: world.id,
             roundLength,
+          },
+        },
+      };
+    },
+  },
+
+  'compare-quest': {
+    gameId: 'compare-quest',
+    title: 'Compare Quest',
+    artPath: 'hub/compare-quest.png',
+    category: 'math',
+    buildActivity: (ctx) => {
+      const modeId: CompareModeId =
+        ctx.chapterNumber <= 2 && ctx.gameOrdinal === 0
+          ? 'quantity'
+          : COMPARE_MODE_ROTATION[(ctx.chapterNumber + ctx.gameOrdinal) % COMPARE_MODE_ROTATION.length];
+      const roundSize: CompareRoundSize = ctx.settings.durationMode === 'short' ? 6 : 8;
+      const spec = getCompareModeSpec(modeId);
+
+      return {
+        title: `Compare Quest: ${spec.title}`,
+        subtitle: `${spec.rangeBadge} • ${roundSize} prompts`,
+        detailLine: `Compare both sides and place >, =, or < in the center box!`,
+        artPath: 'hub/compare-quest.png',
+        voiceClipId: 'compare-quest',
+        payload: {
+          gameId: 'compare-quest',
+          config: {
+            modeId,
+            roundSize,
           },
         },
       };
