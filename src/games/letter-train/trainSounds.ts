@@ -1,3 +1,9 @@
+import {
+  playLetterAudio,
+  playWordAudio,
+  speakWithSynthesis,
+  stopAllSpokenAudio,
+} from '../../utils/wordAudio';
 import type { LetterId } from './letterData';
 
 let sharedCtx: AudioContext | null = null;
@@ -123,30 +129,16 @@ function playWhistleBlast(startSec: number, durationSec: number, peakGain = 0.07
   playFilteredNoise(startSec, durationSec * 0.85, 1450, 2.2, peakGain * 0.32);
 }
 
+export function speakTrainWord(wordId: string, fallbackWord: string, enabled: boolean): void {
+  playWordAudio(wordId, fallbackWord, enabled);
+}
+
 export function speakPhrase(phrase: string, enabled: boolean): void {
-  if (!enabled) return;
-  try {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(phrase);
-    utter.lang = 'en-US';
-    utter.rate = 0.93;
-    utter.pitch = 1.08;
-    utter.volume = 0.95;
-    window.speechSynthesis.speak(utter);
-  } catch {
-    // Speech synthesis unavailable or restricted
-  }
+  speakWithSynthesis(phrase, enabled);
 }
 
 export function stopTrainSpeech(): void {
-  try {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-  } catch {
-    // Ignore speech errors
-  }
+  stopAllSpokenAudio();
 }
 
 export function playCardPickupSound(enabled: boolean): void {
@@ -235,7 +227,7 @@ export function playTrainArrivalSound(letter: LetterId, enabled: boolean): void 
   playFilteredNoise(0.14, 0.12, 720, 1.5, 0.06);
   playTone(523.25, 0.22, 0.16, 'triangle', 0.07);
   playTone(659.25, 0.32, 0.22, 'triangle', 0.075);
-  speakPhrase(`Letter ${letter}!`, enabled);
+  playLetterAudio(letter, `Letter ${letter}!`, enabled);
 }
 
 export function playTripCompleteSound(enabled: boolean): void {

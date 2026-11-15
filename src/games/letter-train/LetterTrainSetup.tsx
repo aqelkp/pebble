@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrandLogo, CrownIcon } from '../../components/BrandLogo';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
+import { preloadLettersAudio, preloadWordsAudio } from '../../utils/wordAudio';
 import {
   ALL_LETTERS,
   VOWEL_LETTERS,
+  getStationSpec,
   isValidLetterId,
   loadMasteredLetters,
   loadPerfectLetters,
@@ -67,6 +69,14 @@ export function LetterTrainSetup({
       ? ALL_LETTERS.filter((l) => initialConfig.selectedLetters.includes(l))
       : [...ALL_LETTERS],
   );
+
+  // Silently warm up audio clips for the first 4 selected stations before Start
+  useEffect(() => {
+    const initialLetters = selectedLetters.slice(0, 4);
+    if (initialLetters.length === 0) return;
+    preloadLettersAudio(initialLetters);
+    preloadWordsAudio(initialLetters.flatMap((letter) => getStationSpec(letter).words.map((w) => w.id)));
+  }, [selectedLetters]);
   const [orderMode, setOrderMode] = useState<StationOrderMode>(
     initialConfig?.orderMode ?? 'alphabetical',
   );
