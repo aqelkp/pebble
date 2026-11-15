@@ -450,9 +450,11 @@ export function WordFunBoard({
         }, 860);
       } else {
         setPhase('resolving-miss');
-        setThinkAgainHint(
-          `Not "${tile.letter}" — listen to the word and pick the next letter!`,
-        );
+        timeoutRef.current = window.setTimeout(() => {
+          setThinkAgainHint(
+            `You picked "${tile.letter}" — listen to "${currentWord.word}" and find "${expectedLetter}" next!`,
+          );
+        }, 2200);
       }
     },
     [
@@ -526,7 +528,7 @@ export function WordFunBoard({
     bannerText =
       players.length > 1 && nextPlayerName
         ? `Not "${wrongLetter ?? '?'}" — ${nextPlayerName}'s turn to help!`
-        : `Not "${wrongLetter ?? '?'}" — Try another letter block!`;
+        : `You picked "${wrongLetter ?? '?'}" — "${currentWord?.word ?? ''}" needs another letter!`;
   }
 
   return (
@@ -792,6 +794,10 @@ export function WordFunBoard({
           setWrongTileUid(null);
           setWrongLetter(null);
           setPhase('idle');
+        }}
+        onStartAgain={() => {
+          setThinkAgainHint(null);
+          restartGame();
         }}
       />
     </div>
