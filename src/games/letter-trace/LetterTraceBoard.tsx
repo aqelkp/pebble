@@ -17,15 +17,22 @@ import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import {
   playLetterAudio,
+  playNumberAudio,
   playTraceOrderVoice,
   playWordAudio,
   preloadLettersAudio,
+  preloadNumbersAudio,
   preloadTraceOrderVoice,
   preloadWordsAudio,
   stopAllSpokenAudio,
 } from '../../utils/wordAudio';
 import { isValidLetterId, type LetterId } from '../letter-train/letterData';
 import { WordIllustration } from '../letter-train/WordIllustration';
+import {
+  buildAnyTraceDeck,
+  buildGenericTraceItem,
+  isValidTraceDeckItem,
+} from './k1ExtraTraces';
 import {
   FENCE_LINE_Y,
   GRASS_LINE_Y,
@@ -35,8 +42,6 @@ import {
   SLATE_HEIGHT,
   SLATE_WIDTH,
   STROKE_WIDTH,
-  buildLetterTraceSpec,
-  buildTraceDeck,
   loadTraceMastery,
   pickRotatingWordForLetter,
   pointAlongStroke,
@@ -92,9 +97,9 @@ interface ActiveDragState {
 
 interface StoredTraceSession {
   gameKey: number;
-  deck: LetterId[];
+  deck: string[];
   deckIndex: number;
-  crownedThisRound: LetterId[];
+  crownedThisRound: string[];
   wrongDragsCount: number;
 }
 
@@ -103,21 +108,26 @@ function clampSafeInt(val: unknown, min: number, max: number, fallback: number):
   return Math.max(min, Math.min(max, Math.floor(val)));
 }
 
-function loadActiveTraceSession(gameKey: number): StoredTraceSession | null {
+function loadActiveTraceSession(
+  gameKey: number,
+  config: LetterTraceConfig,
+): StoredTraceSession | null {
   try {
     if (typeof window === 'undefined' || !window.sessionStorage) return null;
     const raw = window.sessionStorage.getItem(ACTIVE_TRACE_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<StoredTraceSession>;
     if (parsed.gameKey !== gameKey) return null;
-    if (!Array.isArray(parsed.deck) || parsed.deck.length === 0 || parsed.deck.length > 26) {
+    if (!Array.isArray(parsed.deck) || parsed.deck.length === 0 || parsed.deck.length > 51) {
       return null;
     }
-    const cleanDeck = parsed.deck.filter((item): item is LetterId => isValidLetterId(item));
+    const cleanDeck = parsed.deck.filter((item): item is string =>
+      isValidTraceDeckItem(item, config),
+    );
     if (cleanDeck.length !== parsed.deck.length) return null;
     const deckIndex = clampSafeInt(parsed.deckIndex, 0, cleanDeck.length - 1, 0);
     const crownedThisRound = Array.isArray(parsed.crownedThisRound)
-      ? parsed.crownedThisRound.filter((l): l is LetterId => isValidLetterId(l))
+      ? parsed.crownedThisRound.filter((l): l is string => isValidTraceDeckItem(l, config))
       : [];
     const wrongDragsCount = clampSafeInt(parsed.wrongDragsCount, 0, 5000, 0);
     return {
@@ -269,22 +279,24 @@ export function LetterTraceBoard({
   onGameActiveChange,
   journeyContext,
 }: LetterTraceBoardProps) {
+  const activeTraceMode = config.traceMode ?? 'letters';
+
   const initialSession = useMemo(() => {
-    const saved = !journeyContext ? loadActiveTraceSession(gameKey) : null;
+    const saved = !journeyContext ? loadActiveTraceSession(gameKey, config) : null;
     if (saved) return saved;
     const mastery = loadTraceMastery();
     return {
       gameKey,
-      deck: buildTraceDeck(config, mastery),
+      deck: buildAnyTraceDeck(config, mastery),
       deckIndex: 0,
-      crownedThisRound: [] as LetterId[],
+      crownedThisRound: [] as string[],
       wrongDragsCount: 0,
     };
   }, [gameKey, config, journeyContext]);
 
-  const [deck] = useState<LetterId[]>(initialSession.deck);
+  const [deck] = useState<string[]>(initialSession.deck);
   const [deckIndex, setDeckIndex] = useState<number>(initialSession.deckIndex);
-  const [crownedThisRound, setCrownedThisRound] = useState<LetterId[]>(
+  const [crownedThisRound, setCrownedThisRound] = useState<string[]>(
     initialSession.crownedThisRound,
   );
   const [wrongDragsCount, setWrongDragsCount] = useState<number>(initialSession.wrongDragsCount);
@@ -307,11 +319,13 @@ export function LetterTraceBoard({
     text: 'Start at Circle 1 and trace along the arrows!',
   });
 
-  const currentLetter = deck[deckIndex] ?? deck[0];
-  const traceSpec = useMemo(
-    () => buildLetterTraceSpec(currentLetter, config.caseMode),
-    [currentLetter, config.caseMode],
+  const currentItem = deck[deckIndex] ?? deck[0] ?? 'A';
+  const currentLetter: LetterId = isValidLetterId(currentItem) ? currentItem : 'A';
+  const genericItem = useMemo(
+    () => buildGenericTraceItem(currentItem, config),
+    [currentItem, config],
   );
+  const traceSpec = genericItem.spec;
   const activeStroke: ResolvedTraceStroke | undefined = traceSpec.strokes[activeStrokeIdx];
 
   const [wordSpec, setWordSpec] = useState(() => pickRotatingWordForLetter(currentLetter));
@@ -372,8 +386,15 @@ export function LetterTraceBoard({
   }, [currentLetter]);
 
   useEffect(() => {
-    preloadLettersAudio(deck);
-    preloadWordsAudio(deck.map((l) => pickRotatingWordForLetter(l).id));
+    if (activeTraceMode === 'letters') {
+      const validLetters = deck.filter((l): l is LetterId => isValidLetterId(l));
+      preloadLettersAudio(validLetters);
+      preloadWordsAudio(validLetters.map((l) => pickRotatingWordForLetter(l).id));
+    } else if (activeTraceMode === 'numbers') {
+      preloadNumbersAudio(50, true);
+    } else {
+      preloadWordsAudio(deck);
+    }
     preloadTraceOrderVoice();
     return () => {
       stopAllSpokenAudio();
@@ -383,7 +404,7 @@ export function LetterTraceBoard({
       cancelGuideAnim();
       teachVoiceCancelRef.current?.();
     };
-  }, [deck, cancelGuideAnim, cancelRetractAnim]);
+  }, [activeTraceMode, deck, cancelGuideAnim, cancelRetractAnim]);
 
   useEffect(() => {
     if (phase === 'won') {
@@ -427,13 +448,13 @@ export function LetterTraceBoard({
         recordLearningSession({
           playerId: childProfile.id,
           gameId: 'letter-trace',
-          mode: `${config.caseMode}-${deck.length}`,
+          mode: `${activeTraceMode}-${config.caseMode}-${deck.length}`,
           totalAttempts: total,
           correctAttempts: deck.length,
           mistakes: finalWrongCount,
           flawless: finalWrongCount === 0 && finalCrownedCount === deck.length,
           durationMs: Math.max(1000, Date.now() - startedAtRef.current),
-          conceptsTested: deck.map((l) => `letter:${l}`),
+          conceptsTested: deck.map((item) => buildGenericTraceItem(item, config).conceptId),
         });
       }
 
@@ -441,7 +462,7 @@ export function LetterTraceBoard({
         journeyContext.onActivityComplete();
       }
     },
-    [childProfile.id, config.caseMode, deck, journeyContext, soundEnabled],
+    [activeTraceMode, childProfile.id, config, deck, journeyContext, soundEnabled],
   );
 
   const completeActiveStroke = useCallback(() => {
@@ -471,13 +492,15 @@ export function LetterTraceBoard({
       return;
     }
 
-    // Completed all strokes for this letter / pair!
+    // Completed all strokes for this letter / number / shape / word!
     const earnedCrown = !letterHadMistake;
-    saveTraceLetterMastery(currentLetter, earnedCrown);
+    if (activeTraceMode === 'letters' && isValidLetterId(currentItem)) {
+      saveTraceLetterMastery(currentItem, earnedCrown);
+    }
 
     const nextCrownedList =
-      earnedCrown && !crownedThisRound.includes(currentLetter)
-        ? [...crownedThisRound, currentLetter]
+      earnedCrown && !crownedThisRound.includes(currentItem)
+        ? [...crownedThisRound, currentItem]
         : crownedThisRound;
     if (earnedCrown) {
       setCrownedThisRound(nextCrownedList);
@@ -486,9 +509,9 @@ export function LetterTraceBoard({
     recordSkillAttempt({
       playerId: childProfile.id,
       gameId: 'letter-trace',
-      conceptId: `letter:${currentLetter}`,
-      conceptLabel: `Letter ${currentLetter}${currentLetter.toLowerCase()}`,
-      skillType: 'letter_formation',
+      conceptId: genericItem.conceptId,
+      conceptLabel: genericItem.conceptLabel,
+      skillType: genericItem.skillType,
       correct: earnedCrown,
       attemptsTaken: 1 + letterMistakeCount,
     });
@@ -501,16 +524,17 @@ export function LetterTraceBoard({
 
     if (soundEnabled) {
       window.setTimeout(() => {
-        playLetterAudio(currentLetter, `Letter ${currentLetter}`, true);
+        if (genericItem.audioKind === 'letter') {
+          playLetterAudio(currentLetter, `Letter ${currentLetter}`, true);
+        } else if (genericItem.audioKind === 'number') {
+          playNumberAudio(Number(genericItem.audioTarget) || 0, true);
+        } else {
+          playWordAudio(genericItem.audioTarget, genericItem.title, true);
+        }
       }, 240);
     }
 
-    const displayPair =
-      config.caseMode === 'both'
-        ? `${currentLetter} ${currentLetter.toLowerCase()}`
-        : config.caseMode === 'upper'
-          ? currentLetter
-          : currentLetter.toLowerCase();
+    const displayPair = genericItem.title;
 
     setBanner({
       tone: earnedCrown ? 'gold' : 'success',
@@ -543,15 +567,17 @@ export function LetterTraceBoard({
   }, [
     activeStroke,
     activeStrokeIdx,
+    activeTraceMode,
     cancelGuideAnim,
     cancelRetractAnim,
     childProfile.id,
-    config.caseMode,
     crownedThisRound,
+    currentItem,
     currentLetter,
     deck.length,
     deckIndex,
     finishRound,
+    genericItem,
     letterHadMistake,
     letterMistakeCount,
     phase,
@@ -968,7 +994,9 @@ export function LetterTraceBoard({
   }, [activeStroke, guideProgress]);
 
   const isReversalPair =
-    config.caseMode !== 'upper' && REVERSAL_GUARD_LETTERS.includes(currentLetter);
+    activeTraceMode === 'letters' &&
+    config.caseMode !== 'upper' &&
+    REVERSAL_GUARD_LETTERS.includes(currentLetter);
   const reversalCue =
     currentLetter === 'B'
       ? 'Bat down first, then ball'
@@ -980,12 +1008,7 @@ export function LetterTraceBoard({
             ? 'Magic curve first, then dive tail'
             : null;
 
-  const pairDisplayTitle =
-    config.caseMode === 'both'
-      ? `${currentLetter} ${currentLetter.toLowerCase()}`
-      : config.caseMode === 'upper'
-        ? currentLetter
-        : currentLetter.toLowerCase();
+  const pairDisplayTitle = genericItem.badgeText;
 
   const completedStrokeColor = phase === 'pair-complete' ? '#3BA99C' : '#5B5BD6';
 
@@ -1019,18 +1042,24 @@ export function LetterTraceBoard({
         </div>
 
         <div className="tr-progress-center">
-          <div className="tr-progress-dots" aria-label={`Pair ${deckIndex + 1} of ${deck.length}`}>
-            {deck.map((letter, idx) => {
+          <div className="tr-progress-dots" aria-label={`Item ${deckIndex + 1} of ${deck.length}`}>
+            {deck.map((item, idx) => {
               const isDone = idx < deckIndex || (idx === deckIndex && phase === 'pair-complete');
               const isCurrent = idx === deckIndex && phase !== 'pair-complete';
+              const pillLabel =
+                activeTraceMode === 'letters' && config.caseMode === 'lower'
+                  ? item.toLowerCase()
+                  : activeTraceMode === 'shapes'
+                    ? item.slice(0, 3)
+                    : item;
               return (
                 <span
-                  key={`${letter}-${idx}`}
+                  key={`${item}-${idx}`}
                   className={`tr-prog-pill ${isDone ? 'is-done' : ''} ${
                     isCurrent ? 'is-current' : ''
                   }`}
                 >
-                  {config.caseMode === 'lower' ? letter.toLowerCase() : letter}
+                  {pillLabel}
                 </span>
               );
             })}
@@ -1076,14 +1105,16 @@ export function LetterTraceBoard({
           <div className="tr-prompt-copy">
             <h1 className="tr-prompt-title">
               {phase === 'pair-complete'
-                ? `${pairDisplayTitle} Complete!`
+                ? `${genericItem.title} Complete!`
                 : activeStroke
-                  ? `${activeStroke.glyphCase === 'upper' ? `Capital ${currentLetter}` : `Small ${currentLetter.toLowerCase()}`} • Stroke ${activeStroke.order} of ${traceSpec.strokes.length}`
-                  : pairDisplayTitle}
+                  ? `${genericItem.title} • Stroke ${activeStroke.order} of ${traceSpec.strokes.length}`
+                  : genericItem.title}
             </h1>
             <p className="tr-prompt-sub">
               {phase === 'pair-complete'
-                ? `${currentLetter} is for ${wordSpec.word}!`
+                ? activeTraceMode === 'letters'
+                  ? `${currentLetter} is for ${wordSpec.word}!`
+                  : genericItem.completeSubtext
                 : activeStroke
                   ? activeStroke.hint
                   : 'Trace along the arrows!'}
@@ -1091,21 +1122,44 @@ export function LetterTraceBoard({
           </div>
         </div>
 
-        <div className="tr-word-chip">
-          <WordIllustration id={wordSpec.id} size={46} />
-          <div className="tr-word-chip__meta">
-            <strong>{wordSpec.word}</strong>
-            <button
-              type="button"
-              className="tr-hear-btn"
-              onClick={() => playWordAudio(wordSpec.id, wordSpec.word, true)}
-              data-testid="trace-hear-word-btn"
-            >
-              <SpeakerIcon />
-              <span>Hear Word</span>
-            </button>
+        {activeTraceMode === 'letters' ? (
+          <div className="tr-word-chip">
+            <WordIllustration id={wordSpec.id} size={46} />
+            <div className="tr-word-chip__meta">
+              <strong>{wordSpec.word}</strong>
+              <button
+                type="button"
+                className="tr-hear-btn"
+                onClick={() => playWordAudio(wordSpec.id, wordSpec.word, true)}
+                data-testid="trace-hear-word-btn"
+              >
+                <SpeakerIcon />
+                <span>Hear Word</span>
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="tr-word-chip">
+            <div className="tr-word-chip__meta">
+              <strong>{genericItem.title}</strong>
+              <button
+                type="button"
+                className="tr-hear-btn"
+                onClick={() => {
+                  if (genericItem.audioKind === 'number') {
+                    playNumberAudio(Number(genericItem.audioTarget) || 0, true);
+                  } else {
+                    playWordAudio(genericItem.audioTarget, genericItem.title, true);
+                  }
+                }}
+                data-testid="trace-hear-word-btn"
+              >
+                <SpeakerIcon />
+                <span>Hear It</span>
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       <div
@@ -1177,7 +1231,7 @@ export function LetterTraceBoard({
           </text>
 
           {/* Divider between Capital and Small when side-by-side */}
-          {config.caseMode === 'both' && (
+          {activeTraceMode === 'letters' && config.caseMode === 'both' && (
             <line
               x1="376"
               y1="36"
@@ -1191,7 +1245,7 @@ export function LetterTraceBoard({
 
           {/* Zone header pills inside the slate */}
           {traceSpec.glyphs.map((glyph) => (
-            <g key={glyph.glyphCase} transform={`translate(${glyph.centerX} 34)`}>
+            <g key={`${glyph.glyphCase}-${glyph.centerX}`} transform={`translate(${glyph.centerX} 34)`}>
               <rect
                 x="-64"
                 y="-15"

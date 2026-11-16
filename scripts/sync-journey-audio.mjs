@@ -84,6 +84,30 @@ const JOURNEY_PROMPTS = [
     text: 'Listen to each word and tap it to uncover the hidden friend!',
   },
   {
+    id: 'compare-quest',
+    text: 'Compare both sides and place greater than, less than, or equal in the middle!',
+  },
+  {
+    id: 'word-trace',
+    text: 'Listen to the word and trace each letter from left to right along the arrows!',
+  },
+  {
+    id: 'mystery-express',
+    text: 'Solve each puzzle at the railway gate to send the train chugging ahead!',
+  },
+  {
+    id: 'pebble-creek',
+    text: 'Solve each river puzzle to drop a stepping stone across Pebble Creek!',
+  },
+  {
+    id: 'cloud-balloon',
+    text: 'Solve each sky puzzle to float your hot air balloon higher into the clouds!',
+  },
+  {
+    id: 'treasure-keys',
+    text: 'Solve five puzzles to turn the golden keys and pop open the treasure chest!',
+  },
+  {
     id: 'circle-sort',
     text: 'Listen to the group clue and circle all the pictures that belong!',
   },
@@ -97,6 +121,10 @@ const UI_PROMPTS = [
   {
     id: 'trace-in-order',
     text: "Let's write in order! Start at the numbered circle and follow the arrow.",
+  },
+  {
+    id: 'look-closely-hint',
+    text: "Let's look closely at the clue together!",
   },
 ];
 

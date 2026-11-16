@@ -1,5 +1,6 @@
 import { lazy, type ReactNode } from 'react';
 import type { FamilyProfile } from '../context/FamilyProfilesContext';
+import type { AdventureSkinId } from '../curriculum/questEngine/questTypes';
 import type { JourneyBoardContext } from '../journey/journeyTypes';
 import {
   getDefaultGameConfig,
@@ -120,6 +121,36 @@ const WordPeekabooBoard = lazy(() =>
     default: m.WordPeekabooBoard,
   })),
 );
+const CompareQuestSetup = lazy(() =>
+  import('./compare-quest/CompareQuestSetup').then((m) => ({
+    default: m.CompareQuestSetup,
+  })),
+);
+const CompareQuestBoard = lazy(() =>
+  import('./compare-quest/CompareQuestBoard').then((m) => ({
+    default: m.CompareQuestBoard,
+  })),
+);
+const WordTraceSetup = lazy(() =>
+  import('./word-trace/WordTraceSetup').then((m) => ({
+    default: m.WordTraceSetup,
+  })),
+);
+const WordTraceBoard = lazy(() =>
+  import('./word-trace/WordTraceBoard').then((m) => ({
+    default: m.WordTraceBoard,
+  })),
+);
+const QuestAdventureSetup = lazy(() =>
+  import('./quest-adventures/QuestAdventureSetup').then((m) => ({
+    default: m.QuestAdventureSetup,
+  })),
+);
+const QuestAdventureBoard = lazy(() =>
+  import('./quest-adventures/QuestAdventureBoard').then((m) => ({
+    default: m.QuestAdventureBoard,
+  })),
+);
 const CircleSortSetup = lazy(() =>
   import('./circle-sort/CircleSortSetup').then((m) => ({
     default: m.CircleSortSetup,
@@ -199,6 +230,59 @@ function makeConfigAccessors<K extends GameId>(gameId: K) {
       isValidGameConfig(gameId, value),
     getDefaultConfig: (profiles: readonly FamilyProfile[]): GameConfigMap[K] =>
       getDefaultGameConfig(gameId, profiles),
+  };
+}
+
+function makeQuestPlugin<K extends AdventureSkinId>(
+  skinId: K,
+  leaveCopy: LeaveGameCopy,
+): GamePlugin<K> {
+  return {
+    id: skinId,
+    activeSessionStorageKey: `pebble.quest.${skinId}.active.v1`,
+    leaveCopy,
+    ...makeConfigAccessors(skinId),
+    preloadChunks: () =>
+      Promise.all([
+        import('./quest-adventures/QuestAdventureSetup'),
+        import('./quest-adventures/QuestAdventureBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onStartGame }) => (
+      <QuestAdventureSetup
+        skinId={skinId}
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig(skinId, profiles)}
+        onBackToHub={onBackToHub}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <QuestAdventureBoard
+        key={gameKey}
+        skinId={skinId}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
   };
 }
 
@@ -848,6 +932,132 @@ const GAME_PLUGINS: GamePluginRegistry = {
       />
     ),
   },
+
+  'compare-quest': {
+    id: 'compare-quest',
+    activeSessionStorageKey: 'pebble.compare-quest.active.v1',
+    leaveCopy: {
+      headline: 'Leave Compare Quest?',
+      subtitle: 'Your earned comparison badges are saved, but this round will reset.',
+      keepPlayingLabel: 'Keep Comparing',
+    },
+    ...makeConfigAccessors('compare-quest'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./compare-quest/CompareQuestSetup'),
+        import('./compare-quest/CompareQuestBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onEditProfiles, onStartGame }) => (
+      <CompareQuestSetup
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig('compare-quest', profiles)}
+        onBackToHub={onBackToHub}
+        onEditProfiles={onEditProfiles}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <CompareQuestBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'word-trace': {
+    id: 'word-trace',
+    activeSessionStorageKey: 'pebble.word-trace.active.v1',
+    leaveCopy: {
+      headline: 'Leave Word Trace?',
+      subtitle: 'Collected crowns are saved, but your current notebook page will reset.',
+      keepPlayingLabel: 'Keep Writing',
+    },
+    ...makeConfigAccessors('word-trace'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./word-trace/WordTraceSetup'),
+        import('./word-trace/WordTraceBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onEditProfiles, onStartGame }) => (
+      <WordTraceSetup
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig('word-trace', profiles)}
+        onBackToHub={onBackToHub}
+        onEditProfiles={onEditProfiles}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <WordTraceBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'mystery-express': makeQuestPlugin('mystery-express', {
+    headline: 'Leave Mystery Express?',
+    subtitle: 'Your train progress across this route will reset.',
+    keepPlayingLabel: 'Keep Riding',
+  }),
+
+  'pebble-creek': makeQuestPlugin('pebble-creek', {
+    headline: 'Leave Pebble Creek Bridge?',
+    subtitle: 'Your stepping stones across the stream will reset.',
+    keepPlayingLabel: 'Keep Crossing',
+  }),
+
+  'cloud-balloon': makeQuestPlugin('cloud-balloon', {
+    headline: 'Leave Cloud Balloon Quest?',
+    subtitle: 'Your balloon sky trip will reset.',
+    keepPlayingLabel: 'Keep Floating',
+  }),
+
+  'treasure-keys': makeQuestPlugin('treasure-keys', {
+    headline: 'Leave 5-Key Treasure Chest?',
+    subtitle: 'Your unlocked keys on this chest will reset.',
+    keepPlayingLabel: 'Keep Unlocking',
+  }),
 
   'circle-sort': {
     id: 'circle-sort',

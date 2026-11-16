@@ -18,9 +18,50 @@ import {
   type PeekabooPackId,
   type PeekabooRoundLength,
 } from '../games/word-peekaboo/peekabooData';
+import {
+  getCompareModeSpec,
+  type CompareModeId,
+  type CompareRoundSize,
+} from '../games/compare-quest/compareData';
+import {
+  getWordTracePackSpec,
+  type WordTracePackId,
+  type WordTraceRoundSize,
+} from '../games/word-trace/wordTraceEngine';
+import {
+  getQuestPackSpec,
+  type AdventureSkinId,
+  type QuestPackId,
+  type QuestRoundLength,
+} from '../curriculum/questEngine/questTypes';
 import type { JourneyActivityAdapter } from './journeyTypes';
 
-const WORD_PACK_ROTATION: readonly WordPackId[] = ['animals', 'home', 'play', 'nature', 'all'];
+const COMPARE_MODE_ROTATION: readonly CompareModeId[] = [
+  'quantity',
+  'length',
+  'measure',
+  'numbers',
+  'mix',
+];
+
+const WORD_PACK_ROTATION: readonly WordPackId[] = ['animals', 'sight', 'home', 'play', 'nature', 'all'];
+const WORD_TRACE_PACK_ROTATION: readonly WordTracePackId[] = [
+  'cvc',
+  'sight',
+  'numbers',
+  'cvc-mix',
+];
+const QUEST_PACK_SPIRAL: readonly QuestPackId[] = [
+  'numbers-50',
+  'shapes-patterns',
+  'about-me-helpers',
+  'reading-phrases',
+  'place-value-lines',
+  'animals-nature',
+  'pre-math',
+  'world-transport',
+  'smart-mix',
+];
 const PEEKABOO_PACK_ROTATION: readonly PeekabooPackId[] = [
   'sight-1',
   'cvc-ai',
@@ -532,6 +573,73 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
     },
   },
 
+  'compare-quest': {
+    gameId: 'compare-quest',
+    title: 'Compare Quest',
+    artPath: 'hub/compare-quest.png',
+    category: 'math',
+    buildActivity: (ctx) => {
+      const modeId: CompareModeId =
+        ctx.chapterNumber <= 2 && ctx.gameOrdinal === 0
+          ? 'quantity'
+          : COMPARE_MODE_ROTATION[(ctx.chapterNumber + ctx.gameOrdinal) % COMPARE_MODE_ROTATION.length];
+      const roundSize: CompareRoundSize = ctx.settings.durationMode === 'short' ? 6 : 8;
+      const spec = getCompareModeSpec(modeId);
+
+      return {
+        title: `Compare Quest: ${spec.title}`,
+        subtitle: `${spec.rangeBadge} • ${roundSize} prompts`,
+        detailLine: `Compare both sides and place >, =, or < in the center box!`,
+        artPath: 'hub/compare-quest.png',
+        voiceClipId: 'compare-quest',
+        payload: {
+          gameId: 'compare-quest',
+          config: {
+            modeId,
+            roundSize,
+          },
+        },
+      };
+    },
+  },
+
+  'word-trace': {
+    gameId: 'word-trace',
+    title: 'Word Trace',
+    artPath: 'hub/word-trace.png',
+    category: 'words',
+    buildActivity: (ctx) => {
+      const packId =
+        WORD_TRACE_PACK_ROTATION[
+          (ctx.chapterNumber - 1 + ctx.gameOrdinal) % WORD_TRACE_PACK_ROTATION.length
+        ];
+      const roundSize: WordTraceRoundSize =
+        ctx.settings.durationMode === 'short' ? 4 : 6;
+      const pack = getWordTracePackSpec(packId);
+
+      return {
+        title: `Word Trace: ${pack.title}`,
+        subtitle: `abc & ABC • ${roundSize} notebook items`,
+        detailLine: `Listen to each prompt and write letters left-to-right on the 4-line notebook!`,
+        artPath: 'hub/word-trace.png',
+        voiceClipId: 'word-trace',
+        payload: {
+          gameId: 'word-trace',
+          config: {
+            packId,
+            caseMode: 'mix',
+            roundSize,
+          },
+        },
+      };
+    },
+  },
+
+  'mystery-express': buildQuestJourneyAdapter('mystery-express', 'Mystery Express', 0, 'math'),
+  'pebble-creek': buildQuestJourneyAdapter('pebble-creek', 'Pebble Creek Bridge', 1, 'logic'),
+  'cloud-balloon': buildQuestJourneyAdapter('cloud-balloon', 'Cloud Balloon Quest', 2, 'words'),
+  'treasure-keys': buildQuestJourneyAdapter('treasure-keys', '5-Key Treasure Chest', 3, 'words'),
+
   'circle-sort': {
     gameId: 'circle-sort',
     title: 'Circle & Sort',
@@ -566,6 +674,44 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
     },
   },
 };
+
+function buildQuestJourneyAdapter(
+  skinId: AdventureSkinId,
+  skinTitle: string,
+  packOffset: number,
+  category: JourneyActivityAdapter['category'],
+): JourneyActivityAdapter {
+  const artPath = `hub/${skinId}.png`;
+  return {
+    gameId: skinId,
+    title: skinTitle,
+    artPath,
+    category,
+    buildActivity: (ctx) => {
+      const packId =
+        QUEST_PACK_SPIRAL[
+          (ctx.chapterNumber - 1 + ctx.gameOrdinal + packOffset * 2) % QUEST_PACK_SPIRAL.length
+        ];
+      const pack = getQuestPackSpec(packId);
+      const roundLength: QuestRoundLength = ctx.settings.durationMode === 'short' ? 5 : 8;
+      return {
+        title: `${skinTitle}: ${pack.shortTitle}`,
+        subtitle: `${pack.syllabusBadge} • ${roundLength} stops`,
+        detailLine: pack.subtitle,
+        artPath,
+        voiceClipId: skinId,
+        payload: {
+          gameId: skinId,
+          config: {
+            packId,
+            roundLength,
+            rotateWorlds: false,
+          },
+        },
+      };
+    },
+  };
+}
 
 export function getJourneyAdapter(gameId: GameRegistryEntry['id']): JourneyActivityAdapter {
   return JOURNEY_LESSON_ADAPTERS[gameId];

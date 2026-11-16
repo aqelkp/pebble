@@ -671,9 +671,11 @@ export function ParentInsightsPage({
             <button
               type="button"
               className="pi-card pi-card--interactive"
-              onClick={() => setDrillTarget({ kind: 'game', gameId: 'number-safari' })}
+              onClick={() => setDrillTarget({ kind: 'game', gameId: 'mystery-express' })}
             >
-              <span className="pi-stat-label">Numbers 1–10</span>
+              <span className="pi-stat-label">
+                Numbers {benchmark.targetNumbers[0]}–{benchmark.targetNumbers[benchmark.targetNumbers.length - 1]}
+              </span>
               <span className="pi-stat-value">
                 {overview.numbersMastered} / {overview.numbersTotal}
               </span>
@@ -681,11 +683,11 @@ export function ParentInsightsPage({
                 <div
                   className="pi-progress-fill"
                   style={{
-                    width: `${Math.round((overview.numbersMastered / overview.numbersTotal) * 100)}%`,
+                    width: `${Math.round((overview.numbersMastered / Math.max(1, overview.numbersTotal)) * 100)}%`,
                   }}
                 />
               </div>
-              <span className="pi-stat-sub">Counting &amp; joining →</span>
+              <span className="pi-stat-sub">0–50, place value &amp; safari →</span>
             </button>
           </div>
 

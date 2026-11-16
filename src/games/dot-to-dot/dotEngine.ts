@@ -3,8 +3,8 @@ import { assetUrl } from '../../utils/assets';
 import { ALL_LETTERS } from '../letter-train/letterData';
 import { CARD_THEMES, type ThemeId } from '../memory-match/themes';
 
-export type DotSequenceMode = 'numbers' | 'letters' | 'mix';
-export type DotCountId = 6 | 8 | 10;
+export type DotSequenceMode = 'numbers' | 'countdown' | 'letters' | 'mix';
+export type DotCountId = 6 | 8 | 10 | 15 | 20;
 export type DotRoundLengthId = 3 | 5;
 
 export interface DotToDotConfig {
@@ -22,6 +22,8 @@ export interface DotPoint {
   isLetter: boolean;
 }
 
+export type ResolvedDotKind = 'numbers' | 'countdown' | 'letters';
+
 export interface DotPuzzleItem {
   id: string;
   word: string;
@@ -29,7 +31,7 @@ export interface DotPuzzleItem {
   themeId: ThemeId;
   themeTitle: string;
   canonicalWordId: string | null;
-  sequenceKind: 'numbers' | 'letters';
+  sequenceKind: ResolvedDotKind;
   dots: DotPoint[];
 }
 
@@ -39,8 +41,8 @@ export const ART_BOX_INSET = 84;
 export const ART_BOX_SIZE = LOGICAL_CANVAS_SIZE - ART_BOX_INSET * 2; // 352
 
 const VALID_THEME_IDS = new Set<string>(['all', ...CARD_THEMES.map((t) => t.id)]);
-const VALID_MODES = new Set<DotSequenceMode>(['numbers', 'letters', 'mix']);
-const VALID_DOT_COUNTS = new Set<DotCountId>([6, 8, 10]);
+const VALID_MODES = new Set<DotSequenceMode>(['numbers', 'countdown', 'letters', 'mix']);
+const VALID_DOT_COUNTS = new Set<DotCountId>([6, 8, 10, 15, 20]);
 const VALID_ROUND_LENGTHS = new Set<DotRoundLengthId>([3, 5]);
 
 const WORD_ID_SET = new Set<string>(CANONICAL_WORDS.map((w) => w.id));
@@ -98,9 +100,16 @@ function shuffleArray<T>(items: readonly T[]): T[] {
   return arr;
 }
 
-export function makeDotLabels(dotCount: number, isLetter: boolean): string[] {
-  const safeCount = Math.min(10, Math.max(4, Math.round(dotCount)));
-  if (isLetter) {
+export function makeDotLabels(dotCount: number, kind: ResolvedDotKind | boolean): string[] {
+  const resolvedKind: ResolvedDotKind =
+    typeof kind === 'boolean' ? (kind ? 'letters' : 'numbers') : kind;
+  if (resolvedKind === 'countdown') {
+    const startVal = Math.min(20, Math.max(5, Math.round(dotCount)));
+    // e.g. 10 -> 0 (11 pebbles ending on Zero!)
+    return Array.from({ length: startVal + 1 }, (_, idx) => String(startVal - idx));
+  }
+  const safeCount = Math.min(20, Math.max(4, Math.round(dotCount)));
+  if (resolvedKind === 'letters') {
     return ALL_LETTERS.slice(0, safeCount);
   }
   return Array.from({ length: safeCount }, (_, idx) => String(idx + 1));
@@ -108,10 +117,13 @@ export function makeDotLabels(dotCount: number, isLetter: boolean): string[] {
 
 export function createFallbackDots(
   dotCount: number,
-  isLetter: boolean,
+  kind: ResolvedDotKind | boolean,
   seedIndex = 0,
 ): DotPoint[] {
-  const labels = makeDotLabels(dotCount, isLetter);
+  const resolvedKind: ResolvedDotKind =
+    typeof kind === 'boolean' ? (kind ? 'letters' : 'numbers') : kind;
+  const isLetter = resolvedKind === 'letters';
+  const labels = makeDotLabels(dotCount, resolvedKind);
   const cx = LOGICAL_CANVAS_SIZE / 2;
   const cy = LOGICAL_CANVAS_SIZE / 2;
   const baseRadius = 192;
@@ -174,11 +186,14 @@ function relaxDotSpacing(
 export function computeContourDotsFromImageData(
   imageData: ImageData,
   dotCount: number,
-  isLetter: boolean,
+  kind: ResolvedDotKind | boolean,
 ): DotPoint[] {
+  const resolvedKind: ResolvedDotKind =
+    typeof kind === 'boolean' ? (kind ? 'letters' : 'numbers') : kind;
+  const isLetter = resolvedKind === 'letters';
   const { width, height, data } = imageData;
   const total = width * height;
-  if (total === 0) return createFallbackDots(dotCount, isLetter);
+  if (total === 0) return createFallbackDots(dotCount, resolvedKind);
 
   const visited = new Uint8Array(total);
   const bg = new Uint8Array(total);
@@ -238,7 +253,7 @@ export function computeContourDotsFromImageData(
   }
 
   if (fgCount < 25) {
-    return createFallbackDots(dotCount, isLetter);
+    return createFallbackDots(dotCount, resolvedKind);
   }
 
   const cxNorm = sumX / fgCount / width;
@@ -311,9 +326,11 @@ export function computeContourDotsFromImageData(
   }
   const totalPerimeter = cumLen[RAYS] || 1;
 
+  const labels = makeDotLabels(dotCount, resolvedKind);
+  const sampleCount = labels.length;
   const sampled: Array<{ x: number; y: number }> = [];
-  for (let i = 0; i < dotCount; i += 1) {
-    const targetLen = (i / dotCount) * totalPerimeter;
+  for (let i = 0; i < sampleCount; i += 1) {
+    const targetLen = (i / sampleCount) * totalPerimeter;
     let segIdx = 0;
     while (segIdx < RAYS - 1 && cumLen[segIdx + 1] < targetLen) {
       segIdx += 1;
@@ -329,10 +346,10 @@ export function computeContourDotsFromImageData(
     });
   }
 
-  const minDist = dotCount >= 10 ? 64 : dotCount >= 8 ? 72 : 84;
+  const minDist =
+    sampleCount >= 18 ? 38 : sampleCount >= 14 ? 46 : sampleCount >= 10 ? 60 : sampleCount >= 8 ? 72 : 84;
   relaxDotSpacing(sampled, minDist);
 
-  const labels = makeDotLabels(dotCount, isLetter);
   return labels.map((label, index) => ({
     index,
     label,
@@ -348,17 +365,19 @@ const CONTOUR_SAMPLE_RES = 128;
 export async function extractContourDotsForImage(
   imagePath: string,
   dotCount: DotCountId,
-  isLetter: boolean,
+  kind: ResolvedDotKind | boolean,
   seedIndex = 0,
 ): Promise<DotPoint[]> {
-  const cacheKey = `${imagePath}:${dotCount}:${isLetter ? 'L' : 'N'}`;
+  const resolvedKind: ResolvedDotKind =
+    typeof kind === 'boolean' ? (kind ? 'letters' : 'numbers') : kind;
+  const cacheKey = `${imagePath}:${dotCount}:${resolvedKind}`;
   const cached = contourCache.get(cacheKey);
   if (cached) {
     return cached.map((pt) => ({ ...pt }));
   }
 
   if (typeof window === 'undefined' || typeof Image === 'undefined') {
-    return createFallbackDots(dotCount, isLetter, seedIndex);
+    return createFallbackDots(dotCount, resolvedKind, seedIndex);
   }
 
   return new Promise((resolve) => {
@@ -373,21 +392,21 @@ export async function extractContourDotsForImage(
         canvas.height = CONTOUR_SAMPLE_RES;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) {
-          resolve(createFallbackDots(dotCount, isLetter, seedIndex));
+          resolve(createFallbackDots(dotCount, resolvedKind, seedIndex));
           return;
         }
         ctx.drawImage(img, 0, 0, CONTOUR_SAMPLE_RES, CONTOUR_SAMPLE_RES);
         const imageData = ctx.getImageData(0, 0, CONTOUR_SAMPLE_RES, CONTOUR_SAMPLE_RES);
-        const computed = computeContourDotsFromImageData(imageData, dotCount, isLetter);
+        const computed = computeContourDotsFromImageData(imageData, dotCount, resolvedKind);
         contourCache.set(cacheKey, computed);
         resolve(computed.map((pt) => ({ ...pt })));
       } catch {
-        resolve(createFallbackDots(dotCount, isLetter, seedIndex));
+        resolve(createFallbackDots(dotCount, resolvedKind, seedIndex));
       }
     };
 
     img.onerror = () => {
-      resolve(createFallbackDots(dotCount, isLetter, seedIndex));
+      resolve(createFallbackDots(dotCount, resolvedKind, seedIndex));
     };
 
     img.src = assetUrl(imagePath);
@@ -433,12 +452,18 @@ export function buildDotPuzzleDeck(config: DotToDotConfig): DotPuzzleItem[] {
 
   const chosen = shuffleArray(pool).slice(0, config.roundLength);
   return chosen.map((entry, idx) => {
-    const isLetter =
+    const sequenceKind: ResolvedDotKind =
       config.sequenceMode === 'letters'
-        ? true
-        : config.sequenceMode === 'numbers'
-          ? false
-          : idx % 2 === 1;
+        ? 'letters'
+        : config.sequenceMode === 'countdown'
+          ? 'countdown'
+          : config.sequenceMode === 'numbers'
+            ? 'numbers'
+            : idx % 3 === 1
+              ? 'letters'
+              : idx % 3 === 2
+                ? 'countdown'
+                : 'numbers';
 
     return {
       id: entry.id,
@@ -447,8 +472,8 @@ export function buildDotPuzzleDeck(config: DotToDotConfig): DotPuzzleItem[] {
       themeId: entry.themeId,
       themeTitle: entry.themeTitle,
       canonicalWordId: resolveCanonicalWordId(entry.rawPairId, entry.word),
-      sequenceKind: isLetter ? 'letters' : 'numbers',
-      dots: createFallbackDots(config.dotCount, isLetter, idx),
+      sequenceKind,
+      dots: createFallbackDots(config.dotCount, sequenceKind, idx),
     };
   });
 }

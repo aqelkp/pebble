@@ -145,7 +145,7 @@ function tryRestoreDotSession(config: DotToDotConfig): {
       parsed.puzzleIndex >= config.roundLength ||
       typeof parsed.connectedCount !== 'number' ||
       parsed.connectedCount < 0 ||
-      parsed.connectedCount >= config.dotCount ||
+      parsed.connectedCount > config.dotCount + 1 ||
       typeof parsed.totalMistakes !== 'number' ||
       typeof parsed.puzzleMistakes !== 'number' ||
       typeof parsed.flawlessCount !== 'number'
@@ -278,7 +278,7 @@ export function DotToDotBoard({
         extractContourDotsForImage(
           item.imagePath,
           config.dotCount,
-          item.sequenceKind === 'letters',
+          item.sequenceKind,
           idx,
         ),
       ),
@@ -286,7 +286,7 @@ export function DotToDotBoard({
       if (cancelled) return;
       setDeck((prev) =>
         prev.map((item, idx) =>
-          allDots[idx] && allDots[idx].length === config.dotCount
+          allDots[idx] && allDots[idx].length > 0
             ? { ...item, dots: allDots[idx] }
             : item,
         ),
@@ -343,7 +343,8 @@ export function DotToDotBoard({
     if (dot.isLetter) {
       playLetterAudio(dot.label.toUpperCase() as LetterId, `Letter ${dot.label}`, true);
     } else {
-      playNumberAudio(Number(dot.label) || dot.index + 1, true);
+      const parsed = Number(dot.label);
+      playNumberAudio(Number.isFinite(parsed) ? parsed : dot.index + 1, true);
     }
   }, []);
 
@@ -369,13 +370,21 @@ export function DotToDotBoard({
         conceptId:
           currentPuzzle.sequenceKind === 'letters'
             ? `dot-letters:${dots.length}`
-            : `dot-numbers:${dots.length}`,
+            : currentPuzzle.sequenceKind === 'countdown'
+              ? `dot-countdown:${config.dotCount}`
+              : `dot-numbers:${dots.length}`,
         conceptLabel:
           currentPuzzle.sequenceKind === 'letters'
             ? `Letters A–${dots[dots.length - 1]?.label ?? 'H'}`
-            : `Numbers 1–${dots.length}`,
+            : currentPuzzle.sequenceKind === 'countdown'
+              ? `Countdown ${config.dotCount}→0`
+              : `Numbers 1–${dots.length}`,
         skillType:
-          currentPuzzle.sequenceKind === 'letters' ? 'letter_formation' : 'quantity_counting',
+          currentPuzzle.sequenceKind === 'letters'
+            ? 'letter_formation'
+            : currentPuzzle.sequenceKind === 'countdown'
+              ? 'sequence_order'
+              : 'quantity_counting',
         correct: wasFlawless,
         attemptsTaken: 1 + puzzleMistakeTotal,
       });
@@ -391,7 +400,7 @@ export function DotToDotBoard({
         }
       }, 280);
     },
-    [childProfile.id, currentPuzzle, dots, soundEnabled],
+    [childProfile.id, config.dotCount, currentPuzzle, dots, soundEnabled],
   );
 
   const advanceNextDot = useCallback(
