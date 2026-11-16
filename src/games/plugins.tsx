@@ -120,6 +120,16 @@ const WordPeekabooBoard = lazy(() =>
     default: m.WordPeekabooBoard,
   })),
 );
+const CircleSortSetup = lazy(() =>
+  import('./circle-sort/CircleSortSetup').then((m) => ({
+    default: m.CircleSortSetup,
+  })),
+);
+const CircleSortBoard = lazy(() =>
+  import('./circle-sort/CircleSortBoard').then((m) => ({
+    default: m.CircleSortBoard,
+  })),
+);
 
 export interface LeaveGameCopy {
   headline: string;
@@ -824,6 +834,57 @@ const GAME_PLUGINS: GamePluginRegistry = {
       journeyContext,
     }) => (
       <WordPeekabooBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'circle-sort': {
+    id: 'circle-sort',
+    activeSessionStorageKey: 'pebble.circle-sort.active.v1',
+    leaveCopy: {
+      headline: 'Leave Circle & Sort?',
+      subtitle: 'Your circled items on this workbook page will reset.',
+      keepPlayingLabel: 'Keep Sorting',
+    },
+    ...makeConfigAccessors('circle-sort'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./circle-sort/CircleSortSetup'),
+        import('./circle-sort/CircleSortBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onEditProfiles, onStartGame }) => (
+      <CircleSortSetup
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig('circle-sort', profiles)}
+        onBackToHub={onBackToHub}
+        onEditProfiles={onEditProfiles}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <CircleSortBoard
         key={gameKey}
         gameKey={gameKey}
         config={config}

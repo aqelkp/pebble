@@ -1,4 +1,10 @@
 import type { LetterId } from '../data/wordBank';
+import {
+  getCircleSortPackSpec,
+  type CircleSortGridMode,
+  type CircleSortPackId,
+  type CircleSortRoundLength,
+} from '../games/circle-sort/circleSortData';
 import { ALL_LETTERS } from '../games/letter-train/letterData';
 import { CARD_THEMES, type BoardSizeId } from '../games/memory-match/themes';
 import { getSafariModeSpec, type SafariLengthId, type SafariModeId } from '../games/number-safari/safariData';
@@ -24,6 +30,13 @@ const PEEKABOO_PACK_ROTATION: readonly PeekabooPackId[] = [
   'all',
 ];
 const PEEKABOO_WORLD_ROTATION = PEEKABOO_WORLDS.filter((w) => w.id !== 'all-stories');
+const CIRCLE_SORT_PACK_ROTATION: readonly CircleSortPackId[] = [
+  'animal-world',
+  'orchard-garden',
+  'healthy-plate',
+  'on-the-move',
+  'mix',
+];
 const TRICKY_REVIEW_LETTERS: readonly LetterId[] = ['B', 'D', 'P', 'Q'];
 
 function formatLettersLabel(letters: readonly LetterId[]): string {
@@ -512,6 +525,40 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
           config: {
             packId,
             worldId: world.id,
+            roundLength,
+          },
+        },
+      };
+    },
+  },
+
+  'circle-sort': {
+    gameId: 'circle-sort',
+    title: 'Circle & Sort',
+    artPath: 'hub/circle-sort.png',
+    category: 'logic',
+    buildActivity: (ctx) => {
+      const packId =
+        CIRCLE_SORT_PACK_ROTATION[
+          (ctx.chapterNumber - 1 + ctx.gameOrdinal) % CIRCLE_SORT_PACK_ROTATION.length
+        ];
+      const pack = getCircleSortPackSpec(packId);
+      const gridMode: CircleSortGridMode =
+        ctx.chapterNumber <= 2 && ctx.settings.durationMode === 'short' ? '2x3' : '3x3';
+      const roundLength: CircleSortRoundLength =
+        ctx.settings.durationMode === 'short' ? 1 : 3;
+
+      return {
+        title: 'Circle & Sort',
+        subtitle: `${pack.title} • ${gridMode === '2x3' ? '2×3' : '3×3'} (${roundLength} ${roundLength === 1 ? 'page' : 'pages'})`,
+        detailLine: `Listen to the group clue, then tap or draw a circle around every picture that belongs!`,
+        artPath: 'hub/circle-sort.png',
+        voiceClipId: 'circle-sort',
+        payload: {
+          gameId: 'circle-sort',
+          config: {
+            packId,
+            gridMode,
             roundLength,
           },
         },

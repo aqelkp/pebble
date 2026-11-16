@@ -896,6 +896,74 @@
           "endMs": 3512
         }
       ]
+    },
+    "circle-sort": {
+      "id": "circle-sort",
+      "text": "Listen to the group clue and circle all the pictures that belong!",
+      "audioPath": "audio/journey/circle-sort.mp3",
+      "durationMs": 3620,
+      "words": [
+        {
+          "word": "Listen",
+          "startMs": 0,
+          "endMs": 414
+        },
+        {
+          "word": "to",
+          "startMs": 414,
+          "endMs": 570
+        },
+        {
+          "word": "the",
+          "startMs": 570,
+          "endMs": 854
+        },
+        {
+          "word": "group",
+          "startMs": 854,
+          "endMs": 1149
+        },
+        {
+          "word": "clue",
+          "startMs": 1149,
+          "endMs": 1267
+        },
+        {
+          "word": "and",
+          "startMs": 1267,
+          "endMs": 1511
+        },
+        {
+          "word": "circle",
+          "startMs": 1511,
+          "endMs": 1915
+        },
+        {
+          "word": "all",
+          "startMs": 1915,
+          "endMs": 2094
+        },
+        {
+          "word": "the",
+          "startMs": 2094,
+          "endMs": 2388
+        },
+        {
+          "word": "pictures",
+          "startMs": 2388,
+          "endMs": 2933
+        },
+        {
+          "word": "that",
+          "startMs": 2933,
+          "endMs": 3100
+        },
+        {
+          "word": "belong!",
+          "startMs": 3100,
+          "endMs": 3620
+        }
+      ]
     }
   }
 }

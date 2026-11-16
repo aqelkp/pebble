@@ -13,7 +13,8 @@ export type GameId =
   | 'sticker-scene'
   | 'spot-the-twin'
   | 'dot-to-dot'
-  | 'word-peekaboo';
+  | 'word-peekaboo'
+  | 'circle-sort';
 
 export type HubShelfId =
   | 'letters-words'
@@ -155,6 +156,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['literacy', 'self-regulation'],
       targetSkills: ['initial_letter_sound', 'picture_recognition'],
       conceptUnitLabel: 'Letters A–Z & Sound Sorting',
+    },
+  },
+  {
+    id: 'circle-sort',
+    title: 'Circle & Sort',
+    description:
+      'Tap or draw a circle with your finger around all Carnivores, Fruits, Vegetables, Healthy Foods, and Sky Fliers on each K1 workbook page!',
+    badgeText: 'New Game',
+    ageHint: 'K1 / LKG • EVS & Logic',
+    artPath: 'hub/circle-sort.png',
+    shelf: 'numbers-logic',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Builds K1 / LKG General Awareness (EVS) conceptual grouping, category discrimination, and inhibitory control across animals, nutrition, harvest, and transport.',
+      domains: ['cognition', 'literacy', 'self-regulation'],
+      targetSkills: ['picture_recognition'],
+      conceptUnitLabel: 'K1 EVS Categories',
     },
   },
   {
