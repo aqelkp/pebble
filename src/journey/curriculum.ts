@@ -200,11 +200,15 @@ export function buildJourneyCurriculum(
     settings.selectedLetters.length > 0 ? settings.selectedLetters : [...ALL_LETTERS];
 
   let letterCursor = 0;
-  const nextLetterSlice = (overrideLetters?: LetterId[]): LetterId[] => {
+  const nextLetterSlice = (overrideLetters?: LetterId[], maxLetters?: number): LetterId[] => {
+    const cap =
+      typeof maxLetters === 'number' && maxLetters > 0
+        ? Math.min(maxLetters, settings.lettersPerLesson)
+        : settings.lettersPerLesson;
     if (overrideLetters && overrideLetters.length >= 3) {
-      return overrideLetters;
+      return overrideLetters.slice(0, cap);
     }
-    const sliceSize = Math.min(settings.lettersPerLesson, activeLetters.length);
+    const sliceSize = Math.min(cap, activeLetters.length);
     const picked: LetterId[] = [];
     for (let i = 0; i < sliceSize; i += 1) {
       picked.push(activeLetters[(letterCursor + i) % activeLetters.length]);
