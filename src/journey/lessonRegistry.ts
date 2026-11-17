@@ -1,4 +1,10 @@
 import type { LetterId } from '../data/wordBank';
+import {
+  getCircleSortPackSpec,
+  type CircleSortGridMode,
+  type CircleSortPackId,
+  type CircleSortRoundLength,
+} from '../games/circle-sort/circleSortData';
 import type { DotCountId, DotSequenceMode } from '../games/dot-to-dot/dotEngine';
 import { ALL_LETTERS } from '../games/letter-train/letterData';
 import type { TraceNumberRange } from '../games/letter-trace/traceData';
@@ -95,6 +101,13 @@ const TREASURE_KEYS_PACKS: readonly QuestPackId[] = [
 ];
 
 const PEEKABOO_WORLD_ROTATION = PEEKABOO_WORLDS.filter((w) => w.id !== 'all-stories');
+const CIRCLE_SORT_PACK_ROTATION: readonly CircleSortPackId[] = [
+  'animal-world',
+  'orchard-garden',
+  'healthy-plate',
+  'on-the-move',
+  'mix',
+];
 const TRICKY_REVIEW_LETTERS: readonly LetterId[] = ['B', 'D', 'P', 'Q'];
 
 function formatLettersLabel(letters: readonly LetterId[]): string {
@@ -234,7 +247,7 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
                 : '0-50';
         const rangeLabel = formatTraceRangeLabel(numberRange);
         return {
-          title: 'Letter Trace: Numbers',
+          title: 'Letter Trace',
           subtitle: `${rangeLabel} • ${roundSize} items`,
           detailLine: `Trace ${rangeLabel.toLowerCase()} in strict top-to-bottom stroke order!`,
           artPath: 'hub/letter-trace.png',
@@ -256,8 +269,8 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
       // Spiral K1 2D Shape Stroke Tracing (Circle, Square, Rectangle, Triangle)
       if (ctx.gameOrdinal > 0 && ctx.gameOrdinal % 5 === 3) {
         return {
-          title: 'Letter Trace: 2D Shapes',
-          subtitle: 'Circle to Triangle • 4 shapes',
+          title: 'Letter Trace',
+          subtitle: '2D Shapes • 4 shapes',
           detailLine: 'Trace Circle, Square, Rectangle, and Triangle corners & curves in order!',
           artPath: 'hub/letter-trace.png',
           voiceClipId: 'letter-trace-shapes',
@@ -661,12 +674,12 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
               : `1–${dotCount}, ${dotCount}→0 & A–Z`;
 
       return {
-        title: `Dot-to-Dot: ${theme.title}`,
-        subtitle: `${modeLabel} • ${roundLength} pictures`,
+        title: 'Dot-to-Dot',
+        subtitle: `${modeLabel} • ${theme.title}`,
         detailLine:
           sequenceMode === 'countdown'
-            ? `Count backward from ${dotCount} down to 0 around ${theme.title} shadows!`
-            : `Connect pebbles in order (${modeLabel}) around ${theme.title} shadows!`,
+            ? `Count backward from ${dotCount} down to 0 around ${theme.title} shadows (${roundLength} pictures)!`
+            : `Connect pebbles in order (${modeLabel}) around ${theme.title} shadows (${roundLength} pictures)!`,
         artPath: 'hub/dot-to-dot.png',
         voiceClipId: sequenceMode === 'countdown' ? 'dot-to-dot-countdown' : 'dot-to-dot',
         previewThemeId: theme.id,
@@ -703,9 +716,9 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
       const pack = getPeekabooPackSpec(packId);
 
       return {
-        title: `Word Peekaboo: ${pack.title}`,
-        subtitle: `${pack.pageBadge} • ${world.title} (${roundLength} ${roundLength === 1 ? 'friend' : 'friends'})`,
-        detailLine: `Listen for one word at a time and peel away tiles to discover ${world.title}!`,
+        title: 'Word Peekaboo',
+        subtitle: `${pack.title} • ${world.title}`,
+        detailLine: `Listen for one word at a time and peel away tiles to discover ${roundLength} ${roundLength === 1 ? 'friend' : 'friends'} in ${world.title}!`,
         artPath: 'hub/word-peekaboo.png',
         voiceClipId: 'word-peekaboo',
         previewThemeId: world.id === 'all-stories' ? undefined : world.id,
@@ -741,9 +754,9 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
       const spec = getCompareModeSpec(modeId);
 
       return {
-        title: `Compare Quest: ${spec.title}`,
-        subtitle: `${spec.rangeBadge} • ${roundSize} prompts`,
-        detailLine: 'Compare both sides and place >, =, or < in the center box!',
+        title: 'Compare Quest',
+        subtitle: `${spec.title} • ${roundSize} prompts`,
+        detailLine: `Compare both sides (${spec.rangeBadge}) and place >, =, or < in the center box!`,
         artPath: 'hub/compare-quest.png',
         voiceClipId: 'compare-quest',
         payload: {
@@ -781,12 +794,12 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
         caseMode === 'lower' ? 'abc small' : caseMode === 'upper' ? 'ABC CAPS' : 'abc & ABC';
 
       return {
-        title: `Word Trace: ${pack.title}`,
-        subtitle: `${caseBadge} • ${roundSize} notebook items`,
+        title: 'Word Trace',
+        subtitle: `${pack.title} • ${roundSize} items`,
         detailLine:
           packId === 'numbers'
-            ? 'Listen to each number and write it left-to-right on the 4-line notebook!'
-            : 'Listen to each word and write letters left-to-right on the 4-line notebook!',
+            ? `Listen to each number (${caseBadge}) and write it left-to-right on the 4-line notebook!`
+            : `Listen to each word (${caseBadge}) and write letters left-to-right on the 4-line notebook!`,
         artPath: 'hub/word-trace.png',
         voiceClipId: packId === 'numbers' ? 'word-trace-numbers' : 'word-trace',
         payload: {
@@ -830,6 +843,43 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
     'words',
     true,
   ),
+
+  'circle-sort': {
+    gameId: 'circle-sort',
+    title: 'Circle & Sort',
+    artPath: 'hub/circle-sort.png',
+    pillar: 'logic-world',
+    category: 'logic',
+    buildActivity: (ctx) => {
+      const packId: CircleSortPackId =
+        ctx.gameOrdinal === 0
+          ? 'animal-world'
+          : CIRCLE_SORT_PACK_ROTATION[ctx.gameOrdinal % CIRCLE_SORT_PACK_ROTATION.length];
+      const pack = getCircleSortPackSpec(packId);
+      const gridMode: CircleSortGridMode =
+        ctx.gameOrdinal === 0 || (ctx.chapterNumber <= 2 && ctx.settings.durationMode === 'short')
+          ? '2x3'
+          : '3x3';
+      const roundLength: CircleSortRoundLength =
+        ctx.gameOrdinal === 0 || ctx.settings.durationMode === 'short' ? 1 : 3;
+
+      return {
+        title: 'Circle & Sort',
+        subtitle: `${pack.title} • ${gridMode === '2x3' ? '2×3' : '3×3'}`,
+        detailLine: `Listen to the group clue, then tap or draw a circle around every picture that belongs (${roundLength} ${roundLength === 1 ? 'page' : 'pages'})!`,
+        artPath: 'hub/circle-sort.png',
+        voiceClipId: 'circle-sort',
+        payload: {
+          gameId: 'circle-sort',
+          config: {
+            packId,
+            gridMode,
+            roundLength,
+          },
+        },
+      };
+    },
+  },
 };
 
 function buildQuestJourneyAdapter(
@@ -857,8 +907,8 @@ function buildQuestJourneyAdapter(
         lockFiveStops || ctx.gameOrdinal === 0 || ctx.settings.durationMode === 'short' ? 5 : 8;
       const stopWord = skinId === 'treasure-keys' ? 'keys' : 'stops';
       return {
-        title: `${skinTitle}: ${pack.shortTitle}`,
-        subtitle: `${pack.syllabusBadge} • ${roundLength} ${stopWord}`,
+        title: skinTitle,
+        subtitle: `${pack.shortTitle} • ${roundLength} ${stopWord}`,
         detailLine: pack.subtitle,
         artPath,
         voiceClipId: skinId,

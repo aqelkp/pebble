@@ -90,6 +90,7 @@ const VALID_GAME_IDS = new Set<GameId>([
   'pebble-creek',
   'cloud-balloon',
   'treasure-keys',
+  'circle-sort',
 ]);
 
 const VALID_SKILL_TYPES = new Set<SkillType>([

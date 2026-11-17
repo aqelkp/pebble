@@ -19,7 +19,7 @@ import { getJourneyAdapter } from './lessonRegistry';
 const CHAPTER_THEMES: readonly { title: string; subtitle: string }[] = [
   {
     title: 'Warm-Up Trail',
-    subtitle: 'Friendly first steps across all 19 Pebble worlds — sounds, numbers, shapes & stickers',
+    subtitle: 'Friendly first steps across all 20 Pebble worlds — sounds, numbers, shapes, sorting & stickers',
   },
   {
     title: 'Sunny Phonics & Numbers',
@@ -149,7 +149,7 @@ const STARTER_PILLAR_ORDER: Record<
   'phonics-reading': ['letter-train', 'word-peekaboo', 'letter-river', 'treasure-keys'],
   'numbers-math': ['number-safari', 'compare-quest', 'dot-to-dot', 'mystery-express'],
   'spelling-writing': ['letter-trace', 'word-fun', 'word-trace'],
-  'logic-world': ['pebble-creek', 'picture-sudoku', 'cloud-balloon'],
+  'logic-world': ['pebble-creek', 'circle-sort', 'picture-sudoku', 'cloud-balloon'],
 };
 
 const STARTER_FUN_ORDER: readonly GameRegistryEntry['id'][] = [

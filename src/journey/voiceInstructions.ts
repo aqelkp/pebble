@@ -48,6 +48,7 @@ export const ALL_JOURNEY_VOICE_CLIP_IDS: readonly JourneyVoiceClipId[] = [
   'pebble-creek',
   'cloud-balloon',
   'treasure-keys',
+  'circle-sort',
 ];
 
 const warmedVoiceElements = new Map<JourneyVoiceClipId, HTMLAudioElement>();

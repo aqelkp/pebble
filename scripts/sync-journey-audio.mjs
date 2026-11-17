@@ -123,6 +123,10 @@ const JOURNEY_PROMPTS = [
     id: 'treasure-keys',
     text: 'Solve five puzzles to turn the golden keys and pop open the treasure chest!',
   },
+  {
+    id: 'circle-sort',
+    text: 'Listen to the group clue and circle all the pictures that belong!',
+  },
 ];
 
 const UI_PROMPTS = [

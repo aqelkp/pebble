@@ -78,6 +78,11 @@ import {
   isValidQuestGameConfig,
   type QuestGameConfig,
 } from '../curriculum/questEngine/questTypes';
+import {
+  getDefaultCircleSortConfig,
+  isValidCircleSortConfig,
+  type CircleSortConfig,
+} from './circle-sort/circleSortData';
 
 // TODO(security): Pebble runs 100% locally in the browser as a static client-only PWA with no
 // backend server, authentication, or database. All saved game configuration objects restored from
@@ -104,6 +109,7 @@ export interface GameConfigMap {
   'pebble-creek': QuestGameConfig;
   'cloud-balloon': QuestGameConfig;
   'treasure-keys': QuestGameConfig;
+  'circle-sort': CircleSortConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -220,6 +226,7 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'pebble-creek': isValidQuestGameConfig,
   'cloud-balloon': isValidQuestGameConfig,
   'treasure-keys': isValidQuestGameConfig,
+  'circle-sort': isValidCircleSortConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -296,5 +303,7 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultQuestConfigForSkin('cloud-balloon') as GameConfigMap[K];
     case 'treasure-keys':
       return getDefaultQuestConfigForSkin('treasure-keys') as GameConfigMap[K];
+    case 'circle-sort':
+      return getDefaultCircleSortConfig() as GameConfigMap[K];
   }
 }

@@ -1,4 +1,5 @@
 import type { FamilyProfile } from '../context/FamilyProfilesContext';
+import { getCircleSortPackSpec } from '../games/circle-sort/circleSortData';
 import { getThemeLabel } from '../games/dot-to-dot/dotEngine';
 import { getDefaultGameConfig, isValidGameConfig, type GameConfigMap } from '../games/gameConfigs';
 import { getThemeSpec } from '../games/memory-match/themes';
@@ -318,6 +319,22 @@ export function buildStandaloneHelpActivity(
         detailLine: pack.subtitle,
         artPath: `hub/${gameId}.png`,
         voiceClipId: gameId,
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'circle-sort': {
+      const cfg = resolveConfig('circle-sort', rawConfig, profiles);
+      const pack = getCircleSortPackSpec(cfg.packId);
+      return {
+        ...base,
+        gameId,
+        title: 'Circle & Sort',
+        subtitle: `${pack.title} • ${cfg.gridMode === '2x3' ? '2×3' : '3×3'}`,
+        detailLine:
+          'Listen to the group clue, then tap or draw a circle around every picture that belongs!',
+        artPath: 'hub/circle-sort.png',
+        voiceClipId: 'circle-sort',
         payload: { gameId, config: cfg },
       };
     }

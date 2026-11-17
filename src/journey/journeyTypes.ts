@@ -9,6 +9,7 @@ import type { PictureSudokuConfig } from '../games/picture-sudoku/PictureSudokuS
 import type { GameRegistryEntry } from '../games/registry';
 import type { RescueRoadConfig } from '../games/rescue-road/roadEngine';
 import type { StickerJigsawConfig } from '../games/sticker-jigsaw/jigsawEngine';
+import type { CircleSortConfig } from '../games/circle-sort/circleSortData';
 import type { DotToDotConfig } from '../games/dot-to-dot/dotEngine';
 import type { SpotTheTwinConfig } from '../games/spot-the-twin/twinEngine';
 import type { StickerSceneConfig } from '../games/sticker-scene/sceneEngine';
@@ -66,7 +67,8 @@ export type JourneyVoiceClipId =
   | 'mystery-express'
   | 'pebble-creek'
   | 'cloud-balloon'
-  | 'treasure-keys';
+  | 'treasure-keys'
+  | 'circle-sort';
 
 export interface JourneyBoardContext {
   chapterNumber: number;
@@ -131,7 +133,8 @@ export type JourneyActivityPayload =
   | { gameId: 'mystery-express'; config: QuestGameConfig }
   | { gameId: 'pebble-creek'; config: QuestGameConfig }
   | { gameId: 'cloud-balloon'; config: QuestGameConfig }
-  | { gameId: 'treasure-keys'; config: QuestGameConfig };
+  | { gameId: 'treasure-keys'; config: QuestGameConfig }
+  | { gameId: 'circle-sort'; config: CircleSortConfig };
 
 export interface JourneyActivity {
   index: number;

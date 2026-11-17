@@ -617,6 +617,79 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     );
   }
 
+  if (activity.gameId === 'circle-sort') {
+    return (
+      <div
+        className="intro-demo-stage"
+        aria-hidden="true"
+        style={{ flexDirection: 'column', gap: 10 }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 14,
+            background: '#FFFDF8',
+            border: '2px solid #E5DFD3',
+            borderRadius: 20,
+            padding: '12px 18px',
+            boxShadow: '0 4px 12px rgba(30, 36, 51, 0.06)',
+          }}
+        >
+          <div style={{ position: 'relative', padding: 6 }}>
+            <WordIllustration id="lion" size={50} />
+            <svg
+              viewBox="0 0 80 80"
+              style={{
+                position: 'absolute',
+                inset: -4,
+                width: 'calc(100% + 8px)',
+                height: 'calc(100% + 8px)',
+                pointerEvents: 'none',
+              }}
+            >
+              <path
+                d="M 41 7 C 64 6, 75 21, 74 42 C 73 63, 57 75, 37 74 C 17 73, 6 58, 8 38 C 9 18, 25 8, 45 10"
+                fill="rgba(59, 169, 156, 0.10)"
+                stroke="#3BA99C"
+                strokeWidth="4.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+          <div style={{ padding: 6, opacity: 0.78 }}>
+            <WordIllustration id="cow" size={48} />
+          </div>
+          <div style={{ position: 'relative', padding: 6 }}>
+            <WordIllustration id="tiger" size={50} />
+            <svg
+              viewBox="0 0 80 80"
+              style={{
+                position: 'absolute',
+                inset: -4,
+                width: 'calc(100% + 8px)',
+                height: 'calc(100% + 8px)',
+                pointerEvents: 'none',
+              }}
+            >
+              <path
+                d="M 39 8 C 62 7, 74 22, 73 41 C 72 62, 56 74, 36 73 C 16 72, 7 57, 9 37 C 11 18, 26 9, 44 11"
+                fill="rgba(59, 169, 156, 0.10)"
+                stroke="#3BA99C"
+                strokeWidth="4.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        </div>
+        <span className="intro-demo-twin-caption">
+          Tap or draw a circle around every picture that belongs!
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="intro-demo-stage intro-demo-stage--safari" aria-hidden="true">
       <div className="intro-demo-safari-animals">
