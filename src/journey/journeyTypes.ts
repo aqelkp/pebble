@@ -134,7 +134,7 @@ export interface JourneyAdapterContext {
   gameOrdinal: number;
   settings: JourneySettings;
   playerIds: string[];
-  nextLetterSlice: (overrideLetters?: LetterId[]) => LetterId[];
+  nextLetterSlice: (overrideLetters?: LetterId[], maxLetters?: number) => LetterId[];
   nextRngInt: (maxExclusive: number) => number;
 }
 

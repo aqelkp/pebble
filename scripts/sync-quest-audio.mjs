@@ -149,10 +149,76 @@ function buildQuestClips() {
     { id: 'pv-build-zero', text: 'Show zero in the tray with zero tens and zero ones, then tap Check!' },
     { id: 'pv-build-tens-ones', text: 'Use ten bundles and single pebbles to build the number!' },
     { id: 'pv-count-bundles', text: 'Count the bundles of ten and the single pebbles. What number do they make?' },
+    {
+      id: 'pv-count-bundles-v2',
+      text: 'Each purple bundle holds ten pebbles, and each orange pebble is one! Count by tens, then count on by ones. What number do they make?',
+    },
     { id: 'numline-one-more', text: 'Hop one more forward on the number line! Which number does the frog land on?' },
     { id: 'numline-one-less', text: 'Hop one less backward on the number line! Which number does the frog land on?' },
     { id: 'ord-which-place', text: 'Count from the finish flag on the left! Which place is that animal in?' },
+    {
+      id: 'ord-which-place-v2',
+      text: 'Look at the checkered finish flag on the left! Start at the first animal by the flag and count across to find which place the highlighted animal is in. You can tap the animals to count!',
+    },
   );
+
+  const tensOnesBuildPool = [10, 11, 12, 13, 14, 15, 16, 20, 21, 22, 23, 24, 25, 30, 31, 32, 34, 40, 42];
+  for (const n of tensOnesBuildPool) {
+    const tens = Math.floor(n / 10);
+    const ones = n % 10;
+    const bundlePhrase = `${tens} ${tens === 1 ? 'ten bundle' : 'ten bundles'}`;
+    const onePhrase = `${ones} ${ones === 1 ? 'single pebble' : 'single pebbles'}`;
+    clips.push(
+      {
+        id: `pv-build-${n}`,
+        text: `Let's build ${NUMBER_SPOKEN[n]}! Each purple bundle holds ten pebbles. Add ${bundlePhrase} and ${onePhrase}, then tap Check!`,
+      },
+      {
+        id: `pv-teach-build-${n}`,
+        text: `Look closely at the colors! ${NUMBER_SPOKEN[n]} has ${bundlePhrase} in purple, and ${onePhrase} in orange!`,
+      },
+    );
+  }
+
+  const tensOnesCountPool = [11, 12, 13, 15, 16, 21, 22, 24, 26, 31, 33, 35, 42];
+  for (const n of tensOnesCountPool) {
+    const tens = Math.floor(n / 10);
+    const ones = n % 10;
+    const bundlePhrase = `${tens} ${tens === 1 ? 'ten bundle' : 'ten bundles'}`;
+    const onePhrase = `${ones} ${ones === 1 ? 'one' : 'ones'}`;
+    clips.push({
+      id: `pv-teach-count-${n}`,
+      text: `Count with me! ${bundlePhrase} makes ${NUMBER_SPOKEN[tens * 10]}, plus ${onePhrase} makes ${NUMBER_SPOKEN[n]}!`,
+    });
+  }
+
+  const ordinalWords = [
+    'first',
+    'second',
+    'third',
+    'fourth',
+    'fifth',
+    'sixth',
+    'seventh',
+    'eighth',
+    'ninth',
+    'tenth',
+  ];
+  for (let i = 0; i < ordinalWords.length; i += 1) {
+    const word = ordinalWords[i];
+    const cap = word[0].toUpperCase() + word.slice(1);
+    clips.push({
+      id: `ord-step-${i + 1}`,
+      text: `${cap}!`,
+    });
+    if (i < 8) {
+      const countSequence = ordinalWords.slice(0, i + 1).join(', ');
+      clips.push({
+        id: `ord-teach-${i + 1}`,
+        text: `Count from the finish flag on the left: ${countSequence}! The highlighted animal is in ${word} place!`,
+      });
+    }
+  }
 
   // 2. Shapes, Patterns & Pre-Math
   const shapes = ['circle', 'square', 'rectangle', 'triangle', 'sphere', 'cube', 'cone', 'cylinder'];

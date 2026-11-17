@@ -94,13 +94,55 @@ export function playQuestPromptVoice(
 }
 
 /**
+ * Speaks a bundled number audio clip (`audio/numbers/<n>.mp3`) when adding Tens bundles or Ones pebbles.
+ */
+export function playQuestCountNumberVoice(n: number, enabled: boolean): void {
+  if (!enabled || typeof window === 'undefined' || n < 0 || n > 50 || !Number.isInteger(n)) return;
+  stopQuestVoice();
+  try {
+    const audio = new Audio(assetUrl(`audio/numbers/${n}.mp3`));
+    audio.preload = 'auto';
+    audio.volume = 0.92;
+    activeQuestVoiceEl = audio;
+    audio.addEventListener('ended', () => {
+      if (activeQuestVoiceEl === audio) {
+        activeQuestVoiceEl = null;
+      }
+    });
+    const p = audio.play();
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => {});
+    }
+  } catch {
+    // Ignore audio errors
+  }
+}
+
+/**
+ * Speaks an ordinal stepping-stone clip (`audio/quest/ord-step-<pos>.mp3`, e.g. "First!", "Second!")
+ * when a learner taps racers along the Finish Flag track to count aloud.
+ */
+export function playQuestOrdinalStepVoice(
+  pos: number,
+  fallbackWord: string,
+  enabled: boolean,
+): void {
+  if (!enabled || typeof window === 'undefined' || pos < 1 || pos > 10 || !Number.isInteger(pos)) {
+    return;
+  }
+  playQuestPromptVoice(`ord-step-${pos}`, fallbackWord, enabled);
+}
+
+/**
  * Calm Teach-First spoken explanation on the visible locked board before ThinkAgainOverlay opens.
- * Uses bundled Kokoro MP3 (`audio/ui/look-closely-hint.mp3`), falling back to Web Speech only if needed.
+ * Uses a prompt-specific bundled Kokoro teaching clip (`audio/quest/<mistakeVoiceClipId>.mp3`) when
+ * available, otherwise `audio/ui/look-closely-hint.mp3`, falling back to Web Speech only if needed.
  */
 export function playQuestMistakeExplanation(
   explanationText: string,
   enabled: boolean,
   onComplete: () => void,
+  mistakeVoiceClipId?: string,
 ): () => void {
   if (typeof window === 'undefined') {
     onComplete();
@@ -109,20 +151,43 @@ export function playQuestMistakeExplanation(
 
   stopQuestVoice();
   let settled = false;
+  const startedAt = Date.now();
+  let safetyTimerId: number | null = null;
+  let postTimerId: number | null = null;
+
   const finish = () => {
     if (settled) return;
     settled = true;
+    if (safetyTimerId !== null) window.clearTimeout(safetyTimerId);
+    if (postTimerId !== null) window.clearTimeout(postTimerId);
     onComplete();
   };
 
-  const timerId = window.setTimeout(finish, 2600);
+  const maxWaitMs = mistakeVoiceClipId ? 6200 : 2600;
+  const minBoardHoldMs = mistakeVoiceClipId ? 2700 : 2400;
+  safetyTimerId = window.setTimeout(finish, maxWaitMs);
 
   if (enabled) {
     try {
-      const audio = new Audio(assetUrl('audio/ui/look-closely-hint.mp3'));
+      const clipPath = mistakeVoiceClipId
+        ? getQuestVoicePath(mistakeVoiceClipId)
+        : 'audio/ui/look-closely-hint.mp3';
+      const audio = new Audio(assetUrl(clipPath));
       audio.preload = 'auto';
-      audio.volume = 0.92;
+      audio.volume = 0.94;
       activeQuestVoiceEl = audio;
+
+      if (mistakeVoiceClipId) {
+        audio.addEventListener('ended', () => {
+          if (activeQuestVoiceEl === audio) {
+            activeQuestVoiceEl = null;
+          }
+          const elapsed = Date.now() - startedAt;
+          const remaining = Math.max(280, minBoardHoldMs - elapsed);
+          postTimerId = window.setTimeout(finish, remaining);
+        });
+      }
+
       audio.addEventListener('error', () => {
         if (explanationText) speakWithSynthesis(explanationText, true);
       });
@@ -139,7 +204,8 @@ export function playQuestMistakeExplanation(
 
   return () => {
     settled = true;
-    window.clearTimeout(timerId);
+    if (safetyTimerId !== null) window.clearTimeout(safetyTimerId);
+    if (postTimerId !== null) window.clearTimeout(postTimerId);
     stopQuestVoice();
   };
 }

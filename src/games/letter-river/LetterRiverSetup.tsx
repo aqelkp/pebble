@@ -155,8 +155,8 @@ export function LetterRiverSetup({
       <div className="page-title-block" style={{ marginTop: 2, marginBottom: 10 }}>
         <h1>Letter River</h1>
         <p>
-          Scoop swimming picture fish into matching letter buckets—fill 3 catches to pop a bucket
-          and welcome the next letter!
+          Scoop swimming picture fish into the 3 matching letter buckets on the dock—fill 3 catches
+          in each bucket to complete the round!
         </p>
       </div>
 
@@ -304,7 +304,9 @@ export function LetterRiverSetup({
       <footer className="setup-launch-bar">
         <div className="setup-launch-summary">
           <strong>
-            {selectedLetters.length} {selectedLetters.length === 1 ? 'Bucket' : 'Buckets'} Ready
+            {Math.min(3, selectedLetters.length)}{' '}
+            {Math.min(3, selectedLetters.length) === 1 ? 'Bucket' : 'Buckets'} on Dock
+            {selectedLetters.length > 3 ? ` (from ${selectedLetters.length} letters)` : ''}
           </strong>
           <span>
             {orderMode === 'alphabetical' ? 'A → Z order' : 'Mixed currents'} •{' '}
