@@ -262,9 +262,18 @@ export function buildBackwardCountingSequencePrompt(): SequenceQuestPrompt {
   };
 }
 
+const TENS_ONES_BUILD_POOL = [
+  10, 11, 12, 13, 14, 15, 16, 20, 21, 22, 23, 24, 25, 30, 31, 32, 34, 40, 42,
+] as const;
+
+const TENS_ONES_COUNT_POOL = [
+  11, 12, 13, 15, 16, 21, 22, 24, 26, 31, 33, 35, 42,
+] as const;
+
 export function buildTensOnesInteractivePrompt(): TensOnesQuestPrompt {
-  const pool = [0, 10, 12, 14, 17, 20, 23, 25, 28, 30, 31, 34, 36, 40, 42, 45, 47, 50];
-  const n = pool[Math.floor(Math.random() * pool.length)];
+  const n = TENS_ONES_BUILD_POOL[Math.floor(Math.random() * TENS_ONES_BUILD_POOL.length)];
+  const tens = Math.floor(n / 10);
+  const ones = n % 10;
   return {
     uid: `tens-ones-${n}-${Math.random().toString(36).slice(2, 6)}`,
     kind: 'tens-ones',
@@ -272,26 +281,20 @@ export function buildTensOnesInteractivePrompt(): TensOnesQuestPrompt {
     conceptId: `number:${n}`,
     conceptLabel: `Place Value ${n}`,
     skillType: 'number_sense_50',
-    promptText:
-      n === 0
-        ? 'Show ZERO (0) in the tray — keep 0 Tens and 0 Ones, then tap Check!'
-        : `Build ${n} using Tens bundles (10) and Ones pebbles (1)!`,
-    promptSubtext: `${Math.floor(n / 10)} Tens and ${n % 10} Ones`,
+    promptText: `Build ${n} using 10-pebble bundles and single pebbles!`,
+    promptSubtext: `${tens} ${tens === 1 ? 'bundle' : 'bundles'} of 10 (${tens * 10}) + ${ones} single ${ones === 1 ? 'pebble' : 'pebbles'} (${ones})`,
     promptBadge: 'PLACE VALUE • TENS & ONES',
-    voiceClipId: n === 0 ? 'pv-build-zero' : 'pv-build-tens-ones',
-    voiceFallbackText:
-      n === 0
-        ? 'Show zero in the tray with zero tens and zero ones, then tap Check!'
-        : `Use ten bundles and one pebbles to build ${n}!`,
+    voiceClipId: `pv-build-${n}`,
+    voiceFallbackText: `Let's build ${n}! Each purple bundle holds ten pebbles. Add ${tens} ${tens === 1 ? 'ten-bundle' : 'ten-bundles'} and ${ones} single ${ones === 1 ? 'pebble' : 'pebbles'}, then tap Check!`,
+    mistakeVoiceClipId: `pv-teach-build-${n}`,
     targetNumber: n,
-    targetTens: Math.floor(n / 10),
-    targetOnes: n % 10,
+    targetTens: tens,
+    targetOnes: ones,
   };
 }
 
 export function buildCountTensOnesChoicePrompt(): ChoiceQuestPrompt {
-  const pool = [11, 13, 16, 22, 24, 29, 33, 35, 41, 42, 46, 50];
-  const n = pool[Math.floor(Math.random() * pool.length)];
+  const n = TENS_ONES_COUNT_POOL[Math.floor(Math.random() * TENS_ONES_COUNT_POOL.length)];
   const tens = Math.floor(n / 10);
   const ones = n % 10;
   const distractors = buildNumberDistractors(n);
@@ -302,16 +305,20 @@ export function buildCountTensOnesChoicePrompt(): ChoiceQuestPrompt {
     conceptId: `number:${n}`,
     conceptLabel: `Count Tens & Ones (${n})`,
     skillType: 'number_sense_50',
-    promptText: 'Count the 10-bundles and single pebbles — what number do they make?',
-    promptBadge: 'COUNT 0–50',
+    promptText: 'Each purple bundle holds 10 pebbles! What number do they make?',
+    promptSubtext: 'Count the 10-bundles by tens first, then count on by ones!',
+    promptBadge: 'COUNT TENS & ONES',
     promptArt: { kind: 'tens-ones-preview', tens, ones },
-    voiceClipId: 'pv-count-bundles',
-    voiceFallbackText: 'Count the bundles of ten and the single pebbles. What number do they make?',
+    voiceClipId: 'pv-count-bundles-v2',
+    voiceFallbackText:
+      'Each purple bundle holds ten pebbles, and each orange pebble is one! Count by tens, then count on by ones. What number do they make?',
+    mistakeVoiceClipId: `pv-teach-count-${n}`,
     choices: shuffleItems([n, ...distractors]).map((v) => ({
       id: `cto-${v}`,
       largeText: String(v),
       isCorrect: v === n,
-      wrongExplanation: `There are ${tens} tens (${tens * 10}) and ${ones} ones — together that makes ${n}, not ${v}!`,
+      wrongExplanation: `${tens} ${tens === 1 ? 'bundle' : 'bundles'} of 10 makes ${tens * 10}, plus ${ones} single ${ones === 1 ? 'pebble' : 'pebbles'} makes ${n} (not ${v})!`,
+      mistakeVoiceClipId: `pv-teach-count-${n}`,
     })),
   };
 }
@@ -365,13 +372,14 @@ export function buildNumberLineHopPrompt(): VisualStripQuestPrompt {
 }
 
 export function buildOrdinalPrompt(): VisualStripQuestPrompt {
-  const count = 10;
+  const count = 8;
   const pickedAnimals = shuffleItems(RACER_ANIMALS).slice(0, count);
-  const targetOrd = ORDINALS_1_TO_10[Math.floor(Math.random() * ORDINALS_1_TO_10.length)];
+  const poolOrds = ORDINALS_1_TO_10.slice(0, count);
+  const targetOrd = poolOrds[Math.floor(Math.random() * poolOrds.length)];
   const targetAnimal = pickedAnimals[targetOrd.pos - 1];
 
   const otherOrds = shuffleItems(
-    ORDINALS_1_TO_10.filter((o) => o.pos !== targetOrd.pos),
+    poolOrds.filter((o) => o.pos !== targetOrd.pos),
   ).slice(0, 3);
 
   return {
@@ -382,9 +390,12 @@ export function buildOrdinalPrompt(): VisualStripQuestPrompt {
     conceptLabel: `Ordinal ${targetOrd.short} (${targetOrd.word})`,
     skillType: 'number_sense_50',
     promptText: `Count from the Finish Flag on the left! Which place is the ${targetAnimal.name} in?`,
-    promptBadge: 'ORDINAL NUMBERS (1st–10th)',
-    voiceClipId: 'ord-which-place',
-    voiceFallbackText: 'Count from the finish flag on the left! Which place is that animal in?',
+    promptSubtext: 'Tap animals starting from the Finish Flag to count 1st, 2nd, 3rd...',
+    promptBadge: 'ORDINAL NUMBERS (1st–8th)',
+    voiceClipId: 'ord-which-place-v2',
+    voiceFallbackText:
+      'Look at the checkered finish flag on the left! Start at the first animal by the flag and count across to find which place the highlighted animal is in. You can tap the animals to count!',
+    mistakeVoiceClipId: `ord-teach-${targetOrd.pos}`,
     strip: {
       subkind: 'ordinals',
       racers: pickedAnimals.map((a, idx) => ({
@@ -401,7 +412,8 @@ export function buildOrdinalPrompt(): VisualStripQuestPrompt {
       largeText: ord.short,
       sublabel: ord.word,
       isCorrect: ord.pos === targetOrd.pos,
-      wrongExplanation: `Count from the flag: the ${targetAnimal.name} is in ${targetOrd.short} (${targetOrd.word}) place, not ${ord.short}!`,
+      wrongExplanation: `Count from the Finish Flag on the left: the ${targetAnimal.name} is in ${targetOrd.short} (${targetOrd.word}) place, not ${ord.short}!`,
+      mistakeVoiceClipId: `ord-teach-${targetOrd.pos}`,
     })),
   };
 }

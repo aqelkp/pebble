@@ -198,6 +198,8 @@ export interface QuestPromptBase {
   /** Bundled audio clip ID under audio/quest/<voiceClipId>.mp3 (plus fallback speech text) */
   voiceClipId: string;
   voiceFallbackText: string;
+  /** Optional bundled audio clip ID under audio/quest/<mistakeVoiceClipId>.mp3 spoken during Teach-First */
+  mistakeVoiceClipId?: string;
   /** When true (reading sight words / short phrases / number names), voice does NOT auto-play upfront */
   silentRead?: boolean;
   /** Optional bundled audio clip ID played after correct answer (especially rewarding in silentRead mode!) */
@@ -214,6 +216,7 @@ export interface QuestChoiceOption {
   art?: QuestArtSpec;
   isCorrect: boolean;
   wrongExplanation: string;
+  mistakeVoiceClipId?: string;
 }
 
 export interface ChoiceQuestPrompt extends QuestPromptBase {

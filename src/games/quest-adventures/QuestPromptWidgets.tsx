@@ -1,6 +1,14 @@
 import { useState } from 'react';
-import { QuestArt } from '../../curriculum/questEngine/QuestArt';
-import { playQuestStepTick } from '../../curriculum/questEngine/questSounds';
+import {
+  OnePebbleArt,
+  QuestArt,
+  TenPebbleBundleArt,
+} from '../../curriculum/questEngine/QuestArt';
+import {
+  playQuestCountNumberVoice,
+  playQuestOrdinalStepVoice,
+  playQuestStepTick,
+} from '../../curriculum/questEngine/questSounds';
 import type {
   ChoiceQuestPrompt,
   MiniSortQuestPrompt,
@@ -12,9 +20,10 @@ import type {
 
 interface SharedWidgetProps {
   locked: boolean;
+  teachingMistake?: boolean;
   soundEnabled: boolean;
   onSolve: () => void;
-  onMistake: (explanationText: string) => void;
+  onMistake: (explanationText: string, mistakeVoiceClipId?: string) => void;
 }
 
 /* ================= 1. CHOICE GRID ================= */
@@ -66,7 +75,7 @@ function ChoiceGridWidget({
                   onSolve();
                 } else {
                   setWrongId(opt.id);
-                  onMistake(opt.wrongExplanation);
+                  onMistake(opt.wrongExplanation, opt.mistakeVoiceClipId);
                 }
               }}
             >
@@ -317,32 +326,67 @@ function TensOnesTrayWidget({
   const [tens, setTens] = useState(0);
   const [ones, setOnes] = useState(0);
 
+  const built = tens * 10 + ones;
+  const isMatch = tens === prompt.targetTens && ones === prompt.targetOnes;
+  const targetStr = String(prompt.targetNumber);
+  const hasTensDigit = prompt.targetNumber >= 10;
+
   return (
     <div className="quest-widget-body">
+      {/* Color-coded Place-Value Bridge: links Tens digit (purple) & Ones digit (orange) */}
+      <div className="quest-tens-meter">
+        <div className="quest-tens-meter__target">
+          <span className="quest-tens-meter__label">Make:</span>
+          <span className="quest-tens-meter__digits font-display" aria-label={`Target ${prompt.targetNumber}`}>
+            {hasTensDigit ? (
+              <>
+                <span style={{ color: '#5B5BD6' }}>{targetStr[0]}</span>
+                <span style={{ color: '#D15B40' }}>{targetStr[1]}</span>
+              </>
+            ) : (
+              <span style={{ color: '#D15B40' }}>{targetStr}</span>
+            )}
+          </span>
+        </div>
+
+        <span className="quest-tens-meter__arrow" aria-hidden="true">
+          →
+        </span>
+
+        <div
+          className={`quest-tens-meter__live ${isMatch ? 'quest-tens-meter__live--match' : ''}`}
+          aria-live="polite"
+        >
+          <span className="quest-tens-meter__label">Your Tray:</span>
+          <span className="font-display" style={{ fontWeight: 700, fontSize: '1.15rem' }}>
+            <span style={{ color: '#5B5BD6' }}>{tens * 10}</span>
+            <span style={{ color: '#5C6478' }}> + </span>
+            <span style={{ color: '#D15B40' }}>{ones}</span>
+            <span style={{ color: '#5C6478' }}> = </span>
+            <span style={{ color: isMatch ? '#1D6B61' : '#1E2433', fontSize: '1.3rem' }}>
+              {built}
+            </span>
+          </span>
+        </div>
+      </div>
+
       <div
         className="quest-tens-workspace"
         data-target-tens={prompt.targetTens}
         data-target-ones={prompt.targetOnes}
       >
-        <div className="quest-tens-zone">
-          <span className="font-display" style={{ fontWeight: 700, color: '#5B5BD6' }}>
-            Tens Bundles (10s): {tens}
+        <div className="quest-tens-zone quest-tens-zone--tens">
+          <span className="font-display" style={{ fontWeight: 700, color: '#5B5BD6', fontSize: '1rem' }}>
+            10-Bundles (Tens): {tens} <span style={{ opacity: 0.78 }}>= {tens * 10}</span>
           </span>
           <div className="quest-tens-visual">
             {tens === 0 ? (
-              <span style={{ fontSize: '0.84rem', color: '#5C6478' }}>0 Tens</span>
+              <span style={{ fontSize: '0.84rem', color: '#5C6478', textAlign: 'center' }}>
+                Tap <strong>+10 Bundle</strong> to add 10 pebbles
+              </span>
             ) : (
               Array.from({ length: tens }, (_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: 20,
-                    height: 56,
-                    borderRadius: 6,
-                    background: '#5B5BD6',
-                    border: '2px solid #3B3BA8',
-                  }}
-                />
+                <TenPebbleBundleArt key={i} compact skipCountLabel={String((i + 1) * 10)} />
               ))
             )}
           </div>
@@ -352,7 +396,11 @@ function TensOnesTrayWidget({
               className="btn-secondary"
               disabled={locked || tens <= 0}
               style={{ padding: '7px 14px' }}
-              onClick={() => setTens((t) => Math.max(0, t - 1))}
+              onClick={() => {
+                const nextTens = Math.max(0, tens - 1);
+                setTens(nextTens);
+                playQuestCountNumberVoice(nextTens * 10 + ones, soundEnabled);
+              }}
             >
               −10
             </button>
@@ -362,8 +410,10 @@ function TensOnesTrayWidget({
               disabled={locked || tens >= 5}
               style={{ padding: '7px 14px' }}
               onClick={() => {
-                setTens((t) => Math.min(5, t + 1));
+                const nextTens = Math.min(5, tens + 1);
+                setTens(nextTens);
                 playQuestStepTick(tens, soundEnabled);
+                playQuestCountNumberVoice(nextTens * 10 + ones, soundEnabled);
               }}
             >
               +10 Bundle
@@ -371,27 +421,17 @@ function TensOnesTrayWidget({
           </div>
         </div>
 
-        <div className="quest-tens-zone">
-          <span className="font-display" style={{ fontWeight: 700, color: '#F27A5E' }}>
-            Ones Pebbles (1s): {ones}
+        <div className="quest-tens-zone quest-tens-zone--ones">
+          <span className="font-display" style={{ fontWeight: 700, color: '#D15B40', fontSize: '1rem' }}>
+            Single Pebbles (Ones): {ones}
           </span>
           <div className="quest-tens-visual">
             {ones === 0 ? (
-              <span style={{ fontSize: '0.84rem', color: '#5C6478' }}>0 Ones</span>
+              <span style={{ fontSize: '0.84rem', color: '#5C6478', textAlign: 'center' }}>
+                Tap <strong>+1 Pebble</strong> for single ones
+              </span>
             ) : (
-              Array.from({ length: ones }, (_, i) => (
-                <span
-                  key={i}
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: '50%',
-                    background: '#F27A5E',
-                    border: '2px solid #C9583D',
-                    display: 'inline-block',
-                  }}
-                />
-              ))
+              Array.from({ length: ones }, (_, i) => <OnePebbleArt key={i} />)
             )}
           </div>
           <div className="quest-tens-controls">
@@ -400,7 +440,11 @@ function TensOnesTrayWidget({
               className="btn-secondary"
               disabled={locked || ones <= 0}
               style={{ padding: '7px 14px' }}
-              onClick={() => setOnes((o) => Math.max(0, o - 1))}
+              onClick={() => {
+                const nextOnes = Math.max(0, ones - 1);
+                setOnes(nextOnes);
+                playQuestCountNumberVoice(tens * 10 + nextOnes, soundEnabled);
+              }}
             >
               −1
             </button>
@@ -410,8 +454,10 @@ function TensOnesTrayWidget({
               disabled={locked || ones >= 9}
               style={{ padding: '7px 14px', background: '#F27A5E' }}
               onClick={() => {
-                setOnes((o) => Math.min(9, o + 1));
+                const nextOnes = Math.min(9, ones + 1);
+                setOnes(nextOnes);
                 playQuestStepTick(ones, soundEnabled);
+                playQuestCountNumberVoice(tens * 10 + nextOnes, soundEnabled);
               }}
             >
               +1 Pebble
@@ -426,12 +472,12 @@ function TensOnesTrayWidget({
         disabled={locked}
         style={{ alignSelf: 'center', minWidth: 230, padding: '12px 24px', fontSize: '1.05rem' }}
         onClick={() => {
-          const built = tens * 10 + ones;
-          if (tens === prompt.targetTens && ones === prompt.targetOnes) {
+          if (isMatch) {
             onSolve();
           } else {
             onMistake(
-              `Your tray shows ${tens} tens and ${ones} ones (${built}). ${prompt.targetNumber} needs ${prompt.targetTens} tens and ${prompt.targetOnes} ones!`,
+              `Your tray shows ${tens} ${tens === 1 ? 'ten-bundle' : 'ten-bundles'} (${tens * 10}) and ${ones} ${ones === 1 ? 'one' : 'ones'} = ${built}. ${prompt.targetNumber} needs ${prompt.targetTens} ten-bundles and ${prompt.targetOnes} ones!`,
+              prompt.mistakeVoiceClipId,
             );
           }
         }}
@@ -443,14 +489,33 @@ function TensOnesTrayWidget({
 }
 
 /* ================= 5. VISUAL STRIP (Number Line / Ordinals / Graph / Length) ================= */
+const ORDINAL_WORDS_FOR_VOICE = [
+  'First',
+  'Second',
+  'Third',
+  'Fourth',
+  'Fifth',
+  'Sixth',
+  'Seventh',
+  'Eighth',
+  'Ninth',
+  'Tenth',
+] as const;
+
 function VisualStripWidget({
   prompt,
   locked,
+  teachingMistake,
+  soundEnabled,
   onSolve,
   onMistake,
 }: SharedWidgetProps & { prompt: VisualStripQuestPrompt }) {
   const [solvedId, setSolvedId] = useState<string | null>(null);
+  const [countedUpTo, setCountedUpTo] = useState<number>(0);
   const strip = prompt.strip;
+
+  const activeCountLimit =
+    strip.subkind === 'ordinals' && teachingMistake ? strip.targetPosition : countedUpTo;
 
   return (
     <div className="quest-widget-body">
@@ -497,38 +562,57 @@ function VisualStripWidget({
         )}
 
         {strip.subkind === 'ordinals' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', justifyContent: 'space-between', overflowX: 'hidden' }}>
-            <div
-              className="font-display"
-              style={{
-                padding: '6px 8px',
-                borderRadius: 10,
-                background: '#1E2433',
-                color: '#FFFFFF',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                flexShrink: 0,
-              }}
-            >
-              FINISH
+          <div className="quest-ordinal-track">
+            {/* Clear Checkered Finish Flag + Direction Arrow */}
+            <div className="quest-ordinal-flag" aria-label="Finish Flag — start counting 1st here">
+              <svg width="30" height="32" viewBox="0 0 32 34" aria-hidden="true">
+                <rect x="3" y="2" width="3.5" height="30" rx="1.5" fill="#1E2433" />
+                <rect x="6.5" y="3" width="22" height="14" rx="2" fill="#FFFFFF" stroke="#1E2433" strokeWidth="1.8" />
+                <rect x="6.5" y="3" width="5.5" height="7" fill="#1E2433" />
+                <rect x="17.5" y="3" width="5.5" height="7" fill="#1E2433" />
+                <rect x="12" y="10" width="5.5" height="7" fill="#1E2433" />
+                <rect x="23" y="10" width="5.5" height="7" fill="#1E2433" />
+              </svg>
+              <span className="quest-ordinal-flag__label font-display">FINISH</span>
+              <span className="quest-ordinal-flag__dir font-display">1st →</span>
             </div>
+
             {strip.racers.map((r) => {
               const isAsked = r.position === strip.targetPosition;
+              const isCounted = activeCountLimit >= r.position;
               return (
-                <div
+                <button
                   key={r.position}
-                  style={{
-                    padding: 4,
-                    borderRadius: 12,
-                    background: isAsked ? '#FFF3D6' : '#FFFFFF',
-                    border: isAsked ? '2.5px solid #F27A5E' : '1.5px solid #E5E0D5',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
+                  type="button"
+                  disabled={locked}
+                  onClick={() => {
+                    if (locked) return;
+                    setCountedUpTo(r.position);
+                    playQuestOrdinalStepVoice(
+                      r.position,
+                      ORDINAL_WORDS_FOR_VOICE[r.position - 1] ?? r.ordinalLabel,
+                      soundEnabled,
+                    );
                   }}
+                  aria-label={`Count ${r.name} from Finish Flag`}
+                  className={`quest-ordinal-racer ${isAsked ? 'quest-ordinal-racer--target' : ''} ${
+                    isCounted ? 'quest-ordinal-racer--counted' : ''
+                  }`}
                 >
-                  <QuestArt spec={r.art} size={38} />
-                </div>
+                  {isAsked && (
+                    <span className="quest-ordinal-pointer font-display" aria-hidden="true">
+                      FIND!
+                    </span>
+                  )}
+                  <QuestArt spec={r.art} size={42} />
+                  {isCounted ? (
+                    <span className="quest-ordinal-step-pill font-display">
+                      {teachingMistake ? r.ordinalLabel : r.position}
+                    </span>
+                  ) : (
+                    <span className="quest-ordinal-tap-dot" aria-hidden="true" />
+                  )}
+                </button>
               );
             })}
           </div>
@@ -607,7 +691,7 @@ function VisualStripWidget({
                 setSolvedId(opt.id);
                 onSolve();
               } else {
-                onMistake(opt.wrongExplanation);
+                onMistake(opt.wrongExplanation, opt.mistakeVoiceClipId);
               }
             }}
           >

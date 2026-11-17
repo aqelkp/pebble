@@ -1113,7 +1113,7 @@ export function DotToDotBoard({
         onStartAgain={handleResetCurrentDots}
       />
 
-      {phase === 'won' && (
+      {phase === 'won' && !journeyContext && (
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="dot-win-title">
           <div className="winner-modal" data-testid="dot-winner-modal">
             <div className="winner-crown-wrap">
@@ -1140,44 +1140,31 @@ export function DotToDotBoard({
             </div>
 
             <div className="winner-actions">
-              {journeyContext ? (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handlePlayAgain}
+                data-testid="dot-play-again-btn"
+              >
+                Play Again
+              </button>
+              <div className="winner-actions__row">
                 <button
                   type="button"
-                  className="btn-primary"
-                  onClick={() => journeyContext.onActivityComplete()}
-                  data-testid="dot-journey-continue-btn"
+                  className="btn-secondary"
+                  onClick={onChangeSetup}
                 >
-                  Continue Adventure →
+                  Change Setup
                 </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    onClick={handlePlayAgain}
-                    data-testid="dot-play-again-btn"
-                  >
-                    Play Again
-                  </button>
-                  <div className="winner-actions__row">
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={onChangeSetup}
-                    >
-                      Change Setup
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={onBackToHub}
-                      data-testid="dot-win-hub-btn"
-                    >
-                      Games
-                    </button>
-                  </div>
-                </>
-              )}
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={onBackToHub}
+                  data-testid="dot-win-hub-btn"
+                >
+                  Games
+                </button>
+              </div>
             </div>
           </div>
         </div>

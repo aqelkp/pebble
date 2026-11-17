@@ -321,6 +321,28 @@ function PebbleRouter() {
     ],
   );
 
+  const journeyActivityIndex = screen.view === 'journey-play' ? screen.activityIndex : -1;
+  const activeJourneyActivity = useMemo(
+    () => (journeyActivityIndex >= 0 ? (curriculum[journeyActivityIndex] ?? curriculum[0] ?? null) : null),
+    [curriculum, journeyActivityIndex],
+  );
+
+  const journeyContext = useMemo<JourneyBoardContext | undefined>(() => {
+    if (!activeJourneyActivity) return undefined;
+    return {
+      chapterNumber: activeJourneyActivity.chapterNumber,
+      activityNumberInChapter: activeJourneyActivity.numberInChapter,
+      totalInChapter: ACTIVITIES_PER_CHAPTER,
+      globalActivityNumber: activeJourneyActivity.activityNumber,
+      onActivityComplete: () => {
+        isGameActiveRef.current = false;
+        clearSavedGameById(activeJourneyActivity.gameId);
+        setJourneyState((prev) => markJourneyActivityCompleted(prev, activeJourneyActivity));
+        setCompletedActivity(activeJourneyActivity);
+      },
+    };
+  }, [activeJourneyActivity]);
+
   useEffect(() => {
     saveJourneyState(journeyState);
   }, [journeyState]);
@@ -743,22 +765,8 @@ function PebbleRouter() {
       );
     }
 
-    if (screen.view === 'journey-play') {
-      const activeActivity = curriculum[screen.activityIndex] ?? curriculum[0];
-      const journeyContext: JourneyBoardContext = {
-        chapterNumber: activeActivity.chapterNumber,
-        activityNumberInChapter: activeActivity.numberInChapter,
-        totalInChapter: ACTIVITIES_PER_CHAPTER,
-        globalActivityNumber: activeActivity.activityNumber,
-        onActivityComplete: () => {
-          isGameActiveRef.current = false;
-          clearSavedGameById(activeActivity.gameId);
-          setJourneyState((prev) => markJourneyActivityCompleted(prev, activeActivity));
-          setCompletedActivity(activeActivity);
-        },
-      };
-
-      return renderPluginBoard(activeActivity.gameId, activeActivity.payload.config, {
+    if (screen.view === 'journey-play' && activeJourneyActivity && journeyContext) {
+      return renderPluginBoard(activeJourneyActivity.gameId, activeJourneyActivity.payload.config, {
         gameKey: screen.gameKey,
         profiles,
         soundEnabled,

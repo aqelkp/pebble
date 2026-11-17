@@ -330,10 +330,17 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
     category: 'phonics',
     buildActivity: (ctx) => {
       const isTrickyReview = ctx.gameOrdinal > 0 && ctx.gameOrdinal % 6 === 4;
-      const trickySlice = isTrickyReview
+      const rawTricky = isTrickyReview
         ? getTrickyLettersForReview(ctx.settings.selectedLetters)
         : undefined;
-      const letters = ctx.nextLetterSlice(trickySlice);
+      const rotatedTricky =
+        rawTricky && rawTricky.length > 3
+          ? Array.from(
+              { length: 3 },
+              (_, i) => rawTricky[(ctx.gameOrdinal + i) % rawTricky.length],
+            )
+          : rawTricky;
+      const letters = ctx.nextLetterSlice(rotatedTricky, 3);
       const label = formatLettersLabel(letters);
       const orderMode =
         ctx.gameOrdinal === 0 || ctx.chapterNumber <= 4 || ctx.gameOrdinal % 2 === 0
@@ -345,8 +352,8 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
         title: 'Letter River',
         subtitle: label,
         detailLine: isTrickyReview
-          ? `Tricky pairs dock: ${letters.join(', ')}`
-          : `Catch swimming picture fish for ${letters.join(', ')}`,
+          ? `Tricky pairs dock (3 buckets): ${letters.join(', ')}`
+          : `Fill the 3 letter buckets on the dock: ${letters.join(', ')}`,
         artPath: 'hub/letter-river.png',
         voiceClipId: 'letter-river',
         lettersCovered: letters,

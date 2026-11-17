@@ -530,8 +530,8 @@ export function RescueRoadBoard({
     });
   }, [clearMotionTimers, config.size]);
 
-  const triggerJourneyComplete = useCallback(() => {
-    if (completedJourneyRef.current) return;
+  const triggerJourneyComplete = useCallback((force = false) => {
+    if (completedJourneyRef.current && !force) return;
     completedJourneyRef.current = true;
     journeyContextRef.current?.onActivityComplete();
   }, []);
@@ -572,7 +572,7 @@ export function RescueRoadBoard({
 
         if (journeyContextRef.current) {
           if (immediateJourneyComplete) {
-            triggerJourneyComplete();
+            triggerJourneyComplete(true);
           } else {
             if (nextRoadTimerRef.current) window.clearTimeout(nextRoadTimerRef.current);
             nextRoadTimerRef.current = window.setTimeout(() => {
