@@ -77,6 +77,8 @@ export function QuestAdventureBoard({
   const timerRef = useRef<number | null>(null);
   const cancelMistakeVoiceRef = useRef<(() => void) | null>(null);
   const sessionLoggedRef = useRef(false);
+  const journeyOnCompleteRef = useRef(journeyContext?.onActivityComplete);
+  journeyOnCompleteRef.current = journeyContext?.onActivityComplete;
 
   const playerId = childProfile?.id ?? 'child';
   const childDisplayName =
@@ -244,6 +246,7 @@ export function QuestAdventureBoard({
         }
         playQuestGrandFinaleSound(soundEnabled);
         setPhase('finished');
+        journeyOnCompleteRef.current?.();
       } else {
         setStopIdx((i) => i + 1);
         setStopMistakes(0);
@@ -307,8 +310,8 @@ export function QuestAdventureBoard({
             }}
             onStartAgain={handleRestartRound}
           />
-          {phase === 'finished' && (
-            <div className="think-again-backdrop" role="dialog" aria-modal="true">
+          {phase === 'finished' && !journeyContext && (
+            <div className="modal-backdrop" role="dialog" aria-modal="true">
               <div className="think-again-card" style={{ maxWidth: 460, textAlign: 'center' }}>
                 <span className="badge-pill badge-pill--mint" style={{ alignSelf: 'center' }}>
                   {flawless ? 'GOLDEN CROWN • ZERO MISTAKES!' : 'ADVENTURE COMPLETE!'}
@@ -324,32 +327,20 @@ export function QuestAdventureBoard({
                 </p>
 
                 <div className="think-again-card__actions">
-                  {journeyContext ? (
-                    <button
-                      type="button"
-                      className="btn-primary think-again-card__btn"
-                      onClick={() => journeyContext.onActivityComplete()}
-                    >
-                      Finish Activity →
-                    </button>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        className="btn-primary think-again-card__btn"
-                        onClick={handleRestartRound}
-                      >
-                        Play Fresh {packSpec.shortTitle} Round
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-secondary think-again-card__secondary-btn"
-                        onClick={onChangeSetup}
-                      >
-                        Switch K1 Topic Pack
-                      </button>
-                    </>
-                  )}
+                  <button
+                    type="button"
+                    className="btn-primary think-again-card__btn"
+                    onClick={handleRestartRound}
+                  >
+                    Play Fresh {packSpec.shortTitle} Round
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary think-again-card__secondary-btn"
+                    onClick={onChangeSetup}
+                  >
+                    Switch K1 Topic Pack
+                  </button>
                 </div>
               </div>
             </div>
@@ -405,14 +396,41 @@ export function QuestAdventureBoard({
             </div>
           )}
 
-          <QuestPromptWidgetSwitch
-            prompt={currentPrompt}
-            locked={isLocked}
-            teachingMistake={phase === 'teaching-mistake'}
-            soundEnabled={soundEnabled}
-            onSolve={handleSolveStop}
-            onMistake={handleMistake}
-          />
+          {phase === 'finished' && journeyContext ? (
+            <div
+              className="quest-widget-body"
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                gap: 12,
+              }}
+            >
+              <span className="badge-pill badge-pill--mint">
+                {flawless ? 'GOLDEN CROWN • ZERO MISTAKES!' : 'ADVENTURE COMPLETE!'}
+              </span>
+              <h3 className="font-display" style={{ fontSize: '1.45rem', margin: 0 }}>
+                {ADVENTURE_SKIN_META[skinId].finaleHeadline}
+              </h3>
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ alignSelf: 'center', marginTop: 8 }}
+                onClick={() => journeyContext.onActivityComplete()}
+              >
+                Finish Activity →
+              </button>
+            </div>
+          ) : (
+            <QuestPromptWidgetSwitch
+              prompt={currentPrompt}
+              locked={isLocked}
+              teachingMistake={phase === 'teaching-mistake'}
+              soundEnabled={soundEnabled}
+              onSolve={handleSolveStop}
+              onMistake={handleMistake}
+            />
+          )}
         </div>
       </div>
     </GameStage>

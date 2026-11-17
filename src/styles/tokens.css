@@ -1330,7 +1330,7 @@ h3,
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  z-index: 60;
+  z-index: 85;
 }
 
 .confetti-piece {
@@ -1364,7 +1364,7 @@ h3,
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 80;
   background: rgba(30, 36, 51, 0.5);
   backdrop-filter: blur(5px);
   display: flex;

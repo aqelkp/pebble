@@ -891,7 +891,7 @@ export function WordPeekabooBoard({
         onStartAgain={handleRestartCurrentBoard}
       />
 
-      {phase === 'won' && (
+      {phase === 'won' && !journeyContext && (
         <div
           className="modal-backdrop"
           role="dialog"
@@ -925,44 +925,31 @@ export function WordPeekabooBoard({
             </div>
 
             <div className="winner-actions">
-              {journeyContext ? (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handlePlayAgain}
+                data-testid="peekaboo-play-again-btn"
+              >
+                Play Again
+              </button>
+              <div className="winner-actions__row">
                 <button
                   type="button"
-                  className="btn-primary"
-                  onClick={() => journeyContext.onActivityComplete()}
-                  data-testid="peekaboo-journey-continue-btn"
+                  className="btn-secondary"
+                  onClick={onChangeSetup}
                 >
-                  Continue Adventure →
+                  Change Setup
                 </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    onClick={handlePlayAgain}
-                    data-testid="peekaboo-play-again-btn"
-                  >
-                    Play Again
-                  </button>
-                  <div className="winner-actions__row">
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={onChangeSetup}
-                    >
-                      Change Setup
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={onBackToHub}
-                      data-testid="peekaboo-win-hub-btn"
-                    >
-                      Games
-                    </button>
-                  </div>
-                </>
-              )}
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={onBackToHub}
+                  data-testid="peekaboo-win-hub-btn"
+                >
+                  Games
+                </button>
+              </div>
             </div>
           </div>
         </div>
