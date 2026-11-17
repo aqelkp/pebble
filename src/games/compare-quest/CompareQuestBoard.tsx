@@ -361,6 +361,8 @@ export function CompareQuestBoard({
   const secondStrokeTimerRef = useRef<number | null>(null);
   const strokesRef = useRef<LogicalPoint[][]>([]);
   const activeStrokeRef = useRef<LogicalPoint[]>([]);
+  const journeyOnCompleteRef = useRef(journeyContext?.onActivityComplete);
+  journeyOnCompleteRef.current = journeyContext?.onActivityComplete;
 
   const currentPrompt = prompts[promptIndex] ?? prompts[0];
   const modeSpec = useMemo(() => getCompareModeSpec(config.modeId), [config.modeId]);
@@ -526,6 +528,7 @@ export function CompareQuestBoard({
               setPhase('won');
               setConfettiKey((k) => k + 1);
               voiceCleanupRef.current = playCompareRoundFanfare(roundFlawless, soundEnabled);
+              journeyOnCompleteRef.current?.();
             } else {
               setLockedSymbol(null);
               setWrongSymbol(null);
@@ -1753,7 +1756,7 @@ export function CompareQuestBoard({
         onStartAgain={handleStartAgainFreshRound}
       />
 
-      {phase === 'won' && (
+      {phase === 'won' && !journeyContext && (
         <div
           className="modal-backdrop"
           role="dialog"
@@ -1788,44 +1791,31 @@ export function CompareQuestBoard({
             </div>
 
             <div className="winner-actions">
-              {journeyContext ? (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleStartAgainFreshRound}
+                data-testid="compare-play-again-btn"
+              >
+                Play Again
+              </button>
+              <div className="winner-actions__row">
                 <button
                   type="button"
-                  className="btn-primary"
-                  onClick={() => journeyContext.onActivityComplete()}
-                  data-testid="compare-journey-continue-btn"
+                  className="btn-secondary"
+                  onClick={onChangeSetup}
                 >
-                  Continue Adventure →
+                  Change Setup
                 </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    onClick={handleStartAgainFreshRound}
-                    data-testid="compare-play-again-btn"
-                  >
-                    Play Again
-                  </button>
-                  <div className="winner-actions__row">
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={onChangeSetup}
-                    >
-                      Change Setup
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={onBackToHub}
-                      data-testid="compare-win-hub-btn"
-                    >
-                      Games
-                    </button>
-                  </div>
-                </>
-              )}
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={onBackToHub}
+                  data-testid="compare-win-hub-btn"
+                >
+                  Games
+                </button>
+              </div>
             </div>
           </div>
         </div>
