@@ -289,10 +289,10 @@ function loadSavedNavState(): SavedNavState {
 
 function PebbleRouter() {
   const { profiles, soundEnabled, toggleSound, updateProfile } = useFamilyProfiles();
+  const [journeyState, setJourneyState] = useState<JourneyProgressState>(() => loadJourneyState());
   const [initialNav] = useState<SavedNavState>(() => loadSavedNavState());
   const [screen, setScreen] = useState<Screen>(initialNav.screen);
   const [gameConfigs, setGameConfigs] = useState<SavedGameConfigs>(initialNav.gameConfigs);
-  const [journeyState, setJourneyState] = useState<JourneyProgressState>(() => loadJourneyState());
   const [dailyLimit, setDailyLimit] = useState<DailyPlayLimitState>(() =>
     loadDailyPlayLimitState(),
   );
@@ -306,8 +306,19 @@ function PebbleRouter() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   const curriculum = useMemo(
-    () => buildJourneyCurriculum(journeyState.settings, profiles),
-    [journeyState.settings, profiles],
+    () =>
+      buildJourneyCurriculum(journeyState.settings, profiles, {
+        currentActivityIndex: journeyState.currentActivityIndex,
+        completedSnapshots: journeyState.completedSnapshots,
+        pendingIntroGames: journeyState.pendingIntroGames,
+      }),
+    [
+      journeyState.completedSnapshots,
+      journeyState.currentActivityIndex,
+      journeyState.pendingIntroGames,
+      journeyState.settings,
+      profiles,
+    ],
   );
 
   useEffect(() => {
@@ -685,6 +696,7 @@ function PebbleRouter() {
             }))
           }
           onResetJourney={() => {
+            clearAllSavedGames();
             setJourneyState((prev) => ({
               ...getDefaultJourneyState(),
               settings: prev.settings,

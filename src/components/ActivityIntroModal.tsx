@@ -92,7 +92,52 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
   }
 
   if (activity.gameId === 'letter-trace') {
-    const letter = activity.lettersCovered?.[0] ?? 'A';
+    const traceMode =
+      activity.payload.gameId === 'letter-trace'
+        ? (activity.payload.config.traceMode ?? 'letters')
+        : 'letters';
+
+    if (traceMode === 'shapes') {
+      return (
+        <div className="intro-demo-stage intro-demo-stage--trace" aria-hidden="true">
+          <div className="intro-demo-trace-card">
+            <svg viewBox="0 0 220 118" className="intro-demo-trace-svg">
+              <circle
+                cx="66"
+                cy="60"
+                r="34"
+                fill="none"
+                stroke="#5B5BD6"
+                strokeWidth="7"
+              />
+              <polygon
+                points="158,24 194,92 122,92"
+                fill="none"
+                stroke="#D8D3EE"
+                strokeWidth="7"
+                strokeLinejoin="round"
+              />
+              <circle cx="66" cy="26" r="11" fill="#5B5BD6" stroke="#FFFFFF" strokeWidth="2.5" />
+              <text
+                x="66"
+                y="30"
+                textAnchor="middle"
+                fontFamily="Fredoka, sans-serif"
+                fontSize="12"
+                fontWeight="700"
+                fill="#FFFFFF"
+              >
+                1
+              </text>
+              <circle cx="34" cy="60" r="7" fill="#F2B84B" className="intro-demo-trace-pebble" />
+            </svg>
+          </div>
+        </div>
+      );
+    }
+
+    const leftGlyph = traceMode === 'numbers' ? '1' : (activity.lettersCovered?.[0] ?? 'A');
+    const rightGlyph = traceMode === 'numbers' ? '2' : leftGlyph.toLowerCase();
     return (
       <div className="intro-demo-stage intro-demo-stage--trace" aria-hidden="true">
         <div className="intro-demo-trace-card">
@@ -117,7 +162,7 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
               fontWeight="700"
               fill="#5B5BD6"
             >
-              {letter}
+              {leftGlyph}
             </text>
             <text
               x="156"
@@ -128,7 +173,7 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
               fontWeight="700"
               fill="#E5E0D5"
             >
-              {letter.toLowerCase()}
+              {rightGlyph}
             </text>
             <circle cx="64" cy="24" r="11" fill="#5B5BD6" stroke="#FFFFFF" strokeWidth="2.5" />
             <text
@@ -307,10 +352,16 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
   }
 
   if (activity.gameId === 'dot-to-dot') {
+    const seqMode =
+      activity.payload.gameId === 'dot-to-dot' ? activity.payload.config.sequenceMode : 'numbers';
+    const startDot =
+      activity.payload.gameId === 'dot-to-dot' ? activity.payload.config.dotCount : 10;
     const labels =
-      activity.payload.gameId === 'dot-to-dot' && activity.payload.config.sequenceMode === 'letters'
+      seqMode === 'letters'
         ? ['A', 'B', 'C', 'D', 'E']
-        : ['1', '2', '3', '4', '5'];
+        : seqMode === 'countdown'
+          ? [0, 1, 2, 3, 4].map((offset) => String(startDot - offset))
+          : ['1', '2', '3', '4', '5'];
     return (
       <div className="intro-demo-stage intro-demo-stage--dots" aria-hidden="true">
         <svg viewBox="0 0 240 120" className="intro-demo-dots-svg">
@@ -352,7 +403,11 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
             </g>
           ))}
         </svg>
-        <span className="intro-demo-twin-caption">Drag or tap dots in order to reveal color!</span>
+        <span className="intro-demo-twin-caption">
+          {seqMode === 'countdown'
+            ? `Count backward from ${startDot} down to 0 to reveal color!`
+            : 'Drag or tap dots in order to reveal color!'}
+        </span>
       </div>
     );
   }
@@ -386,6 +441,9 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     activity.gameId === 'cloud-balloon' ||
     activity.gameId === 'treasure-keys'
   ) {
+    const questCount =
+      activity.payload.gameId === activity.gameId ? activity.payload.config.roundLength : 5;
+    const questUnit = activity.gameId === 'treasure-keys' ? 'Keys' : 'Quests';
     return (
       <div className="intro-demo-stage intro-demo-stage--train" aria-hidden="true">
         <img
@@ -401,8 +459,8 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
         />
         <span className="intro-demo-arrow">→</span>
         <div className="intro-demo-train-car">
-          <span className="intro-demo-train-car__letter">5</span>
-          <span className="intro-demo-train-car__sub">Quests</span>
+          <span className="intro-demo-train-car__letter">{questCount}</span>
+          <span className="intro-demo-train-car__sub">{questUnit}</span>
         </div>
       </div>
     );
@@ -592,7 +650,7 @@ export function ActivityIntroModal({
   onCancel,
 }: ActivityIntroModalProps) {
   const isHelpMode = mode === 'help';
-  const effectiveWait = !isHelpMode && waitForVoiceIntro;
+  const effectiveWait = !isHelpMode && (waitForVoiceIntro || Boolean(activity.isNewGameIntro));
   const voiceSpec = useMemo(() => getJourneyVoiceSpec(activity.voiceClipId), [activity.voiceClipId]);
   const customChildName = useMemo(() => normalizeSpokenName(childName), [childName]);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -870,6 +928,11 @@ export function ActivityIntroModal({
         <main className="intro-card">
           <div className="intro-card__header">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+              {activity.isNewGameIntro && !isHelpMode && (
+                <span className="badge-pill badge-pill--coral" data-testid="intro-new-game-badge">
+                  New Game! • Welcome Lesson
+                </span>
+              )}
               <span className="badge-pill badge-pill--mint">
                 {isHelpMode ? 'Game Guide • Watch & Listen' : 'Get Ready • Watch & Listen'}
               </span>

@@ -38,6 +38,7 @@ export function buildStandaloneHelpActivity(
     activityNumber: 1,
     chapterNumber: 1,
     numberInChapter: 1,
+    gameOrdinal: 0,
   };
 
   switch (gameId) {
@@ -74,15 +75,28 @@ export function buildStandaloneHelpActivity(
 
     case 'letter-trace': {
       const cfg = resolveConfig('letter-trace', rawConfig, profiles);
+      const traceMode = cfg.traceMode ?? 'letters';
+      const voiceClipId =
+        traceMode === 'numbers'
+          ? 'letter-trace-numbers'
+          : traceMode === 'shapes'
+            ? 'letter-trace-shapes'
+            : 'letter-trace';
+      const subtitle =
+        traceMode === 'numbers'
+          ? `Numbers (${cfg.numberRange ?? '0-50'})`
+          : traceMode === 'shapes'
+            ? '2D Shape Strokes'
+            : 'Capital & Small Stroke Order';
       return {
         ...base,
         gameId,
         title: 'Letter Trace',
-        subtitle: 'Capital & Small Stroke Order',
-        detailLine: 'Start at Circle 1 and trace each letter stroke in strict order along the arrows!',
+        subtitle,
+        detailLine: 'Start at Circle 1 and trace each stroke in strict order along the arrows!',
         artPath: 'hub/letter-trace.png',
-        voiceClipId: 'letter-trace',
-        lettersCovered: cfg.selectedLetters.slice(0, 5),
+        voiceClipId,
+        lettersCovered: traceMode === 'letters' ? cfg.selectedLetters.slice(0, 5) : undefined,
         payload: { gameId, config: cfg },
       };
     }
@@ -230,7 +244,7 @@ export function buildStandaloneHelpActivity(
         subtitle: `${getThemeLabel(cfg.themeId)} • ${seqLabel}`,
         detailLine: 'Connect the dots in order around the shadow to watch full color bloom!',
         artPath: 'hub/dot-to-dot.png',
-        voiceClipId: 'dot-to-dot',
+        voiceClipId: cfg.sequenceMode === 'countdown' ? 'dot-to-dot-countdown' : 'dot-to-dot',
         payload: { gameId, config: cfg },
       };
     }
@@ -277,9 +291,9 @@ export function buildStandaloneHelpActivity(
         title: 'Word Trace',
         subtitle: `${pack.title} • 4-Line Notebook`,
         detailLine:
-          'Listen to the prompt and trace each letter from left to right starting at Circle 1!',
+          'Listen to the prompt and trace each stroke from left to right starting at Circle 1!',
         artPath: 'hub/word-trace.png',
-        voiceClipId: 'word-trace',
+        voiceClipId: cfg.packId === 'numbers' ? 'word-trace-numbers' : 'word-trace',
         payload: { gameId, config: cfg },
       };
     }

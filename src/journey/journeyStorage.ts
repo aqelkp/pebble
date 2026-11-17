@@ -2,7 +2,9 @@ import type { LetterId } from '../data/wordBank';
 import { ALL_LETTERS, isValidLetterId } from '../games/letter-train/letterData';
 import { GAME_REGISTRY, type GameRegistryEntry } from '../games/registry';
 import {
+  CURRENT_JOURNEY_EPOCH,
   TOTAL_ACTIVITIES,
+  type CompletedSlotSnapshot,
   type FunBreakPacingMode,
   type JourneyActivity,
   type JourneyDurationMode,
@@ -13,24 +15,18 @@ import {
 } from './journeyTypes';
 
 // TODO(security): Pebble runs 100% locally in the browser with no backend server, authentication,
-// or database. All journey settings, completed activity indices, and letter coverage read from
-// localStorage are treated as untrusted input and validated against strict allow-lists and
-// integer bounds before use. Add authenticated server persistence if cloud sync is ever introduced.
+// or database. All journey settings, completed activity indices, frozen slot snapshots, and letter
+// coverage read from localStorage are treated as untrusted input and validated against strict
+// allow-lists and integer bounds before use. Add authenticated server persistence if cloud sync is ever introduced.
 
 const JOURNEY_STORAGE_KEY = 'pebble.journey.v1';
+const NAV_SESSION_KEY = 'pebble.nav.v1';
 
 const ALL_GAME_IDS: GameRegistryEntry['id'][] = GAME_REGISTRY.map((g) => g.id);
-const VALID_GAME_ID_SET = new Set<string>(ALL_GAME_IDS);
-const LEGACY_PRE_FUN_GAMES: GameRegistryEntry['id'][] = [
-  'memory-match',
-  'letter-train',
-  'letter-river',
-  'picture-sudoku',
-  'number-safari',
-  'word-fun',
-];
 
-export function getDefaultJourneySettings(): JourneySettings {
+export function getDefaultJourneySettings(
+  catalogIds: readonly GameRegistryEntry['id'][] = ALL_GAME_IDS,
+): JourneySettings {
   return {
     guidedModeEnabled: true,
     lettersPerLesson: 4,
@@ -38,22 +34,27 @@ export function getDefaultJourneySettings(): JourneySettings {
     waitForVoiceIntro: true,
     playerMode: 'solo',
     funBreakPacing: 'after-2',
-    boostedGames: ['rescue-road'],
+    boostedGames: [],
     speakChildName: true,
-    pacingVersion: 2,
+    pacingVersion: 3,
     selectedLetters: [...ALL_LETTERS],
-    enabledGames: [...ALL_GAME_IDS],
-    knownGames: [...ALL_GAME_IDS],
+    enabledGames: [...catalogIds],
+    knownGames: [...catalogIds],
   };
 }
 
-export function getDefaultJourneyState(): JourneyProgressState {
+export function getDefaultJourneyState(
+  catalogIds: readonly GameRegistryEntry['id'][] = ALL_GAME_IDS,
+): JourneyProgressState {
   return {
     version: 1,
-    settings: getDefaultJourneySettings(),
+    curriculumEpoch: CURRENT_JOURNEY_EPOCH,
+    settings: getDefaultJourneySettings(catalogIds),
     currentActivityIndex: 0,
     completedActivityIndices: [],
     coveredLetters: [],
+    completedSnapshots: {},
+    pendingIntroGames: [],
   };
 }
 
@@ -69,13 +70,17 @@ function normalizeLettersList(raw: unknown, fallback: LetterId[]): LetterId[] {
   return ALL_LETTERS.filter((letter) => unique.has(letter));
 }
 
-function normalizeKnownGames(raw: unknown): Set<GameRegistryEntry['id']> {
+function normalizeKnownGames(
+  raw: unknown,
+  validSet: Set<string>,
+  fallbackIds: readonly GameRegistryEntry['id'][],
+): Set<GameRegistryEntry['id']> {
   if (!Array.isArray(raw)) {
-    return new Set<GameRegistryEntry['id']>(LEGACY_PRE_FUN_GAMES);
+    return new Set<GameRegistryEntry['id']>(fallbackIds);
   }
   const set = new Set<GameRegistryEntry['id']>();
   for (const item of raw) {
-    if (typeof item === 'string' && VALID_GAME_ID_SET.has(item)) {
+    if (typeof item === 'string' && validSet.has(item)) {
       set.add(item as GameRegistryEntry['id']);
     }
   }
@@ -85,26 +90,32 @@ function normalizeKnownGames(raw: unknown): Set<GameRegistryEntry['id']> {
 function normalizeEnabledGames(
   raw: unknown,
   knownSet: Set<GameRegistryEntry['id']>,
+  catalogIds: readonly GameRegistryEntry['id'][],
+  validSet: Set<string>,
 ): GameRegistryEntry['id'][] {
-  if (!Array.isArray(raw)) return [...ALL_GAME_IDS];
+  if (!Array.isArray(raw)) return [...catalogIds];
   const unique = new Set<GameRegistryEntry['id']>();
   for (const item of raw) {
-    if (typeof item === 'string' && VALID_GAME_ID_SET.has(item)) {
+    if (typeof item === 'string' && validSet.has(item)) {
       unique.add(item as GameRegistryEntry['id']);
     }
   }
-  // Auto-enroll newly introduced games for existing saved localStorage profiles
-  for (const gameId of ALL_GAME_IDS) {
+  // Auto-enroll newly introduced games for returning learners
+  for (const gameId of catalogIds) {
     if (!knownSet.has(gameId)) {
       unique.add(gameId);
     }
   }
-  if (unique.size === 0) return [...ALL_GAME_IDS];
-  return ALL_GAME_IDS.filter((id) => unique.has(id));
+  if (unique.size === 0) return [...catalogIds];
+  return catalogIds.filter((id) => unique.has(id));
 }
 
 function normalizeFunBreakPacing(raw: unknown, pacingVersion: unknown): FunBreakPacingMode {
-  if (pacingVersion !== 2 && (raw === 'balanced' || raw === undefined)) {
+  if (
+    pacingVersion !== 2 &&
+    pacingVersion !== 3 &&
+    (raw === 'balanced' || raw === undefined)
+  ) {
     return 'after-2';
   }
   if (raw === 'every-2') return 'after-1';
@@ -121,20 +132,34 @@ function normalizeFunBreakPacing(raw: unknown, pacingVersion: unknown): FunBreak
   return 'after-2';
 }
 
-function normalizeBoostedGames(raw: unknown): GameRegistryEntry['id'][] {
-  if (!Array.isArray(raw)) return ['rescue-road'];
+function normalizeBoostedGames(
+  raw: unknown,
+  pacingVersion: unknown,
+  catalogIds: readonly GameRegistryEntry['id'][],
+  validSet: Set<string>,
+): GameRegistryEntry['id'][] {
+  // Clean up legacy accidental default boost from pacingVersion <= 2
+  if (pacingVersion !== 3) return [];
+  if (!Array.isArray(raw)) return [];
   const unique = new Set<GameRegistryEntry['id']>();
   for (const item of raw) {
-    if (typeof item === 'string' && VALID_GAME_ID_SET.has(item)) {
+    if (typeof item === 'string' && validSet.has(item)) {
       unique.add(item as GameRegistryEntry['id']);
     }
   }
-  return ALL_GAME_IDS.filter((id) => unique.has(id));
+  return catalogIds.filter((id) => unique.has(id));
 }
 
-function sanitizeSettings(raw: unknown): JourneySettings {
-  const defaults = getDefaultJourneySettings();
-  if (typeof raw !== 'object' || raw === null) return defaults;
+function sanitizeSettings(
+  raw: unknown,
+  catalogIds: readonly GameRegistryEntry['id'][],
+  validSet: Set<string>,
+  resetSelectionsForEpoch: boolean,
+): { settings: JourneySettings; newlyDiscoveredGames: GameRegistryEntry['id'][] } {
+  const defaults = getDefaultJourneySettings(catalogIds);
+  if (typeof raw !== 'object' || raw === null) {
+    return { settings: defaults, newlyDiscoveredGames: [] };
+  }
   const candidate = raw as Partial<JourneySettings>;
 
   const lettersPerLesson: LettersPerLesson =
@@ -150,30 +175,71 @@ function sanitizeSettings(raw: unknown): JourneySettings {
   const playerMode: JourneyPlayerMode =
     candidate.playerMode === 'two-player' ? 'two-player' : 'solo';
 
-  const knownSet = normalizeKnownGames(candidate.knownGames);
+  if (resetSelectionsForEpoch) {
+    return {
+      settings: {
+        guidedModeEnabled:
+          typeof candidate.guidedModeEnabled === 'boolean'
+            ? candidate.guidedModeEnabled
+            : defaults.guidedModeEnabled,
+        lettersPerLesson,
+        durationMode,
+        waitForVoiceIntro:
+          typeof candidate.waitForVoiceIntro === 'boolean'
+            ? candidate.waitForVoiceIntro
+            : defaults.waitForVoiceIntro,
+        playerMode,
+        funBreakPacing: normalizeFunBreakPacing(candidate.funBreakPacing, 3),
+        boostedGames: [],
+        speakChildName:
+          typeof candidate.speakChildName === 'boolean'
+            ? candidate.speakChildName
+            : defaults.speakChildName,
+        pacingVersion: 3,
+        selectedLetters: [...ALL_LETTERS],
+        enabledGames: [...catalogIds],
+        knownGames: [...catalogIds],
+      },
+      newlyDiscoveredGames: [],
+    };
+  }
+
+  const hasExplicitKnown = Array.isArray(candidate.knownGames);
+  const knownSet = normalizeKnownGames(candidate.knownGames, validSet, catalogIds);
+  const newlyDiscoveredGames = hasExplicitKnown
+    ? catalogIds.filter((id) => !knownSet.has(id))
+    : [];
 
   return {
-    guidedModeEnabled:
-      typeof candidate.guidedModeEnabled === 'boolean'
-        ? candidate.guidedModeEnabled
-        : defaults.guidedModeEnabled,
-    lettersPerLesson,
-    durationMode,
-    waitForVoiceIntro:
-      typeof candidate.waitForVoiceIntro === 'boolean'
-        ? candidate.waitForVoiceIntro
-        : defaults.waitForVoiceIntro,
-    playerMode,
-    funBreakPacing: normalizeFunBreakPacing(candidate.funBreakPacing, candidate.pacingVersion),
-    boostedGames: normalizeBoostedGames(candidate.boostedGames),
-    speakChildName:
-      typeof candidate.speakChildName === 'boolean'
-        ? candidate.speakChildName
-        : defaults.speakChildName,
-    pacingVersion: 2,
-    selectedLetters: normalizeLettersList(candidate.selectedLetters, defaults.selectedLetters),
-    enabledGames: normalizeEnabledGames(candidate.enabledGames, knownSet),
-    knownGames: [...ALL_GAME_IDS],
+    settings: {
+      guidedModeEnabled:
+        typeof candidate.guidedModeEnabled === 'boolean'
+          ? candidate.guidedModeEnabled
+          : defaults.guidedModeEnabled,
+      lettersPerLesson,
+      durationMode,
+      waitForVoiceIntro:
+        typeof candidate.waitForVoiceIntro === 'boolean'
+          ? candidate.waitForVoiceIntro
+          : defaults.waitForVoiceIntro,
+      playerMode,
+      funBreakPacing: normalizeFunBreakPacing(candidate.funBreakPacing, candidate.pacingVersion),
+      boostedGames: normalizeBoostedGames(
+        candidate.boostedGames,
+        candidate.pacingVersion,
+        catalogIds,
+        validSet,
+      ),
+      speakChildName:
+        typeof candidate.speakChildName === 'boolean'
+          ? candidate.speakChildName
+          : defaults.speakChildName,
+      pacingVersion: 3,
+      selectedLetters: normalizeLettersList(candidate.selectedLetters, defaults.selectedLetters),
+      enabledGames: normalizeEnabledGames(candidate.enabledGames, knownSet, catalogIds, validSet),
+      knownGames: [...catalogIds],
+    },
+    newlyDiscoveredGames,
   };
 }
 
@@ -200,22 +266,176 @@ function sanitizeCompletedIndices(raw: unknown): number[] {
   return Array.from(unique).sort((a, b) => a - b);
 }
 
+function sanitizeCompletedSnapshots(
+  raw: unknown,
+  validSet: Set<string>,
+): Record<string, CompletedSlotSnapshot> {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return {};
+  const result: Record<string, CompletedSlotSnapshot> = {};
+  const entries = Object.entries(raw as Record<string, unknown>);
+  for (let i = 0; i < Math.min(entries.length, TOTAL_ACTIVITIES); i += 1) {
+    const [key, val] = entries[i];
+    if (!/^\d{1,3}$/.test(key)) continue;
+    const slotIdx = Number(key);
+    if (!Number.isInteger(slotIdx) || slotIdx < 0 || slotIdx >= TOTAL_ACTIVITIES) continue;
+    if (typeof val !== 'object' || val === null) continue;
+    const snap = val as Partial<CompletedSlotSnapshot>;
+    if (typeof snap.gameId !== 'string' || !validSet.has(snap.gameId)) continue;
+    const gameOrdinal =
+      typeof snap.gameOrdinal === 'number' && Number.isFinite(snap.gameOrdinal)
+        ? Math.max(0, Math.min(TOTAL_ACTIVITIES, Math.floor(snap.gameOrdinal)))
+        : 0;
+    const lettersCovered = Array.isArray(snap.lettersCovered)
+      ? normalizeLettersList(snap.lettersCovered, [])
+      : undefined;
+    result[String(slotIdx)] = {
+      gameId: snap.gameId as GameRegistryEntry['id'],
+      gameOrdinal,
+      ...(lettersCovered && lettersCovered.length > 0 ? { lettersCovered } : {}),
+    };
+  }
+  return result;
+}
+
+function sanitizePendingIntroGames(
+  raw: unknown,
+  newlyDiscovered: readonly GameRegistryEntry['id'][],
+  enabledGames: readonly GameRegistryEntry['id'][],
+  hasLearnerStarted: boolean,
+  validSet: Set<string>,
+): GameRegistryEntry['id'][] {
+  if (!hasLearnerStarted) return [];
+  const enabledSet = new Set<string>(enabledGames);
+  const queue: GameRegistryEntry['id'][] = [];
+  const seen = new Set<string>();
+
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (
+        typeof item === 'string' &&
+        validSet.has(item) &&
+        enabledSet.has(item) &&
+        !seen.has(item)
+      ) {
+        seen.add(item);
+        queue.push(item as GameRegistryEntry['id']);
+      }
+    }
+  }
+
+  for (const gameId of newlyDiscovered) {
+    if (enabledSet.has(gameId) && !seen.has(gameId)) {
+      seen.add(gameId);
+      queue.push(gameId);
+    }
+  }
+
+  return queue.slice(0, enabledGames.length);
+}
+
+/**
+ * Pure, deterministic state reconciler supporting Pebble's 3-Tier Journey Update Strategy:
+ * - Tier C (saved.curriculumEpoch !== CURRENT_JOURNEY_EPOCH): Complete progress reset to #1 while preserving parent preferences.
+ * - Tier A (new GameId added under same epoch): Preserves completedSnapshots, auto-enrolls new game, and queues a gameOrdinal=0 Welcome Lesson at currentActivityIndex.
+ * - Tier B (new pack/mode in existing game): Preserves completedSnapshots and updates future lessons seamlessly.
+ */
+export function reconcileJourneyProgress(
+  raw: unknown,
+  catalogIds: readonly GameRegistryEntry['id'][] = ALL_GAME_IDS,
+): { state: JourneyProgressState; didResetForEpoch: boolean } {
+  const defaults = getDefaultJourneyState(catalogIds);
+  if (typeof raw !== 'object' || raw === null) {
+    return { state: defaults, didResetForEpoch: false };
+  }
+  const validSet = new Set<string>(catalogIds);
+  const candidate = raw as Partial<JourneyProgressState>;
+  const savedEpoch =
+    typeof candidate.curriculumEpoch === 'number' ? candidate.curriculumEpoch : 1;
+
+  if (savedEpoch !== CURRENT_JOURNEY_EPOCH) {
+    const { settings } = sanitizeSettings(candidate.settings, catalogIds, validSet, true);
+    return {
+      state: {
+        version: 1,
+        curriculumEpoch: CURRENT_JOURNEY_EPOCH,
+        settings,
+        currentActivityIndex: 0,
+        completedActivityIndices: [],
+        coveredLetters: [],
+        completedSnapshots: {},
+        pendingIntroGames: [],
+      },
+      didResetForEpoch: true,
+    };
+  }
+
+  const currentActivityIndex = clampActivityIndex(candidate.currentActivityIndex, 0);
+  const completedActivityIndices = sanitizeCompletedIndices(candidate.completedActivityIndices);
+  const hasLearnerStarted =
+    currentActivityIndex > 0 || completedActivityIndices.length > 0;
+
+  const { settings, newlyDiscoveredGames } = sanitizeSettings(
+    candidate.settings,
+    catalogIds,
+    validSet,
+    false,
+  );
+  const completedSnapshots = sanitizeCompletedSnapshots(
+    candidate.completedSnapshots,
+    validSet,
+  );
+  const pendingIntroGames = sanitizePendingIntroGames(
+    candidate.pendingIntroGames,
+    newlyDiscoveredGames,
+    settings.enabledGames,
+    hasLearnerStarted,
+    validSet,
+  );
+
+  return {
+    state: {
+      version: 1,
+      curriculumEpoch: CURRENT_JOURNEY_EPOCH,
+      settings,
+      currentActivityIndex,
+      completedActivityIndices,
+      coveredLetters: normalizeLettersList(candidate.coveredLetters, []),
+      completedSnapshots,
+      pendingIntroGames,
+    },
+    didResetForEpoch: false,
+  };
+}
+
+function clearStaleJourneyNavSession(): void {
+  try {
+    if (typeof window === 'undefined' || !window.sessionStorage) return;
+    const navRaw = window.sessionStorage.getItem(NAV_SESSION_KEY);
+    if (!navRaw) return;
+    const parsed = JSON.parse(navRaw) as { screen?: { view?: unknown } } | null;
+    if (parsed?.screen?.view === 'journey-play') {
+      window.sessionStorage.setItem(
+        NAV_SESSION_KEY,
+        JSON.stringify({ ...parsed, screen: { view: 'hub' } }),
+      );
+    }
+  } catch {
+    // Ignore restricted sessionStorage environments
+  }
+}
+
 export function loadJourneyState(): JourneyProgressState {
   const defaults = getDefaultJourneyState();
   try {
     const raw = window.localStorage.getItem(JOURNEY_STORAGE_KEY);
     if (!raw) return defaults;
     const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== 'object' || parsed === null) return defaults;
-    const candidate = parsed as Partial<JourneyProgressState>;
-
-    return {
-      version: 1,
-      settings: sanitizeSettings(candidate.settings),
-      currentActivityIndex: clampActivityIndex(candidate.currentActivityIndex, 0),
-      completedActivityIndices: sanitizeCompletedIndices(candidate.completedActivityIndices),
-      coveredLetters: normalizeLettersList(candidate.coveredLetters, []),
-    };
+    const { state, didResetForEpoch } = reconcileJourneyProgress(parsed);
+    if (didResetForEpoch) {
+      clearStaleJourneyNavSession();
+      saveJourneyState(state);
+    }
+    return state;
   } catch {
     return defaults;
   }
@@ -223,13 +443,7 @@ export function loadJourneyState(): JourneyProgressState {
 
 export function saveJourneyState(state: JourneyProgressState): void {
   try {
-    const sanitized: JourneyProgressState = {
-      version: 1,
-      settings: sanitizeSettings(state.settings),
-      currentActivityIndex: clampActivityIndex(state.currentActivityIndex, 0),
-      completedActivityIndices: sanitizeCompletedIndices(state.completedActivityIndices),
-      coveredLetters: normalizeLettersList(state.coveredLetters, []),
-    };
+    const { state: sanitized } = reconcileJourneyProgress(state);
     window.localStorage.setItem(JOURNEY_STORAGE_KEY, JSON.stringify(sanitized));
   } catch {
     // Ignore localStorage quota or private mode restrictions
@@ -252,6 +466,21 @@ export function markJourneyActivityCompleted(
     }
   }
 
+  const nextSnapshots: Record<string, CompletedSlotSnapshot> = {
+    ...state.completedSnapshots,
+    [String(activity.index)]: {
+      gameId: activity.gameId,
+      gameOrdinal: activity.gameOrdinal,
+      ...(activity.lettersCovered && activity.lettersCovered.length > 0
+        ? { lettersCovered: [...activity.lettersCovered] }
+        : {}),
+    },
+  };
+
+  const nextPendingIntroGames = state.pendingIntroGames.filter(
+    (id) => id !== activity.gameId,
+  );
+
   let nextIndex = state.currentActivityIndex;
   if (activity.index === state.currentActivityIndex) {
     nextIndex = Math.min(TOTAL_ACTIVITIES - 1, activity.index + 1);
@@ -259,9 +488,12 @@ export function markJourneyActivityCompleted(
 
   return {
     version: 1,
+    curriculumEpoch: CURRENT_JOURNEY_EPOCH,
     settings: state.settings,
     currentActivityIndex: nextIndex,
     completedActivityIndices: Array.from(completedSet).sort((a, b) => a - b),
     coveredLetters: ALL_LETTERS.filter((letter) => coveredSet.has(letter)),
+    completedSnapshots: nextSnapshots,
+    pendingIntroGames: nextPendingIntroGames,
   };
 }

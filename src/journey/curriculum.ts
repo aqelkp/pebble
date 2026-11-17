@@ -1,39 +1,102 @@
 import type { FamilyProfile } from '../context/FamilyProfilesContext';
 import type { LetterId } from '../data/wordBank';
 import { ALL_LETTERS } from '../games/letter-train/letterData';
-import { getGameRegistryEntry, type GameRegistryEntry } from '../games/registry';
+import { GAME_REGISTRY, getGameRegistryEntry, isValidGameId, type GameRegistryEntry } from '../games/registry';
 import {
   ACTIVITIES_PER_CHAPTER,
   TOTAL_ACTIVITIES,
   TOTAL_CHAPTERS,
   type ChapterSpec,
+  type CompletedSlotSnapshot,
   type FunBreakPacingMode,
   type JourneyActivity,
+  type JourneyLearningPillar,
+  type JourneyProgressState,
   type JourneySettings,
 } from './journeyTypes';
 import { getJourneyAdapter } from './lessonRegistry';
 
 const CHAPTER_THEMES: readonly { title: string; subtitle: string }[] = [
-  { title: 'Warm-Up Trail', subtitle: 'Playful first steps across every Pebble world' },
-  { title: 'Sunny Phonics', subtitle: 'Short sound & picture stops along the track' },
-  { title: 'River & Savanna', subtitle: 'Counting friends and splashing letter buckets' },
-  { title: 'Storybook Logic', subtitle: 'Patterns, first words, and memory pairs' },
-  { title: 'Early Blending', subtitle: 'Putting letters together into cozy words' },
-  { title: 'Animal Meadow', subtitle: 'Counting groups and matching friendly faces' },
-  { title: 'Alphabet Breeze', subtitle: 'Fresh letter slices from A to Z' },
-  { title: 'Curious Explorer', subtitle: 'Quick puzzles and tricky letter practice' },
-  { title: 'Playful Crossing', subtitle: 'Switching between phonics, math, and logic' },
-  { title: 'Halfway Summit', subtitle: 'Celebrating 200 mini-adventures together' },
-  { title: 'Clever Builder', subtitle: 'Building words and solving 3×3 picture grids' },
-  { title: 'Safari Helpers', subtitle: 'Joining animal groups and counting higher' },
-  { title: 'Sparkling Stream', subtitle: 'Fast-paced sorting and calm memory focus' },
-  { title: 'Word Garden', subtitle: 'Nature, home, and animal vocabulary fun' },
-  { title: 'Pattern Meadow', subtitle: 'Spotting missing cards and matching pairs' },
-  { title: 'Sound Detective', subtitle: 'Mastering similar sounds like B, D, P, and Q' },
-  { title: 'Starlight Trail', subtitle: 'Confident reading, counting, and recall' },
-  { title: 'Busy Station', subtitle: 'Loading the train across the whole alphabet' },
-  { title: 'River Rapids', subtitle: 'Sharpening phonics speed with calm focus' },
-  { title: 'Grand Celebration', subtitle: 'Final mastery chapter of the Activity Book' },
+  {
+    title: 'Warm-Up Trail',
+    subtitle: 'Friendly first steps across all 19 Pebble worlds — sounds, numbers, shapes & stickers',
+  },
+  {
+    title: 'Sunny Phonics & Numbers',
+    subtitle: 'Sight-word peekaboo, 1–10 savanna trails, number tracing & countdown pebbles',
+  },
+  {
+    title: ' Creek, Sky & Savanna',
+    subtitle: 'Stepping-stone shapes, lifecycles in the clouds, and comparing lengths & baskets',
+  },
+  {
+    title: 'Notebook & Treasure',
+    subtitle: '4-line word writing, 2D shape strokes, and golden-key reading phrases',
+  },
+  {
+    title: 'Tens, Ones & Blending',
+    subtitle: 'Railway place-value gates, CVC word building, and juice-jug comparisons',
+  },
+  {
+    title: 'Curious World Explorer',
+    subtitle: 'Community helpers, healthy habits, 3×3 picture logic, and alphabet dot trails',
+  },
+  {
+    title: 'Alphabet & Sight Breeze',
+    subtitle: 'Fresh A–Z slices, K1 sight words, and tricky mirror-letter guards',
+  },
+  {
+    title: 'Bridges & Bar Graphs',
+    subtitle: 'Volume beakers, bar graphs, 15→0 countdowns, and 4×4 sudoku grids',
+  },
+  {
+    title: 'Playful K1 Crossing',
+    subtitle: 'Switching smoothly between reading phrases, 0–50 math, handwriting & science',
+  },
+  {
+    title: 'Halfway Summit',
+    subtitle: 'Celebrating 200 joyful mini-lessons across every K1 skill!',
+  },
+  {
+    title: 'Clever Word & Shape Builder',
+    subtitle: 'Mixed-case 4-line words, 3D shapes, and joining savanna animal groups',
+  },
+  {
+    title: 'Railway & River Helpers',
+    subtitle: 'Number-line hops, 1st–10th ordinals, and multi-bucket river phonics',
+  },
+  {
+    title: 'Nature & Sky Discovery',
+    subtitle: 'Butterfly & plant lifecycles, Reduce-Reuse-Recycle, and Sun, Moon & Planets',
+  },
+  {
+    title: 'Confident Reader Garden',
+    subtitle: 'Silent short phrases, middle & ending sounds, and sight-word fluency',
+  },
+  {
+    title: 'Pattern & Measure Meadow',
+    subtitle: 'ABAB/ABC patterns, block-unit lengths, and workbook symbol comparisons',
+  },
+  {
+    title: 'Sound & Stroke Detective',
+    subtitle: 'Mastering B, D, P, Q sounds and writing numbers up to 50 in order',
+  },
+  {
+    title: 'Starlight Countdown',
+    subtitle: '20→0 backward dot trails, 1–20 sequences, and 4-line sight-word mastery',
+  },
+  {
+    title: 'Busy K1 Station',
+    subtitle: 'Full-alphabet phonics, place-value bundles, and smart K1 quest mixes',
+  },
+  {
+    title: 'Rapids & Logic Mastery',
+    subtitle: 'Sharp phonics sorting, multi-clue logic grids, and world-science review',
+  },
+  {
+    title: 'Grand K1 Celebration',
+    subtitle: 'Final mastery chapter across reading, writing, math 0–50, logic & our world!',
+  },
 ];
 
 export const CHAPTER_SPECS: readonly ChapterSpec[] = Array.from(
@@ -42,7 +105,7 @@ export const CHAPTER_SPECS: readonly ChapterSpec[] = Array.from(
     const theme = CHAPTER_THEMES[idx % CHAPTER_THEMES.length];
     return {
       chapterNumber: idx + 1,
-      title: theme.title,
+      title: theme.title.trim(),
       subtitle: theme.subtitle,
     };
   },
@@ -72,11 +135,36 @@ function seededShuffle<T>(items: readonly T[], rng: () => number): T[] {
   return copy;
 }
 
+const LEARNING_PILLAR_ROTATION: readonly Exclude<JourneyLearningPillar, 'fun-break'>[] = [
+  'phonics-reading',
+  'numbers-math',
+  'spelling-writing',
+  'logic-world',
+];
+
+const STARTER_PILLAR_ORDER: Record<
+  Exclude<JourneyLearningPillar, 'fun-break'>,
+  readonly GameRegistryEntry['id'][]
+> = {
+  'phonics-reading': ['letter-train', 'word-peekaboo', 'letter-river', 'treasure-keys'],
+  'numbers-math': ['number-safari', 'compare-quest', 'dot-to-dot', 'mystery-express'],
+  'spelling-writing': ['letter-trace', 'word-fun', 'word-trace'],
+  'logic-world': ['pebble-creek', 'picture-sudoku', 'cloud-balloon'],
+};
+
+const STARTER_FUN_ORDER: readonly GameRegistryEntry['id'][] = [
+  'memory-match',
+  'sticker-scene',
+  'rescue-road',
+  'spot-the-twin',
+  'sticker-jigsaw',
+];
+
 function createBagDrawer(
   pool: readonly GameRegistryEntry['id'][],
   boostedGames: readonly GameRegistryEntry['id'][],
   rng: () => number,
-  preferFirstId?: GameRegistryEntry['id'],
+  starterOrder?: readonly GameRegistryEntry['id'][],
 ): (prevGame?: GameRegistryEntry['id']) => GameRegistryEntry['id'] {
   const weightedPool: GameRegistryEntry['id'][] = [];
   for (const id of pool) {
@@ -91,23 +179,22 @@ function createBagDrawer(
 
   return (prevGame) => {
     if (bag.length === 0) {
-      if (isFirstBag && preferFirstId && pool.includes(preferFirstId)) {
-        let removedOne = false;
-        const rest = weightedPool.filter((id) => {
-          if (!removedOne && id === preferFirstId) {
-            removedOne = true;
-            return false;
-          }
-          return true;
-        });
-        bag = [preferFirstId, ...seededShuffle(rest, rng)];
+      if (isFirstBag && starterOrder && starterOrder.length > 0) {
+        const orderedFirst = starterOrder.filter((id) => pool.includes(id));
+        const remaining = pool.filter((id) => !orderedFirst.includes(id));
+        const boostedExtras = pool.filter((id) => boostedGames.includes(id));
+        bag = [
+          ...orderedFirst,
+          ...seededShuffle(remaining, rng),
+          ...seededShuffle(boostedExtras, rng),
+        ];
       } else {
         bag = seededShuffle(weightedPool, rng);
-        if (prevGame && bag[0] === prevGame) {
-          const swapIdx = bag.findIndex((g) => g !== prevGame);
-          if (swapIdx > 0) {
-            [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
-          }
+      }
+      if (prevGame && bag[0] === prevGame) {
+        const swapIdx = bag.findIndex((g) => g !== prevGame);
+        if (swapIdx > 0) {
+          [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
         }
       }
       isFirstBag = false;
@@ -116,14 +203,117 @@ function createBagDrawer(
       if (swapIdx > 0) {
         [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
       } else {
-        // Remaining items in current bag all equal prevGame — pick another pool item safely if possible
         const alt = pool.find((g) => g !== prevGame);
-        if (alt) {
-          return alt;
+        if (alt) return alt;
+      }
+    }
+
+    return bag.shift()!;
+  };
+}
+
+/**
+ * Draws learning games by interleaving Pebble's 4 K1 Learning Pillars
+ * (Phonics & Reading -> Numbers & Math -> Spelling & Writing -> Logic & World)
+ * so every enabled game is visited once per full cycle without back-to-back domain fatigue.
+ */
+function createPillarBalancedDrawer(
+  learningPool: readonly GameRegistryEntry['id'][],
+  boostedGames: readonly GameRegistryEntry['id'][],
+  rng: () => number,
+): (prevGame?: GameRegistryEntry['id']) => GameRegistryEntry['id'] {
+  if (learningPool.length <= 2) {
+    return createBagDrawer(learningPool, boostedGames, rng);
+  }
+
+  let bag: GameRegistryEntry['id'][] = [];
+  let cycleIndex = 0;
+
+  const refillCycleBag = () => {
+    const queues = new Map<Exclude<JourneyLearningPillar, 'fun-break'>, GameRegistryEntry['id'][]>();
+    for (const pillar of LEARNING_PILLAR_ROTATION) {
+      const inPillar = learningPool.filter(
+        (id) => getJourneyAdapter(id).pillar === pillar,
+      );
+      if (inPillar.length === 0) {
+        queues.set(pillar, []);
+        continue;
+      }
+
+      if (cycleIndex === 0) {
+        const preferred = STARTER_PILLAR_ORDER[pillar].filter((id) => inPillar.includes(id));
+        const extraNew = inPillar.filter((id) => !preferred.includes(id));
+        const boostedExtras = inPillar.filter((id) => boostedGames.includes(id));
+        queues.set(pillar, [
+          ...preferred,
+          ...seededShuffle(extraNew, rng),
+          ...seededShuffle(boostedExtras, rng),
+        ]);
+      } else {
+        const weighted: GameRegistryEntry['id'][] = [];
+        for (const id of inPillar) {
+          weighted.push(id);
+          if (boostedGames.includes(id)) {
+            weighted.push(id);
+          }
+        }
+        queues.set(pillar, seededShuffle(weighted, rng));
+      }
+    }
+
+    // Fallback for any learning game assigned to fun-break by mistake
+    const uncategorized = learningPool.filter(
+      (id) => getJourneyAdapter(id).pillar === 'fun-break',
+    );
+    if (uncategorized.length > 0) {
+      queues.get('logic-world')?.push(...seededShuffle(uncategorized, rng));
+    }
+
+    const interleaved: GameRegistryEntry['id'][] = [];
+    const pillarOffset = cycleIndex % LEARNING_PILLAR_ROTATION.length;
+    let remainingCount = Array.from(queues.values()).reduce((sum, q) => sum + q.length, 0);
+
+    while (remainingCount > 0) {
+      for (let p = 0; p < LEARNING_PILLAR_ROTATION.length; p += 1) {
+        const pillar =
+          LEARNING_PILLAR_ROTATION[(pillarOffset + p) % LEARNING_PILLAR_ROTATION.length];
+        const q = queues.get(pillar);
+        if (q && q.length > 0) {
+          interleaved.push(q.shift()!);
+          remainingCount -= 1;
         }
       }
     }
 
+    // Prevent adjacent duplicates inside the cycle when a boosted game appears twice
+    for (let i = 1; i < interleaved.length; i += 1) {
+      if (interleaved[i] === interleaved[i - 1]) {
+        const swapIdx = interleaved.findIndex(
+          (candidate, idx) => idx > i && candidate !== interleaved[i - 1],
+        );
+        if (swapIdx > i) {
+          [interleaved[i], interleaved[swapIdx]] = [interleaved[swapIdx], interleaved[i]];
+        }
+      }
+    }
+
+    bag = interleaved;
+    cycleIndex += 1;
+  };
+
+  return (prevGame) => {
+    if (bag.length === 0) {
+      refillCycleBag();
+    }
+    if (prevGame && bag[0] === prevGame) {
+      const swapIdx = bag.findIndex((g) => g !== prevGame);
+      if (swapIdx > 0) {
+        [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
+      } else {
+        const alt = learningPool.find((g) => g !== prevGame);
+        if (alt) return alt;
+      }
+    }
     return bag.shift()!;
   };
 }
@@ -143,9 +333,8 @@ function buildGameSequence(
   const funPool = pool.filter((id) => getGameRegistryEntry(id).activityRole === 'reward');
   const learningPool = pool.filter((id) => getGameRegistryEntry(id).activityRole !== 'reward');
 
-  // If pacing is 'off' or only one role is active, rotate all enabled games via weighted non-repeating bags
   if (funBreakPacing === 'off' || funPool.length === 0 || learningPool.length === 0) {
-    const drawAny = createBagDrawer(pool, boostedGames, rng, 'memory-match');
+    const drawAny = createBagDrawer(pool, boostedGames, rng, ['letter-train', ...STARTER_FUN_ORDER]);
     const sequence: GameRegistryEntry['id'][] = [];
     for (let i = 0; i < totalSlots; i += 1) {
       sequence.push(drawAny(sequence[sequence.length - 1]));
@@ -153,8 +342,8 @@ function buildGameSequence(
     return sequence;
   }
 
-  const drawFun = createBagDrawer(funPool, boostedGames, rng);
-  const drawLearning = createBagDrawer(learningPool, boostedGames, rng);
+  const drawFun = createBagDrawer(funPool, boostedGames, rng, STARTER_FUN_ORDER);
+  const drawLearning = createPillarBalancedDrawer(learningPool, boostedGames, rng);
   const sequence: GameRegistryEntry['id'][] = [];
 
   if (funBreakPacing === 'balanced') {
@@ -183,9 +372,15 @@ function buildGameSequence(
   return sequence;
 }
 
+export type JourneyProgressContext = Pick<
+  JourneyProgressState,
+  'currentActivityIndex' | 'completedSnapshots' | 'pendingIntroGames'
+>;
+
 export function buildJourneyCurriculum(
   settings: JourneySettings,
   profiles: readonly FamilyProfile[],
+  progress?: JourneyProgressContext,
 ): JourneyActivity[] {
   const rng = createMulberry32(0x50454242);
   const nextRngInt = (maxExclusive: number): number =>
@@ -213,40 +408,92 @@ export function buildJourneyCurriculum(
     return picked;
   };
 
-  const gameSequence = buildGameSequence(
+  const baseSequence = buildGameSequence(
     settings.enabledGames,
-    settings.boostedGames ?? ['rescue-road'],
+    settings.boostedGames ?? [],
     settings.funBreakPacing,
     TOTAL_ACTIVITIES,
     rng,
   );
-  const gameCounts: Record<GameRegistryEntry['id'], number> = {
-    'memory-match': 0,
-    'letter-train': 0,
-    'letter-trace': 0,
-    'letter-river': 0,
-    'picture-sudoku': 0,
-    'word-fun': 0,
-    'number-safari': 0,
-    'rescue-road': 0,
-    'sticker-jigsaw': 0,
-    'sticker-scene': 0,
-    'spot-the-twin': 0,
-    'dot-to-dot': 0,
-    'word-peekaboo': 0,
-    'compare-quest': 0,
-    'word-trace': 0,
-    'mystery-express': 0,
-    'pebble-creek': 0,
-    'cloud-balloon': 0,
-    'treasure-keys': 0,
-  };
 
-  return gameSequence.map((gameId, slotIndex) => {
+  // Apply non-destructive frozen history for completed slots + New Game Welcome queue
+  const snapshots: Record<string, CompletedSlotSnapshot> = progress?.completedSnapshots ?? {};
+  const enabledSet = new Set<GameRegistryEntry['id']>(settings.enabledGames);
+  const pendingIntroQueue: GameRegistryEntry['id'][] = (progress?.pendingIntroGames ?? []).filter(
+    (id, idx, arr) => isValidGameId(id) && enabledSet.has(id) && arr.indexOf(id) === idx,
+  );
+  const introStartIdx = Math.max(
+    0,
+    Math.min(TOTAL_ACTIVITIES - 1, Math.floor(progress?.currentActivityIndex ?? 0)),
+  );
+
+  const introAssignedSlots = new Map<number, GameRegistryEntry['id']>();
+  if (pendingIntroQueue.length > 0) {
+    let cursor = introStartIdx;
+    for (const newGameId of pendingIntroQueue) {
+      while (cursor < TOTAL_ACTIVITIES && snapshots[String(cursor)]) {
+        cursor += 1;
+      }
+      if (cursor < TOTAL_ACTIVITIES) {
+        introAssignedSlots.set(cursor, newGameId);
+        cursor += 1;
+      }
+    }
+  }
+
+  const finalSequence: GameRegistryEntry['id'][] = [...baseSequence];
+  for (let slot = 0; slot < TOTAL_ACTIVITIES; slot += 1) {
+    const snap = snapshots[String(slot)];
+    if (snap && isValidGameId(snap.gameId)) {
+      finalSequence[slot] = snap.gameId;
+      continue;
+    }
+    const introGame = introAssignedSlots.get(slot);
+    if (introGame) {
+      finalSequence[slot] = introGame;
+      continue;
+    }
+    // Avoid accidental back-to-back repeat right after a frozen snapshot or new-game welcome slot
+    if (
+      slot > 0 &&
+      finalSequence[slot] === finalSequence[slot - 1] &&
+      settings.enabledGames.length > 1
+    ) {
+      const sameRoleAlt = settings.enabledGames.find(
+        (id) =>
+          id !== finalSequence[slot - 1] &&
+          id !== baseSequence[slot + 1] &&
+          getGameRegistryEntry(id).activityRole ===
+            getGameRegistryEntry(finalSequence[slot]).activityRole,
+      );
+      const anyAlt = settings.enabledGames.find(
+        (id) => id !== finalSequence[slot - 1] && id !== baseSequence[slot + 1],
+      );
+      if (sameRoleAlt) {
+        finalSequence[slot] = sameRoleAlt;
+      } else if (anyAlt) {
+        finalSequence[slot] = anyAlt;
+      }
+    }
+  }
+
+  const gameCounts = Object.fromEntries(
+    GAME_REGISTRY.map((g) => [g.id, 0]),
+  ) as Record<GameRegistryEntry['id'], number>;
+
+  return finalSequence.map((gameId, slotIndex) => {
     const chapterNumber = Math.floor(slotIndex / ACTIVITIES_PER_CHAPTER) + 1;
     const numberInChapter = (slotIndex % ACTIVITIES_PER_CHAPTER) + 1;
-    const gameOrdinal = gameCounts[gameId];
-    gameCounts[gameId] = gameOrdinal + 1;
+    const snap = snapshots[String(slotIndex)];
+    const isNewGameIntro = !snap && introAssignedSlots.get(slotIndex) === gameId;
+
+    const gameOrdinal = snap
+      ? Math.max(0, Math.min(TOTAL_ACTIVITIES, Math.floor(snap.gameOrdinal)))
+      : isNewGameIntro
+        ? 0
+        : gameCounts[gameId];
+
+    gameCounts[gameId] = Math.max(gameCounts[gameId], gameOrdinal + 1);
 
     const adapter = getJourneyAdapter(gameId);
     const registryEntry = getGameRegistryEntry(gameId);
@@ -257,7 +504,14 @@ export function buildJourneyCurriculum(
       gameOrdinal,
       settings,
       playerIds,
-      nextLetterSlice,
+      nextLetterSlice: (overrideLetters?: LetterId[]) => {
+        if (snap?.lettersCovered && snap.lettersCovered.length > 0) {
+          // Advance shared cursor proportionally so subsequent lessons stay cleanly distributed
+          nextLetterSlice(overrideLetters);
+          return snap.lettersCovered;
+        }
+        return nextLetterSlice(overrideLetters);
+      },
       nextRngInt,
     });
 
@@ -267,7 +521,9 @@ export function buildJourneyCurriculum(
       chapterNumber,
       numberInChapter,
       gameId,
+      gameOrdinal,
       isFunBreak: registryEntry.activityRole === 'reward',
+      ...(isNewGameIntro ? { isNewGameIntro: true } : {}),
       title: generated.title,
       subtitle: generated.subtitle,
       detailLine: generated.detailLine,

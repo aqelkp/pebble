@@ -98,7 +98,7 @@ export function ParentJourneySettingsPage({
   };
 
   const handleToggleBoost = (gameId: GameRegistryEntry['id']) => {
-    const boosted = settings.boostedGames ?? ['rescue-road'];
+    const boosted = settings.boostedGames ?? [];
     const isBoosted = boosted.includes(gameId);
     const next = isBoosted
       ? boosted.filter((id) => id !== gameId)
@@ -379,14 +379,23 @@ export function ParentJourneySettingsPage({
               <h2 id="pjs-games-title">
                 Games Included in Mix ({settings.enabledGames.length} / {GAME_REGISTRY.length})
               </h2>
-              <p>No two consecutive activities ever repeat the same game when multiple are active.</p>
+              <p>
+                Domain-balanced across Phonics, Writing, Math 0–50, Logic &amp; World Science. Past
+                completed lessons stay frozen, and any newly added game joins at your child&apos;s
+                next stop with a gentle Welcome Lesson.
+              </p>
             </div>
+            {journeyState.pendingIntroGames.length > 0 && (
+              <span className="badge-pill badge-pill--coral" data-testid="pending-intro-count">
+                {journeyState.pendingIntroGames.length} Welcome Queued
+              </span>
+            )}
           </div>
 
           <div className="pjs-games-grid">
             {GAME_REGISTRY.map((game) => {
               const isEnabled = settings.enabledGames.includes(game.id);
-              const isBoosted = (settings.boostedGames ?? ['rescue-road']).includes(game.id);
+              const isBoosted = (settings.boostedGames ?? []).includes(game.id);
               return (
                 <div
                   key={game.id}

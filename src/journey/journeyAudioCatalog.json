@@ -1354,6 +1354,313 @@
           "endMs": 4625
         }
       ]
+    },
+    "letter-trace-numbers": {
+      "id": "letter-trace-numbers",
+      "text": "Start at circle one and trace each number stroke in order along the arrows!",
+      "audioPath": "audio/journey/letter-trace-numbers.mp3",
+      "durationMs": 4455,
+      "words": [
+        {
+          "word": "Start",
+          "startMs": 0,
+          "endMs": 359
+        },
+        {
+          "word": "at",
+          "startMs": 359,
+          "endMs": 559
+        },
+        {
+          "word": "circle",
+          "startMs": 559,
+          "endMs": 977
+        },
+        {
+          "word": "one",
+          "startMs": 977,
+          "endMs": 1342
+        },
+        {
+          "word": "and",
+          "startMs": 1342,
+          "endMs": 1438
+        },
+        {
+          "word": "trace",
+          "startMs": 1438,
+          "endMs": 1812
+        },
+        {
+          "word": "each",
+          "startMs": 1812,
+          "endMs": 1967
+        },
+        {
+          "word": "number",
+          "startMs": 1967,
+          "endMs": 2449
+        },
+        {
+          "word": "stroke",
+          "startMs": 2449,
+          "endMs": 2736
+        },
+        {
+          "word": "in",
+          "startMs": 2736,
+          "endMs": 2963
+        },
+        {
+          "word": "order",
+          "startMs": 2963,
+          "endMs": 3341
+        },
+        {
+          "word": "along",
+          "startMs": 3341,
+          "endMs": 3714
+        },
+        {
+          "word": "the",
+          "startMs": 3714,
+          "endMs": 3920
+        },
+        {
+          "word": "arrows!",
+          "startMs": 3920,
+          "endMs": 4455
+        }
+      ]
+    },
+    "letter-trace-shapes": {
+      "id": "letter-trace-shapes",
+      "text": "Start at circle one and trace each shape side in order along the arrows!",
+      "audioPath": "audio/journey/letter-trace-shapes.mp3",
+      "durationMs": 4155,
+      "words": [
+        {
+          "word": "Start",
+          "startMs": 0,
+          "endMs": 354
+        },
+        {
+          "word": "at",
+          "startMs": 354,
+          "endMs": 399
+        },
+        {
+          "word": "circle",
+          "startMs": 399,
+          "endMs": 970
+        },
+        {
+          "word": "one",
+          "startMs": 970,
+          "endMs": 1317
+        },
+        {
+          "word": "and",
+          "startMs": 1317,
+          "endMs": 1408
+        },
+        {
+          "word": "trace",
+          "startMs": 1408,
+          "endMs": 1807
+        },
+        {
+          "word": "each",
+          "startMs": 1807,
+          "endMs": 1982
+        },
+        {
+          "word": "shape",
+          "startMs": 1982,
+          "endMs": 2271
+        },
+        {
+          "word": "side",
+          "startMs": 2271,
+          "endMs": 2436
+        },
+        {
+          "word": "in",
+          "startMs": 2436,
+          "endMs": 2534
+        },
+        {
+          "word": "order",
+          "startMs": 2534,
+          "endMs": 3023
+        },
+        {
+          "word": "along",
+          "startMs": 3023,
+          "endMs": 3513
+        },
+        {
+          "word": "the",
+          "startMs": 3513,
+          "endMs": 3619
+        },
+        {
+          "word": "arrows!",
+          "startMs": 3619,
+          "endMs": 4155
+        }
+      ]
+    },
+    "dot-to-dot-countdown": {
+      "id": "dot-to-dot-countdown",
+      "text": "Count backward down to zero in order to reveal the surprise picture!",
+      "audioPath": "audio/journey/dot-to-dot-countdown.mp3",
+      "durationMs": 4078,
+      "words": [
+        {
+          "word": "Count",
+          "startMs": 0,
+          "endMs": 356
+        },
+        {
+          "word": "backward",
+          "startMs": 356,
+          "endMs": 786
+        },
+        {
+          "word": "down",
+          "startMs": 786,
+          "endMs": 1038
+        },
+        {
+          "word": "to",
+          "startMs": 1038,
+          "endMs": 1242
+        },
+        {
+          "word": "zero",
+          "startMs": 1242,
+          "endMs": 1670
+        },
+        {
+          "word": "in",
+          "startMs": 1670,
+          "endMs": 1870
+        },
+        {
+          "word": "order",
+          "startMs": 1870,
+          "endMs": 2171
+        },
+        {
+          "word": "to",
+          "startMs": 2171,
+          "endMs": 2430
+        },
+        {
+          "word": "reveal",
+          "startMs": 2430,
+          "endMs": 2936
+        },
+        {
+          "word": "the",
+          "startMs": 2936,
+          "endMs": 3119
+        },
+        {
+          "word": "surprise",
+          "startMs": 3119,
+          "endMs": 3574
+        },
+        {
+          "word": "picture!",
+          "startMs": 3574,
+          "endMs": 4078
+        }
+      ]
+    },
+    "word-trace-numbers": {
+      "id": "word-trace-numbers",
+      "text": "Listen to the number and write each stroke from left to right along the arrows!",
+      "audioPath": "audio/journey/word-trace-numbers.mp3",
+      "durationMs": 4354,
+      "words": [
+        {
+          "word": "Listen",
+          "startMs": 0,
+          "endMs": 405
+        },
+        {
+          "word": "to",
+          "startMs": 405,
+          "endMs": 753
+        },
+        {
+          "word": "the",
+          "startMs": 753,
+          "endMs": 971
+        },
+        {
+          "word": "number",
+          "startMs": 971,
+          "endMs": 1331
+        },
+        {
+          "word": "and",
+          "startMs": 1331,
+          "endMs": 1493
+        },
+        {
+          "word": "write",
+          "startMs": 1493,
+          "endMs": 1714
+        },
+        {
+          "word": "each",
+          "startMs": 1714,
+          "endMs": 2000
+        },
+        {
+          "word": "stroke",
+          "startMs": 2000,
+          "endMs": 2235
+        },
+        {
+          "word": "from",
+          "startMs": 2235,
+          "endMs": 2511
+        },
+        {
+          "word": "left",
+          "startMs": 2511,
+          "endMs": 2783
+        },
+        {
+          "word": "to",
+          "startMs": 2783,
+          "endMs": 2866
+        },
+        {
+          "word": "right",
+          "startMs": 2866,
+          "endMs": 3272
+        },
+        {
+          "word": "along",
+          "startMs": 3272,
+          "endMs": 3533
+        },
+        {
+          "word": "the",
+          "startMs": 3533,
+          "endMs": 3785
+        },
+        {
+          "word": "arrows!",
+          "startMs": 3785,
+          "endMs": 4354
+        }
+      ]
     }
   }
 }

@@ -76,8 +76,20 @@ const JOURNEY_PROMPTS = [
     text: 'Start at circle one and trace each letter stroke in order along the arrows!',
   },
   {
+    id: 'letter-trace-numbers',
+    text: 'Start at circle one and trace each number stroke in order along the arrows!',
+  },
+  {
+    id: 'letter-trace-shapes',
+    text: 'Start at circle one and trace each shape side in order along the arrows!',
+  },
+  {
     id: 'dot-to-dot',
     text: 'Connect the numbered or letter pebbles in order to reveal the surprise picture!',
+  },
+  {
+    id: 'dot-to-dot-countdown',
+    text: 'Count backward down to zero in order to reveal the surprise picture!',
   },
   {
     id: 'word-peekaboo',
@@ -90,6 +102,10 @@ const JOURNEY_PROMPTS = [
   {
     id: 'word-trace',
     text: 'Listen to the word and trace each letter from left to right along the arrows!',
+  },
+  {
+    id: 'word-trace-numbers',
+    text: 'Listen to the number and write each stroke from left to right along the arrows!',
   },
   {
     id: 'mystery-express',
