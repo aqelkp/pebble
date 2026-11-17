@@ -508,13 +508,13 @@ export function buildJourneyCurriculum(
       gameOrdinal,
       settings,
       playerIds,
-      nextLetterSlice: (overrideLetters?: LetterId[]) => {
+      nextLetterSlice: (overrideLetters?: LetterId[], maxLetters?: number) => {
         if (snap?.lettersCovered && snap.lettersCovered.length > 0) {
           // Advance shared cursor proportionally so subsequent lessons stay cleanly distributed
-          nextLetterSlice(overrideLetters);
+          nextLetterSlice(overrideLetters, maxLetters);
           return snap.lettersCovered;
         }
-        return nextLetterSlice(overrideLetters);
+        return nextLetterSlice(overrideLetters, maxLetters);
       },
       nextRngInt,
     });
