@@ -96,9 +96,12 @@ export function QuestAdventureBoard({
   const packSpec = getQuestPackSpec(config.packId);
 
   useEffect(() => {
-    const clipIds = deck.flatMap((d) =>
-      d.solvedVoiceClipId ? [d.voiceClipId, d.solvedVoiceClipId] : [d.voiceClipId],
-    );
+    const clipIds = deck.flatMap((d) => {
+      const ids = [d.voiceClipId];
+      if (d.solvedVoiceClipId) ids.push(d.solvedVoiceClipId);
+      if (d.mistakeVoiceClipId) ids.push(d.mistakeVoiceClipId);
+      return ids;
+    });
     preloadQuestVoiceClips(clipIds);
   }, [deck]);
 
@@ -162,7 +165,7 @@ export function QuestAdventureBoard({
   }, []);
 
   const handleMistake = useCallback(
-    (explanationText: string) => {
+    (explanationText: string, mistakeVoiceClipId?: string) => {
       if (phase !== 'playing' || !currentPrompt) return;
 
       playQuestGentleWrongTap(soundEnabled);
@@ -188,6 +191,7 @@ export function QuestAdventureBoard({
         () => {
           setPhase('think-again');
         },
+        mistakeVoiceClipId ?? currentPrompt.mistakeVoiceClipId,
       );
     },
     [phase, currentPrompt, soundEnabled, playerId, skinId],
@@ -404,6 +408,7 @@ export function QuestAdventureBoard({
           <QuestPromptWidgetSwitch
             prompt={currentPrompt}
             locked={isLocked}
+            teachingMistake={phase === 'teaching-mistake'}
             soundEnabled={soundEnabled}
             onSolve={handleSolveStop}
             onMistake={handleMistake}

@@ -8,6 +8,129 @@ interface QuestArtProps {
   size?: number;
 }
 
+/**
+ * Concrete K1 visual of ONE "10-Bundle": a cozy tied 2×5 ten-frame holding 10 countable pebbles
+ * plus a bold "10" badge so a 4-year-old immediately sees WHY a bundle equals 10!
+ */
+export function TenPebbleBundleArt({
+  compact = false,
+  skipCountLabel,
+}: {
+  compact?: boolean;
+  skipCountLabel?: string;
+}) {
+  const w = compact ? 38 : 44;
+  const h = compact ? 66 : 74;
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 3,
+      }}
+      title="1 bundle of 10 pebbles"
+    >
+      <svg width={w} height={h} viewBox="0 0 44 76" aria-hidden="true" style={{ display: 'block' }}>
+        {/* Cozy Indigo ten-frame pouch */}
+        <rect
+          x="3"
+          y="12"
+          width="38"
+          height="61"
+          rx="10"
+          fill="#ECEBFF"
+          stroke="#5B5BD6"
+          strokeWidth="2.8"
+        />
+        {/* Warm ribbon tie across middle */}
+        <rect x="2" y="39" width="40" height="7" rx="3" fill="#5B5BD6" opacity="0.22" />
+        {/* 2 columns × 5 rows = 10 countable pebbles */}
+        {[0, 1, 2, 3, 4].map((row) =>
+          [0, 1].map((col) => {
+            const cx = col === 0 ? 15 : 29;
+            const cy = 22 + row * 10.5;
+            return (
+              <g key={`${row}-${col}`}>
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r="4.2"
+                  fill="#5B5BD6"
+                  stroke="#3E3EB0"
+                  strokeWidth="1.2"
+                />
+                <circle cx={cx - 1.2} cy={cy - 1.2} r="1.1" fill="#FFFFFF" opacity="0.65" />
+              </g>
+            );
+          }),
+        )}
+        {/* Top "10" pill badge */}
+        <rect x="8" y="1" width="28" height="16" rx="8" fill="#5B5BD6" />
+        <text
+          x="22"
+          y="9.5"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontFamily="Fredoka, sans-serif"
+          fontSize="11"
+          fontWeight="700"
+          fill="#FFFFFF"
+        >
+          10
+        </text>
+      </svg>
+      {skipCountLabel && (
+        <span
+          className="font-display"
+          style={{
+            fontSize: '0.74rem',
+            fontWeight: 700,
+            color: '#4343B5',
+            background: '#ECEBFF',
+            padding: '1px 6px',
+            borderRadius: 999,
+            lineHeight: 1.2,
+          }}
+        >
+          {skipCountLabel}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Concrete K1 visual of ONE single Coral river pebble with a "1" badge.
+ */
+export function OnePebbleArt({ compact = false }: { compact?: boolean }) {
+  const s = compact ? 24 : 28;
+  return (
+    <svg
+      width={s}
+      height={s}
+      viewBox="0 0 28 28"
+      aria-hidden="true"
+      style={{ display: 'inline-block', flexShrink: 0 }}
+    >
+      <circle cx="14" cy="14" r="12" fill="#F27A5E" stroke="#C9583D" strokeWidth="2.2" />
+      <ellipse cx="10" cy="9" rx="3.5" ry="2" transform="rotate(-25 10 9)" fill="#FFFFFF" opacity="0.45" />
+      <text
+        x="14"
+        y="15"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontFamily="Fredoka, sans-serif"
+        fontSize="12"
+        fontWeight="700"
+        fill="#FFFFFF"
+      >
+        1
+      </text>
+    </svg>
+  );
+}
+
 function renderQuestIcon(id: QuestIconId): ReactNode {
   switch (id) {
     /* ================= 2D SHAPES ================= */
@@ -994,47 +1117,106 @@ export function QuestArt({ spec, size = 76 }: QuestArtProps) {
 
     case 'tens-ones-preview':
       return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {Array.from({ length: spec.tens }, (_, idx) => (
-            <div
-              key={`t-${idx}`}
-              style={{
-                width: 18,
-                height: 48,
-                borderRadius: 6,
-                background: 'linear-gradient(180deg, #5B5BD6 0%, #4343B5 100%)',
-                border: '2px solid #323294',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-evenly',
-                padding: '2px 0',
-              }}
-              title="10 bundle"
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'stretch',
+            gap: 10,
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            padding: '6px 10px',
+            borderRadius: 20,
+            background: '#F8F6F1',
+            border: '2px solid #E5E0D5',
+          }}
+        >
+          {/* Left Mat: Tens Bundles */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 4,
+              padding: '6px 12px',
+              borderRadius: 16,
+              background: '#FFFFFF',
+              border: '2px solid #DCD8FF',
+              minWidth: 112,
+            }}
+          >
+            <span
+              className="font-display"
+              style={{ fontSize: '0.78rem', fontWeight: 700, color: '#5B5BD6' }}
             >
-              <span style={{ height: 2, background: 'rgba(255,255,255,0.45)', display: 'block' }} />
-              <span style={{ height: 2, background: 'rgba(255,255,255,0.45)', display: 'block' }} />
+              Tens (count by 10)
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {spec.tens > 0 ? (
+                Array.from({ length: spec.tens }, (_, idx) => (
+                  <TenPebbleBundleArt key={`t-${idx}`} compact />
+                ))
+              ) : (
+                <span style={{ fontSize: '0.84rem', color: '#5C6478', fontWeight: 600 }}>
+                  0 bundles
+                </span>
+              )}
             </div>
-          ))}
-          {spec.ones > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 12px)', gap: 4 }}>
-              {Array.from({ length: spec.ones }, (_, idx) => (
-                <span
-                  key={`o-${idx}`}
-                  style={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: '50%',
-                    background: '#F27A5E',
-                    border: '1.5px solid #C9583D',
-                    display: 'block',
-                  }}
-                />
-              ))}
-            </div>
-          )}
-          {spec.tens === 0 && spec.ones === 0 && (
-            <span style={{ fontSize: '0.9rem', color: '#5C6478', fontWeight: 600 }}>Empty (0)</span>
-          )}
+          </div>
+
+          <span
+            className="font-display"
+            style={{
+              alignSelf: 'center',
+              fontSize: '1.35rem',
+              fontWeight: 700,
+              color: '#5C6478',
+            }}
+            aria-hidden="true"
+          >
+            +
+          </span>
+
+          {/* Right Mat: Single Ones Pebbles */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 4,
+              padding: '6px 12px',
+              borderRadius: 16,
+              background: '#FFFFFF',
+              border: '2px solid #FAD5CB',
+              minWidth: 104,
+            }}
+          >
+            <span
+              className="font-display"
+              style={{ fontSize: '0.78rem', fontWeight: 700, color: '#D15B40' }}
+            >
+              Ones (count by 1)
+            </span>
+            {spec.ones > 0 ? (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${Math.min(3, spec.ones)}, auto)`,
+                  gap: 5,
+                  alignItems: 'center',
+                }}
+              >
+                {Array.from({ length: spec.ones }, (_, idx) => (
+                  <OnePebbleArt key={`o-${idx}`} compact />
+                ))}
+              </div>
+            ) : (
+              <span style={{ fontSize: '0.84rem', color: '#5C6478', fontWeight: 600 }}>
+                0 ones
+              </span>
+            )}
+          </div>
         </div>
       );
 

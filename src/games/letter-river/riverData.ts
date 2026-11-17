@@ -28,7 +28,7 @@ export const RIVER_LEARNING_HYPOTHESIS = {
   skill: 'Sound → Letter Categorization (Ages 4–7)',
   headline: "What We're Teaching: Sound → Letter Discrimination",
   detail:
-    'Scoop picture fish from the gentle river and sort them into 3 competing letter buckets. Filling 3 catches pops the bucket and welcomes a new letter—building fast starting-sound recall without timer stress.',
+    'Scoop picture fish from the gentle river and sort them into the 3 letter buckets on the dock. Filling 3 catches completes each bucket—building starting-sound recall without timer stress.',
 } as const;
 
 export interface FishThemeSpec {

@@ -42,7 +42,6 @@ import {
   playCorrectCatchSound,
   playFishPlopSound,
   playGentleWrongBucketSound,
-  playNewBucketSlideSound,
   playRiverCompleteSound,
   speakRiverLetter,
   speakRiverWord,
@@ -303,19 +302,39 @@ function BucketSplashBurst({
   );
 }
 
+const MAX_DOCK_BUCKETS = 3;
+
 function buildInitialQueue(config: LetterRiverConfig, playerId: string): LetterId[] {
   const clean = ALL_LETTERS.filter((l) => config.selectedLetters.includes(l));
   const base = clean.length > 0 ? clean : [...ALL_LETTERS];
-  return config.orderMode === 'shuffle'
-    ? pickWeightedAdaptive(base, (l) => `letter:${l}`, playerId, 'initial_letter_sound', base.length)
-    : base;
+  const pickCount = Math.min(MAX_DOCK_BUCKETS, base.length);
+
+  if (base.length <= MAX_DOCK_BUCKETS) {
+    return config.orderMode === 'shuffle'
+      ? pickWeightedAdaptive(base, (l) => `letter:${l}`, playerId, 'initial_letter_sound', pickCount)
+      : base;
+  }
+
+  // Strictly cap every round to 3 buckets on the dock so a completed bucket never spawns a surprise 4th bucket.
+  const picked = pickWeightedAdaptive(
+    base,
+    (l) => `letter:${l}`,
+    playerId,
+    'initial_letter_sound',
+    pickCount,
+  );
+  if (config.orderMode === 'alphabetical') {
+    const pickedSet = new Set<LetterId>(picked);
+    return ALL_LETTERS.filter((l) => pickedSet.has(l));
+  }
+  return picked;
 }
 
 function buildInitialBuckets(queue: LetterId[]): {
   buckets: (DockBucket | null)[];
   nextQueueIdx: number;
 } {
-  const slotCount = Math.min(3, queue.length);
+  const slotCount = Math.min(MAX_DOCK_BUCKETS, queue.length);
   const buckets: (DockBucket | null)[] = [];
   for (let i = 0; i < slotCount; i += 1) {
     buckets.push({
@@ -516,7 +535,7 @@ function loadSavedRiverState(gameKey: number): SavedRiverState | null {
       s.gameKey !== gameKey ||
       !Array.isArray(s.letterQueue) ||
       s.letterQueue.length === 0 ||
-      s.letterQueue.length > 26 ||
+      s.letterQueue.length > MAX_DOCK_BUCKETS ||
       !s.letterQueue.every((l) => isValidLetterId(l)) ||
       typeof s.nextQueueIdx !== 'number' ||
       !Number.isInteger(s.nextQueueIdx) ||
@@ -1112,33 +1131,16 @@ export function LetterRiverBoard({
       fishListRef.current = cleanedFish;
       setFishList(cleanedFish);
 
-      // Reserve the next queued letter immediately so overlapping bucket pops never collide
-      const promotedQueueIdx = nextQueueIdxRef.current;
-      const hasReplacement = promotedQueueIdx < letterQueue.length;
-      if (hasReplacement) {
-        nextQueueIdxRef.current = promotedQueueIdx + 1;
-        setNextQueueIdx(promotedQueueIdx + 1);
-      }
-
       scheduleTimer(() => {
         setBucketFeedback((prev) => (prev && prev.key === fbKey ? null : prev));
 
-        const nextLetter = hasReplacement ? letterQueue[promotedQueueIdx] : null;
-        const rotatedBuckets = bucketsRef.current.map((b, idx) => {
-          if (idx !== slotIndex) return b;
-          if (!nextLetter) return null;
-          return {
-            slotIndex: idx as 0 | 1 | 2,
-            letter: nextLetter,
-            caughtWords: [],
-            state: 'entering' as const,
-          };
-        });
-        bucketsRef.current = rotatedBuckets;
-        setBuckets(rotatedBuckets);
+        // Keep only the initial dock buckets: completed slot becomes 'All Caught!' with zero new bucket replacement.
+        const updatedBuckets = bucketsRef.current.map((b, idx) => (idx === slotIndex ? null : b));
+        bucketsRef.current = updatedBuckets;
+        setBuckets(updatedBuckets);
 
-        const stillHasActive = rotatedBuckets.some((b) => b !== null);
-        if (!stillHasActive) {
+        const remainingActive = updatedBuckets.filter((b): b is DockBucket => b !== null);
+        if (remainingActive.length === 0) {
           setFinished(true);
           setConfettiMode('win');
           setConfettiKey((k) => k + 1);
@@ -1149,34 +1151,20 @@ export function LetterRiverBoard({
           fishListRef.current = [];
           setFishList([]);
         } else {
-          if (nextLetter) {
-            playNewBucketSlideSound(soundEnabled);
-            setBannerTone('neutral');
-            setBannerText(
-              `New bucket ${nextLetter}${nextLetter.toLowerCase()} arrived on the dock!`,
-            );
-          } else {
-            setBannerTone('neutral');
-            setBannerText('Keep going—almost all river buckets are full!');
-          }
+          setBannerTone('neutral');
+          setBannerText(
+            remainingActive.length === 1
+              ? `1 bucket left on the dock (${remainingActive[0].letter}${remainingActive[0].letter.toLowerCase()}) — you've got this!`
+              : `${remainingActive.length} buckets left on the dock — keep fishing!`,
+          );
           const replenished = reconcileRiverFish(
             fishListRef.current,
-            rotatedBuckets,
+            updatedBuckets,
             fishPosRef.current,
             pendingGoldenRef,
           );
           fishListRef.current = replenished;
           setFishList(replenished);
-        }
-
-        if (hasReplacement) {
-          scheduleTimer(() => {
-            const settled = bucketsRef.current.map((b, idx) =>
-              idx === slotIndex && b && b.state === 'entering' ? { ...b, state: 'active' as const } : b,
-            );
-            bucketsRef.current = settled;
-            setBuckets(settled);
-          }, 420);
         }
       }, 1050);
     },
