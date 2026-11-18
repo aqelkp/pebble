@@ -63,6 +63,11 @@ import {
   isValidWordPeekabooConfig,
   type WordPeekabooConfig,
 } from './word-peekaboo/peekabooData';
+import {
+  getDefaultPipeCountdownConfig,
+  isValidPipeCountdownConfig,
+  type PipeCountdownConfig,
+} from './pipe-countdown/countdownData';
 
 // TODO(security): Pebble runs 100% locally in the browser as a static client-only PWA with no
 // backend server, authentication, or database. All saved game configuration objects restored from
@@ -83,6 +88,7 @@ export interface GameConfigMap {
   'spot-the-twin': SpotTheTwinConfig;
   'dot-to-dot': DotToDotConfig;
   'word-peekaboo': WordPeekabooConfig;
+  'pipe-countdown': PipeCountdownConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -193,6 +199,7 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'spot-the-twin': isValidSpotTheTwinConfig,
   'dot-to-dot': isValidDotToDotConfig,
   'word-peekaboo': isValidWordPeekabooConfig,
+  'pipe-countdown': isValidPipeCountdownConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -257,5 +264,7 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultDotToDotConfig() as GameConfigMap[K];
     case 'word-peekaboo':
       return getDefaultWordPeekabooConfig() as GameConfigMap[K];
+    case 'pipe-countdown':
+      return getDefaultPipeCountdownConfig() as GameConfigMap[K];
   }
 }

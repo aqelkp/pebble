@@ -12,6 +12,11 @@ import {
   type PeekabooPackId,
   type PeekabooRoundLength,
 } from '../games/word-peekaboo/peekabooData';
+import {
+  getCountdownModeSpec,
+  type CountdownModeId,
+  type CountdownRoundLength,
+} from '../games/pipe-countdown/countdownData';
 import type { JourneyActivityAdapter } from './journeyTypes';
 
 const WORD_PACK_ROTATION: readonly WordPackId[] = ['animals', 'home', 'play', 'nature', 'all'];
@@ -512,6 +517,41 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
           config: {
             packId,
             worldId: world.id,
+            roundLength,
+          },
+        },
+      };
+    },
+  },
+
+  'pipe-countdown': {
+    gameId: 'pipe-countdown',
+    title: 'Pipe Countdown',
+    artPath: 'hub/pipe-countdown.png',
+    category: 'math',
+    buildActivity: (ctx) => {
+      let modeId: CountdownModeId = '9-to-0';
+      if (ctx.chapterNumber <= 2 && ctx.gameOrdinal % 2 === 0) {
+        modeId = '5-to-0';
+      } else if (ctx.chapterNumber >= 3 && ctx.gameOrdinal % 3 === 1) {
+        modeId = 'missing-rods';
+      } else if (ctx.chapterNumber >= 5 && ctx.gameOrdinal % 3 === 2) {
+        modeId = '10-to-0';
+      }
+      const modeSpec = getCountdownModeSpec(modeId);
+      const roundLength: CountdownRoundLength =
+        ctx.settings.durationMode === 'short' ? 1 : 3;
+
+      return {
+        title: `Pipe Countdown: ${modeSpec.title}`,
+        subtitle: `${modeSpec.badge} • ${roundLength} ${roundLength === 1 ? 'pipe' : 'pipes'}`,
+        detailLine: modeSpec.subtitle,
+        artPath: 'hub/pipe-countdown.png',
+        voiceClipId: 'pipe-countdown',
+        payload: {
+          gameId: 'pipe-countdown',
+          config: {
+            modeId,
             roundLength,
           },
         },

@@ -83,6 +83,10 @@ const JOURNEY_PROMPTS = [
     id: 'word-peekaboo',
     text: 'Listen to each word and tap it to uncover the hidden friend!',
   },
+  {
+    id: 'pipe-countdown',
+    text: 'Plug each leaking pipe from biggest down to zero to start the garden fountain!',
+  },
 ];
 
 const UI_PROMPTS = [

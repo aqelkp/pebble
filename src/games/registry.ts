@@ -13,7 +13,8 @@ export type GameId =
   | 'sticker-scene'
   | 'spot-the-twin'
   | 'dot-to-dot'
-  | 'word-peekaboo';
+  | 'word-peekaboo'
+  | 'pipe-countdown';
 
 export type HubShelfId =
   | 'letters-words'
@@ -194,6 +195,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['literacy', 'self-regulation'],
       targetSkills: ['word_spelling', 'picture_recognition'],
       conceptUnitLabel: '3-Letter CVC Words',
+    },
+  },
+  {
+    id: 'pipe-countdown',
+    title: 'Pipe Countdown',
+    description:
+      'Plug stepped garden aqueduct leaks with proportional numbered rods from biggest (9) down to shut-off cap 0 to spin the sunny fountain!',
+    badgeText: 'New Game',
+    ageHint: 'K1 / LKG • Count 9 → 0',
+    artPath: 'hub/pipe-countdown.png',
+    shelf: 'numbers-logic',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Makes backward counting (9 → 0) and the physical meaning of zero self-evident via proportional repair rods, descending marimba notes, and a K1 countdown strip.',
+      domains: ['numeracy', 'self-regulation'],
+      targetSkills: ['quantity_counting'],
+      conceptUnitLabel: 'Backward Countdown 9 → 0',
     },
   },
   {

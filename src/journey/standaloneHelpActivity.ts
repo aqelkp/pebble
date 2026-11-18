@@ -8,6 +8,7 @@ import { getVehicleSpec } from '../games/rescue-road/roadEngine';
 import { getTwinItemsPerCard } from '../games/spot-the-twin/twinEngine';
 import { getWordPackSpec } from '../games/word-fun/wordBank';
 import { getPeekabooPackSpec, getPeekabooWorldSpec } from '../games/word-peekaboo/peekabooData';
+import { getCountdownModeSpec } from '../games/pipe-countdown/countdownData';
 import type { JourneyActivity } from './journeyTypes';
 
 function resolveConfig<K extends GameId>(
@@ -243,6 +244,22 @@ export function buildStandaloneHelpActivity(
           'Listen closely for the one spoken word, tap it to peel a tile, and uncover the hidden friend!',
         artPath: 'hub/word-peekaboo.png',
         voiceClipId: 'word-peekaboo',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'pipe-countdown': {
+      const cfg = resolveConfig('pipe-countdown', rawConfig, profiles);
+      const mode = getCountdownModeSpec(cfg.modeId);
+      return {
+        ...base,
+        gameId,
+        title: 'Pipe Countdown',
+        subtitle: mode.title,
+        detailLine:
+          'Drag or tap the widest numbered repair rod into the leaking pipe gap down to cap 0!',
+        artPath: 'hub/pipe-countdown.png',
+        voiceClipId: 'pipe-countdown',
         payload: { gameId, config: cfg },
       };
     }

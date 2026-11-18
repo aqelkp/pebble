@@ -896,6 +896,84 @@
           "endMs": 3512
         }
       ]
+    },
+    "pipe-countdown": {
+      "id": "pipe-countdown",
+      "text": "Plug each leaking pipe from biggest down to zero to start the garden fountain!",
+      "audioPath": "audio/journey/pipe-countdown.mp3",
+      "durationMs": 4578,
+      "words": [
+        {
+          "word": "Plug",
+          "startMs": 0,
+          "endMs": 359
+        },
+        {
+          "word": "each",
+          "startMs": 359,
+          "endMs": 527
+        },
+        {
+          "word": "leaking",
+          "startMs": 527,
+          "endMs": 960
+        },
+        {
+          "word": "pipe",
+          "startMs": 960,
+          "endMs": 1158
+        },
+        {
+          "word": "from",
+          "startMs": 1158,
+          "endMs": 1452
+        },
+        {
+          "word": "biggest",
+          "startMs": 1452,
+          "endMs": 1875
+        },
+        {
+          "word": "down",
+          "startMs": 1875,
+          "endMs": 2178
+        },
+        {
+          "word": "to",
+          "startMs": 2178,
+          "endMs": 2337
+        },
+        {
+          "word": "zero",
+          "startMs": 2337,
+          "endMs": 2900
+        },
+        {
+          "word": "to",
+          "startMs": 2900,
+          "endMs": 3130
+        },
+        {
+          "word": "start",
+          "startMs": 3130,
+          "endMs": 3393
+        },
+        {
+          "word": "the",
+          "startMs": 3393,
+          "endMs": 3602
+        },
+        {
+          "word": "garden",
+          "startMs": 3602,
+          "endMs": 4080
+        },
+        {
+          "word": "fountain!",
+          "startMs": 4080,
+          "endMs": 4578
+        }
+      ]
     }
   }
 }

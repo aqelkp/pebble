@@ -120,6 +120,16 @@ const WordPeekabooBoard = lazy(() =>
     default: m.WordPeekabooBoard,
   })),
 );
+const PipeCountdownSetup = lazy(() =>
+  import('./pipe-countdown/PipeCountdownSetup').then((m) => ({
+    default: m.PipeCountdownSetup,
+  })),
+);
+const PipeCountdownBoard = lazy(() =>
+  import('./pipe-countdown/PipeCountdownBoard').then((m) => ({
+    default: m.PipeCountdownBoard,
+  })),
+);
 
 export interface LeaveGameCopy {
   headline: string;
@@ -824,6 +834,57 @@ const GAME_PLUGINS: GamePluginRegistry = {
       journeyContext,
     }) => (
       <WordPeekabooBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'pipe-countdown': {
+    id: 'pipe-countdown',
+    activeSessionStorageKey: 'pebble.pipe-countdown.active.v1',
+    leaveCopy: {
+      headline: 'Leave Pipe Countdown?',
+      subtitle: 'Your current pipe countdown repair will reset.',
+      keepPlayingLabel: 'Keep Counting',
+    },
+    ...makeConfigAccessors('pipe-countdown'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./pipe-countdown/PipeCountdownSetup'),
+        import('./pipe-countdown/PipeCountdownBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onEditProfiles, onStartGame }) => (
+      <PipeCountdownSetup
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig('pipe-countdown', profiles)}
+        onBackToHub={onBackToHub}
+        onEditProfiles={onEditProfiles}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <PipeCountdownBoard
         key={gameKey}
         gameKey={gameKey}
         config={config}

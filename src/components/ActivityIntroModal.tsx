@@ -380,6 +380,55 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     );
   }
 
+  if (activity.gameId === 'pipe-countdown') {
+    return (
+      <div className="intro-demo-stage" aria-hidden="true" style={{ flexDirection: 'column', gap: 6 }}>
+        <svg viewBox="0 0 250 116" style={{ width: 236, height: 110 }}>
+          <rect x="8" y="6" width="234" height="104" rx="18" fill="#F4FBF9" stroke="#C8E6DF" strokeWidth="2" />
+          {[
+            { y: 16, w: 120, n: '3', fill: '#5B5BD6' },
+            { y: 42, w: 84, n: '2', fill: '#F27A5E' },
+            { y: 68, w: 48, n: '1', fill: '#3BA99C' },
+          ].map((r) => (
+            <g key={r.n} transform={`translate(22, ${r.y})`}>
+              <rect x="0" y="0" width={r.w} height="20" rx="7" fill={r.fill} />
+              <text
+                x={r.w / 2}
+                y="14"
+                textAnchor="middle"
+                fontFamily="Fredoka, sans-serif"
+                fontSize="13"
+                fontWeight="700"
+                fill="#FFFFFF"
+              >
+                {r.n}
+              </text>
+            </g>
+          ))}
+          <circle cx="44" cy="98" r="10" fill="#F2B84B" stroke="#C98A1C" strokeWidth="2" />
+          <text
+            x="44"
+            y="102"
+            textAnchor="middle"
+            fontFamily="Fredoka, sans-serif"
+            fontSize="12"
+            fontWeight="700"
+            fill="#5A3B06"
+          >
+            0
+          </text>
+          <path d="M 56 98 L 176 98" stroke="#3BA99C" strokeWidth="6" strokeLinecap="round" />
+          <circle cx="196" cy="58" r="24" fill="#FFFFFF" stroke="#3BA99C" strokeWidth="4" />
+          <circle cx="196" cy="58" r="6" fill="#5B5BD6" />
+          <ellipse cx="196" cy="96" rx="28" ry="7" fill="#73CCF0" />
+        </svg>
+        <span className="intro-demo-twin-caption">
+          Plug leaks from biggest rod down to round cap 0!
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="intro-demo-stage intro-demo-stage--safari" aria-hidden="true">
       <div className="intro-demo-safari-animals">
