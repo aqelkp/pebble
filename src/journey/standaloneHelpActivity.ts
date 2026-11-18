@@ -12,6 +12,7 @@ import { getPeekabooPackSpec, getPeekabooWorldSpec } from '../games/word-peekabo
 import { getCompareModeSpec } from '../games/compare-quest/compareData';
 import { getWordTracePackSpec } from '../games/word-trace/wordTraceEngine';
 import { getQuestPackSpec } from '../curriculum/questEngine/questTypes';
+import { getCountdownModeSpec } from '../games/pipe-countdown/countdownData';
 import type { JourneyActivity } from './journeyTypes';
 
 function resolveConfig<K extends GameId>(
@@ -335,6 +336,22 @@ export function buildStandaloneHelpActivity(
           'Listen to the group clue, then tap or draw a circle around every picture that belongs!',
         artPath: 'hub/circle-sort.png',
         voiceClipId: 'circle-sort',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'pipe-countdown': {
+      const cfg = resolveConfig('pipe-countdown', rawConfig, profiles);
+      const mode = getCountdownModeSpec(cfg.modeId);
+      return {
+        ...base,
+        gameId,
+        title: 'Pipe Countdown',
+        subtitle: mode.title,
+        detailLine:
+          'Drag or tap the widest numbered repair rod into the leaking pipe gap down to cap 0!',
+        artPath: 'hub/pipe-countdown.png',
+        voiceClipId: 'pipe-countdown',
         payload: { gameId, config: cfg },
       };
     }

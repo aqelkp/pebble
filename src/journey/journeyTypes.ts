@@ -18,6 +18,7 @@ import type { WordPeekabooConfig } from '../games/word-peekaboo/peekabooData';
 import type { CompareQuestConfig } from '../games/compare-quest/compareData';
 import type { WordTraceConfig } from '../games/word-trace/wordTraceEngine';
 import type { QuestGameConfig } from '../curriculum/questEngine/questTypes';
+import type { PipeCountdownConfig } from '../games/pipe-countdown/countdownData';
 
 export const TOTAL_CHAPTERS = 20;
 export const ACTIVITIES_PER_CHAPTER = 20;
@@ -68,7 +69,8 @@ export type JourneyVoiceClipId =
   | 'pebble-creek'
   | 'cloud-balloon'
   | 'treasure-keys'
-  | 'circle-sort';
+  | 'circle-sort'
+  | 'pipe-countdown';
 
 export interface JourneyBoardContext {
   chapterNumber: number;
@@ -134,7 +136,8 @@ export type JourneyActivityPayload =
   | { gameId: 'pebble-creek'; config: QuestGameConfig }
   | { gameId: 'cloud-balloon'; config: QuestGameConfig }
   | { gameId: 'treasure-keys'; config: QuestGameConfig }
-  | { gameId: 'circle-sort'; config: CircleSortConfig };
+  | { gameId: 'circle-sort'; config: CircleSortConfig }
+  | { gameId: 'pipe-countdown'; config: PipeCountdownConfig };
 
 export interface JourneyActivity {
   index: number;

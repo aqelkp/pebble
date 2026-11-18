@@ -91,6 +91,7 @@ const VALID_GAME_IDS = new Set<GameId>([
   'cloud-balloon',
   'treasure-keys',
   'circle-sort',
+  'pipe-countdown',
 ]);
 
 const VALID_SKILL_TYPES = new Set<SkillType>([

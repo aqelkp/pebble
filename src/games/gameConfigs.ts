@@ -83,6 +83,11 @@ import {
   isValidCircleSortConfig,
   type CircleSortConfig,
 } from './circle-sort/circleSortData';
+import {
+  getDefaultPipeCountdownConfig,
+  isValidPipeCountdownConfig,
+  type PipeCountdownConfig,
+} from './pipe-countdown/countdownData';
 
 // TODO(security): Pebble runs 100% locally in the browser as a static client-only PWA with no
 // backend server, authentication, or database. All saved game configuration objects restored from
@@ -110,6 +115,7 @@ export interface GameConfigMap {
   'cloud-balloon': QuestGameConfig;
   'treasure-keys': QuestGameConfig;
   'circle-sort': CircleSortConfig;
+  'pipe-countdown': PipeCountdownConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -227,6 +233,7 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'cloud-balloon': isValidQuestGameConfig,
   'treasure-keys': isValidQuestGameConfig,
   'circle-sort': isValidCircleSortConfig,
+  'pipe-countdown': isValidPipeCountdownConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -305,5 +312,7 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultQuestConfigForSkin('treasure-keys') as GameConfigMap[K];
     case 'circle-sort':
       return getDefaultCircleSortConfig() as GameConfigMap[K];
+    case 'pipe-countdown':
+      return getDefaultPipeCountdownConfig() as GameConfigMap[K];
   }
 }

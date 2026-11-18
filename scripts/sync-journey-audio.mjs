@@ -127,6 +127,10 @@ const JOURNEY_PROMPTS = [
     id: 'circle-sort',
     text: 'Listen to the group clue and circle all the pictures that belong!',
   },
+  {
+    id: 'pipe-countdown',
+    text: 'Plug each leaking pipe from biggest down to zero to start the garden fountain!',
+  },
 ];
 
 const UI_PROMPTS = [

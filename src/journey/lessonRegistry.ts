@@ -37,6 +37,11 @@ import {
   type QuestPackId,
   type QuestRoundLength,
 } from '../curriculum/questEngine/questTypes';
+import {
+  getCountdownModeSpec,
+  type CountdownModeId,
+  type CountdownRoundLength,
+} from '../games/pipe-countdown/countdownData';
 import type { JourneyActivityAdapter, JourneyLearningPillar } from './journeyTypes';
 
 const COMPARE_MODE_ROTATION: readonly CompareModeId[] = [
@@ -881,6 +886,42 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
           config: {
             packId,
             gridMode,
+            roundLength,
+          },
+        },
+      };
+    },
+  },
+
+  'pipe-countdown': {
+    gameId: 'pipe-countdown',
+    title: 'Pipe Countdown',
+    artPath: 'hub/pipe-countdown.png',
+    pillar: 'numbers-math',
+    category: 'math',
+    buildActivity: (ctx) => {
+      let modeId: CountdownModeId = '9-to-0';
+      if (ctx.gameOrdinal === 0 || (ctx.chapterNumber <= 2 && ctx.gameOrdinal % 2 === 0)) {
+        modeId = '5-to-0';
+      } else if (ctx.gameOrdinal % 3 === 1) {
+        modeId = 'missing-rods';
+      } else if (ctx.chapterNumber >= 5 && ctx.gameOrdinal % 3 === 2) {
+        modeId = '10-to-0';
+      }
+      const modeSpec = getCountdownModeSpec(modeId);
+      const roundLength: CountdownRoundLength =
+        ctx.gameOrdinal === 0 || ctx.settings.durationMode === 'short' ? 1 : 3;
+
+      return {
+        title: 'Pipe Countdown',
+        subtitle: `${modeSpec.title} • ${roundLength} ${roundLength === 1 ? 'pipe' : 'pipes'}`,
+        detailLine: modeSpec.subtitle,
+        artPath: 'hub/pipe-countdown.png',
+        voiceClipId: 'pipe-countdown',
+        payload: {
+          gameId: 'pipe-countdown',
+          config: {
+            modeId,
             roundLength,
           },
         },
