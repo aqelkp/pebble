@@ -5,6 +5,7 @@ import {
   preloadThinkAgainVoice,
 } from '../utils/wordAudio';
 import { PebbleMark } from './BrandLogo';
+import { WordSoundButton } from './WordSoundButton';
 
 export interface ThinkAgainOverlayProps {
   open: boolean;
@@ -95,7 +96,12 @@ export function ThinkAgainOverlay({
           {resolvedTitle}
         </h2>
 
-        {hint ? <p className="think-again-card__hint">{hint}</p> : null}
+        {hint ? (
+          <div className="think-again-card__hint-row">
+            <p className="think-again-card__hint">{hint}</p>
+            <WordSoundButton text={hint} size="xs" variant="soft" label="Hear hint" />
+          </div>
+        ) : null}
 
         <div className="think-again-card__meter" aria-hidden="true">
           <div

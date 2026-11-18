@@ -2,9 +2,11 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPoi
 import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { GameHelpButton } from '../../components/GameHelpButton';
+import { WordSoundButton } from '../../components/WordSoundButton';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import { assetUrl } from '../../utils/assets';
+import { preloadThemeAudioForPairIds } from '../../utils/readAlongAudio';
 import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import { getThemeSpec, type CharacterCardSpec } from '../memory-match/themes';
 import type { PictureSudokuConfig } from './PictureSudokuSetup';
@@ -426,7 +428,8 @@ export function PictureSudokuBoard({
     [placedMap, puzzle.givens],
   );
 
-  const handleTrayPointerDown = (e: ReactPointerEvent<HTMLButtonElement>, card: TrayCard) => {
+  const handleTrayPointerDown = (e: ReactPointerEvent<HTMLDivElement>, card: TrayCard) => {
+    if ((e.target as HTMLElement | null)?.closest('[data-sound-btn="true"]')) return;
     if (solved || tryAgainPause) return;
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -444,7 +447,7 @@ export function PictureSudokuBoard({
     });
   };
 
-  const handleTrayPointerMove = (e: ReactPointerEvent<HTMLButtonElement>) => {
+  const handleTrayPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!dragState || e.pointerId !== dragState.pointerId) return;
     const dx = e.clientX - dragState.startX;
     const dy = e.clientY - dragState.startY;
@@ -460,7 +463,7 @@ export function PictureSudokuBoard({
     });
   };
 
-  const handleTrayPointerUp = (e: ReactPointerEvent<HTMLButtonElement>) => {
+  const handleTrayPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!dragState || e.pointerId !== dragState.pointerId) return;
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
@@ -502,6 +505,10 @@ export function PictureSudokuBoard({
   };
 
   const draggedSymbol = dragState ? puzzle.symbols[dragState.card.symbolIndex] : null;
+
+  useEffect(() => {
+    preloadThemeAudioForPairIds(puzzle.symbols.map((s) => s.pairId));
+  }, [puzzle.symbols]);
 
   return (
     <div className="app-shell app-shell--board ps-shell">
@@ -707,9 +714,10 @@ export function PictureSudokuBoard({
                   const isSelected = selectedTrayUid === card.uid;
 
                   return (
-                    <button
+                    <div
                       key={card.uid}
-                      type="button"
+                      role="button"
+                      tabIndex={0}
                       className={`ps-tray-card ${isSelected ? 'ps-tray-card--selected' : ''} ${
                         isDraggingThis ? 'ps-tray-card--ghosted' : ''
                       }`}
@@ -717,15 +725,30 @@ export function PictureSudokuBoard({
                       onPointerMove={handleTrayPointerMove}
                       onPointerUp={handleTrayPointerUp}
                       onPointerCancel={handleTrayPointerCancel}
+                      onKeyDown={(e) => {
+                        if (e.target !== e.currentTarget) return;
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSelectedTrayUid((prev) => (prev === card.uid ? null : card.uid));
+                        }
+                      }}
                       aria-label={`Drag or select ${symbol.label}`}
                     >
+                      <WordSoundButton
+                        text={symbol.label}
+                        pairId={symbol.pairId}
+                        size="xs"
+                        variant="ghost"
+                        className="ps-tray-card__sound"
+                        testId={`ps-tray-sound-${symbol.pairId}`}
+                      />
                       <img
                         src={assetUrl(symbol.imagePath)}
                         alt={symbol.label}
                         draggable={false}
                       />
                       <span className="ps-tray-card__label">{symbol.label}</span>
-                    </button>
+                    </div>
                   );
                 })
               )}

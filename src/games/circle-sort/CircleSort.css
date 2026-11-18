@@ -445,6 +445,14 @@
   color: #1d6b61;
 }
 
+.cs-progress-badge--btn {
+  cursor: pointer;
+}
+
+.cs-progress-badge--btn:hover {
+  background: #d2f0eb;
+}
+
 .cs-progress-hint {
   font-size: 0.78rem;
   font-weight: 500;
@@ -506,7 +514,7 @@
     transform 140ms ease;
 }
 
-.cs-card:hover:not(:disabled):not(.is-circled) {
+.cs-card:hover:not([aria-disabled='true']):not(.is-circled) {
   border-color: #c5c4f0;
 }
 
@@ -557,6 +565,16 @@
   pointer-events: none;
   mix-blend-mode: multiply;
   border-radius: 12px;
+}
+
+.cs-card__label-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  max-width: 100%;
+  position: relative;
+  z-index: 2;
 }
 
 .cs-card__label {

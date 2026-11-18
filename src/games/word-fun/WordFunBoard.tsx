@@ -3,6 +3,7 @@ import { BrandLogo } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
+import { WordSoundButton } from '../../components/WordSoundButton';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
@@ -731,7 +732,15 @@ export function WordFunBoard({
                 <WordFunArt id={currentWord.id} size={metrics.artSize} />
               </div>
 
-              <p className="wf-clue-card__caption">{currentWord.clue}</p>
+              <div className="wf-clue-card__caption-row">
+                <p className="wf-clue-card__caption">{currentWord.clue}</p>
+                <WordSoundButton
+                  text={currentWord.clue}
+                  size="xs"
+                  variant="soft"
+                  testId="wf-clue-sound-btn"
+                />
+              </div>
             </section>
 
             {/* 2. Three Rounded Word Slots */}

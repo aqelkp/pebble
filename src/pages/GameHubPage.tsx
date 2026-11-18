@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { BrandLogo } from '../components/BrandLogo';
+import { WordSoundButton } from '../components/WordSoundButton';
 import { getAvatarSrc, type FamilyProfile } from '../context/FamilyProfilesContext';
 import { preloadGamePlugin } from '../games/plugins';
 import {
@@ -187,7 +188,15 @@ export function GameHubPage({
                   <span className="badge-pill badge-pill--indigo">{game.ageHint}</span>
                 </div>
 
-                <h3 className="game-card__title">{game.title}</h3>
+                <div className="game-card__title-row">
+                  <h3 className="game-card__title">{game.title}</h3>
+                  <WordSoundButton
+                    text={game.title}
+                    size="xs"
+                    variant="soft"
+                    testId={`hub-title-sound-${game.id}`}
+                  />
+                </div>
                 <p className="game-card__desc">{game.description}</p>
 
                 {isAvailable && (

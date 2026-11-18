@@ -10,12 +10,17 @@ import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
+import {
+  SoundWaveSpeakerIcon,
+  WordSoundButton,
+} from '../../components/WordSoundButton';
 import { WinnerModal } from '../../components/WinnerModal';
 import type { FamilyProfile } from '../../context/FamilyProfilesContext';
 import { clientToLogicalPoint, usePointerStroke } from '../../engine/usePointerStroke';
 import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import { normalizeSpokenName } from '../../utils/childNameTts';
+import { playReadAlongText } from '../../utils/readAlongAudio';
 import type { TracePoint } from '../letter-trace/traceData';
 import { WordTraceCardArt } from './WordTraceCardArt';
 import {
@@ -1094,17 +1099,39 @@ export function WordTraceBoard({
                   : entry.resolvedCase === 'upper'
                     ? slotItem.text.toUpperCase()
                     : slotItem.text;
+              if (isStamped) {
+                return (
+                  <button
+                    key={`${entry.itemId}-${idx}`}
+                    type="button"
+                    data-sound-btn="true"
+                    data-testid={`wt-stamp-slot-${idx}`}
+                    className={`wt-stamp-slot is-stamped ${
+                      isCrowned ? 'is-crowned' : ''
+                    } ${isCurrent ? 'is-current' : ''}`}
+                    style={{ cursor: 'pointer' }}
+                    aria-label={`Hear "${slotLabel}"`}
+                    onClick={() =>
+                      playReadAlongText(slotLabel, {
+                        voiceClipPath: slotItem.wordAudioPath,
+                        enabled: true,
+                      })
+                    }
+                  >
+                    <WordTraceCardArt art={slotItem.art} size={18} />
+                    <span>{slotLabel}</span>
+                    <SoundWaveSpeakerIcon size={11} />
+                    {isCrowned && <CrownIcon size={10} />}
+                  </button>
+                );
+              }
               return (
                 <span
                   key={`${entry.itemId}-${idx}`}
                   data-testid={`wt-stamp-slot-${idx}`}
-                  className={`wt-stamp-slot ${isStamped ? 'is-stamped' : ''} ${
-                    isCrowned ? 'is-crowned' : ''
-                  } ${isCurrent ? 'is-current' : ''}`}
+                  className={`wt-stamp-slot ${isCurrent ? 'is-current' : ''}`}
                 >
-                  {isStamped && <WordTraceCardArt art={slotItem.art} size={18} />}
                   <span>{slotLabel}</span>
-                  {isCrowned && <CrownIcon size={10} />}
                 </span>
               );
             })}
@@ -1159,21 +1186,30 @@ export function WordTraceBoard({
             </span>
           </div>
 
-          <h1 className="wt-prompt-question" data-testid="wt-prompt-heading">
-            {phase === 'word-complete' ? (
-              <>
-                Wonderful! You wrote <strong>{slateSpec.displayText}</strong>!
-              </>
-            ) : customChildName ? (
-              <>
-                {customChildName}, can you write <strong>{slateSpec.displayText}</strong>?
-              </>
-            ) : (
-              <>
-                Can you write <strong>{slateSpec.displayText}</strong>?
-              </>
-            )}
-          </h1>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <h1 className="wt-prompt-question" data-testid="wt-prompt-heading">
+              {phase === 'word-complete' ? (
+                <>
+                  Wonderful! You wrote <strong>{slateSpec.displayText}</strong>!
+                </>
+              ) : customChildName ? (
+                <>
+                  {customChildName}, can you write <strong>{slateSpec.displayText}</strong>?
+                </>
+              ) : (
+                <>
+                  Can you write <strong>{slateSpec.displayText}</strong>?
+                </>
+              )}
+            </h1>
+            <WordSoundButton
+              text={slateSpec.displayText}
+              voiceClipPath={currentItem.wordAudioPath}
+              size="xs"
+              variant="soft"
+              testId="wt-word-sound-btn"
+            />
+          </div>
 
           {currentItem.art.kind === 'sight-badge' ? (
             <p className="wt-prompt-clue">

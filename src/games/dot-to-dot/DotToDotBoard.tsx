@@ -10,17 +10,25 @@ import { BrandLogo, CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
+import {
+  ReadAlongWordPill,
+  SoundWaveSpeakerIcon,
+  WordSoundButton,
+} from '../../components/WordSoundButton';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { clientToLogicalPoint, usePointerStroke } from '../../engine/usePointerStroke';
 import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import { assetUrl } from '../../utils/assets';
 import {
-  playAwesomeJobVoice,
+  playThemeCharacterTalk,
+  playThemeCharacterWord,
+  preloadThemeAudioForPairIds,
+} from '../../utils/readAlongAudio';
+import {
   playDotMistakeAudio,
   playLetterAudio,
   playNumberAudio,
-  playWordAudio,
   preloadDotMistakeAudio,
   preloadImages,
   stopAllSpokenAudio,
@@ -154,10 +162,11 @@ function tryRestoreDotSession(config: DotToDotConfig): {
     }
 
     const baseDeck = buildDotPuzzleDeck(config);
-    const byId = new Map<string, { word: string; imagePath: string; themeId: typeof CARD_THEMES[number]['id']; themeTitle: string }>();
+    const byId = new Map<string, { rawPairId: string; word: string; imagePath: string; themeId: typeof CARD_THEMES[number]['id']; themeTitle: string }>();
     for (const theme of CARD_THEMES) {
       for (const c of theme.characters) {
         byId.set(`${theme.id}:${c.pairId}`, {
+          rawPairId: c.pairId,
           word: c.label,
           imagePath: c.imagePath,
           themeId: theme.id,
@@ -176,6 +185,7 @@ function tryRestoreDotSession(config: DotToDotConfig): {
       rebuilt.push({
         ...fallbackEntry,
         id,
+        pairId: card.rawPairId,
         word: card.word,
         imagePath: card.imagePath,
         themeId: card.themeId,
@@ -268,6 +278,7 @@ export function DotToDotBoard({
   useEffect(() => {
     let cancelled = false;
     preloadImages(deck.map((item) => item.imagePath));
+    preloadThemeAudioForPairIds(deck.map((item) => item.pairId));
     preloadDotMistakeAudio(
       config.dotCount,
       ALL_LETTERS.slice(0, config.dotCount) as LetterId[],
@@ -393,11 +404,7 @@ export function DotToDotBoard({
         window.clearTimeout(bloomAudioTimerRef.current);
       }
       bloomAudioTimerRef.current = window.setTimeout(() => {
-        if (currentPuzzle.canonicalWordId) {
-          playWordAudio(currentPuzzle.canonicalWordId, currentPuzzle.word, soundEnabled);
-        } else {
-          playAwesomeJobVoice(soundEnabled);
-        }
+        playThemeCharacterTalk(currentPuzzle.pairId, currentPuzzle.word, soundEnabled);
       }, 280);
     },
     [childProfile.id, config.dotCount, currentPuzzle, dots, soundEnabled],
@@ -698,11 +705,7 @@ export function DotToDotBoard({
 
   const handleHearPrompt = useCallback(() => {
     if (phase === 'bloom' && currentPuzzle) {
-      if (currentPuzzle.canonicalWordId) {
-        playWordAudio(currentPuzzle.canonicalWordId, currentPuzzle.word, true);
-      } else {
-        playAwesomeJobVoice(true);
-      }
+      playThemeCharacterWord(currentPuzzle.pairId, currentPuzzle.word, true);
       return;
     }
     const nextDot = dots[connectedCount];
@@ -798,8 +801,17 @@ export function DotToDotBoard({
               {currentPuzzle?.themeTitle ?? 'Dot-to-Dot'} • Picture {puzzleIndex + 1} of{' '}
               {deck.length}
             </span>
-            <span className="dtd-banner-card__headline" data-testid="dot-banner-headline">
-              {headlineText}
+            <span className="dtd-banner-card__headline-row" data-testid="dot-banner-headline">
+              <span>{headlineText}</span>
+              {phase === 'bloom' && currentPuzzle && (
+                <WordSoundButton
+                  text={currentPuzzle.word}
+                  pairId={currentPuzzle.pairId}
+                  size="xs"
+                  variant="mint"
+                  testId="dot-banner-word-sound"
+                />
+              )}
             </span>
           </div>
         </div>
@@ -1033,8 +1045,14 @@ export function DotToDotBoard({
           </svg>
 
           {phase === 'bloom' && currentPuzzle && (
-            <div className="dtd-bloom-badge" data-testid="dot-bloom-label">
-              {currentPuzzle.word}
+            <div className="dtd-bloom-badge-wrap">
+              <ReadAlongWordPill
+                text={currentPuzzle.word}
+                pairId={currentPuzzle.pairId}
+                highlightFirstLetter
+                className="dtd-bloom-word-pill"
+                testId="dot-bloom-label"
+              />
             </div>
           )}
         </div>
@@ -1133,9 +1151,22 @@ export function DotToDotBoard({
 
             <div className="dtd-win-gallery">
               {deck.map((item, idx) => (
-                <div key={`${item.id}-${idx}`} className="dtd-win-thumb" title={item.word}>
-                  <img src={assetUrl(item.imagePath)} alt={item.word} />
-                </div>
+                <button
+                  key={`${item.id}-${idx}`}
+                  type="button"
+                  className="dtd-win-card"
+                  onClick={() => playThemeCharacterWord(item.pairId, item.word, true)}
+                  aria-label={`Hear "${item.word}"`}
+                  data-testid={`dot-win-card-${idx}`}
+                >
+                  <div className="dtd-win-thumb">
+                    <img src={assetUrl(item.imagePath)} alt={item.word} />
+                  </div>
+                  <span className="dtd-win-card__label">
+                    <span>{item.word}</span>
+                    <SoundWaveSpeakerIcon size={13} />
+                  </span>
+                </button>
               ))}
             </div>
 

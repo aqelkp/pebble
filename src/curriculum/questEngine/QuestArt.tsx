@@ -1,4 +1,8 @@
 import type { ReactNode } from 'react';
+import {
+  TappableReadAlongPhrase,
+  WordSoundButton,
+} from '../../components/WordSoundButton';
 import { WordIllustration } from '../../games/letter-train/WordIllustration';
 import { assetUrl } from '../../utils/assets';
 import type { QuestArtSpec, QuestIconId } from './questTypes';
@@ -6,6 +10,7 @@ import type { QuestArtSpec, QuestIconId } from './questTypes';
 interface QuestArtProps {
   spec: QuestArtSpec;
   size?: number;
+  solvedClipId?: string;
 }
 
 function renderQuestIcon(id: QuestIconId): ReactNode {
@@ -905,7 +910,7 @@ function renderQuestIcon(id: QuestIconId): ReactNode {
   }
 }
 
-export function QuestArt({ spec, size = 76 }: QuestArtProps) {
+export function QuestArt({ spec, size = 76, solvedClipId }: QuestArtProps) {
   switch (spec.kind) {
     case 'quest-icon':
       return (
@@ -959,12 +964,23 @@ export function QuestArt({ spec, size = 76 }: QuestArtProps) {
       );
 
     case 'word-card': {
+      if (spec.text.trim().includes(' ')) {
+        return (
+          <TappableReadAlongPhrase
+            phrase={spec.text}
+            solvedClipId={solvedClipId}
+            accent={spec.accent}
+            highlightIndex={spec.highlightIndex}
+          />
+        );
+      }
       const chars = spec.text.split('');
       return (
         <div
           className="font-display"
+          data-testid="quest-word-card"
           style={{
-            padding: '10px 18px',
+            padding: '8px 12px 8px 18px',
             borderRadius: 16,
             background: '#FFFFFF',
             border: `2.5px solid ${spec.accent ?? '#5B5BD6'}`,
@@ -974,20 +990,28 @@ export function QuestArt({ spec, size = 76 }: QuestArtProps) {
             color: '#1E2433',
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 2,
+            gap: 10,
           }}
         >
-          {chars.map((ch, idx) => (
-            <span
-              key={`${idx}-${ch}`}
-              style={{
-                color: spec.highlightIndex === idx ? '#F27A5E' : '#1E2433',
-                textDecoration: spec.highlightIndex === idx ? 'underline' : 'none',
-              }}
-            >
-              {ch}
-            </span>
-          ))}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+            {chars.map((ch, idx) => (
+              <span
+                key={`${idx}-${ch}`}
+                style={{
+                  color: spec.highlightIndex === idx ? '#F27A5E' : '#1E2433',
+                  textDecoration: spec.highlightIndex === idx ? 'underline' : 'none',
+                }}
+              >
+                {ch}
+              </span>
+            ))}
+          </span>
+          <WordSoundButton
+            text={spec.text}
+            size="sm"
+            variant="soft"
+            testId="quest-word-card-sound"
+          />
         </div>
       );
     }

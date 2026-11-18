@@ -2,10 +2,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BrandLogo, PawPipIcon, PebbleMark } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { GameHelpButton } from '../../components/GameHelpButton';
+import { WordSoundButton } from '../../components/WordSoundButton';
 import { WinnerModal, type PlayerStanding } from '../../components/WinnerModal';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { solveGridFit, useStageSize } from '../../engine';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
+import {
+  playThemeCharacterWord,
+  preloadThemeAudioForPairIds,
+} from '../../utils/readAlongAudio';
 import {
   getThemeBoardSummary,
   loadMemoryStatsRuns,
@@ -145,6 +150,9 @@ export function MemoryBoard({
     () => savedState?.matchedPairIds ?? {},
   );
   const [justMatchedPairId, setJustMatchedPairId] = useState<string | null>(null);
+  const [lastMatchedInfo, setLastMatchedInfo] = useState<{ pairId: string; label: string } | null>(
+    null,
+  );
   const [scores, setScores] = useState<Record<string, number>>(
     () => savedState?.scores ?? buildInitialZeroMap(players),
   );
@@ -213,6 +221,10 @@ export function MemoryBoard({
   }, []);
 
   useEffect(() => {
+    preloadThemeAudioForPairIds(theme.characters.map((c) => c.pairId));
+  }, [theme]);
+
+  useEffect(() => {
     return () => clearPendingTimer();
   }, [clearPendingTimer]);
 
@@ -271,6 +283,7 @@ export function MemoryBoard({
     setFlippedIds([]);
     setMatchedPairIds({});
     setJustMatchedPairId(null);
+    setLastMatchedInfo(null);
     setScores(buildInitialZeroMap(players));
     setPlayerAttempts(buildInitialZeroMap(players));
     setTotalAttempts(0);
@@ -322,10 +335,16 @@ export function MemoryBoard({
 
       setMatchedPairIds(nextMatched);
       setJustMatchedPairId(clickedCard.pairId);
+      setLastMatchedInfo({ pairId: clickedCard.pairId, label: clickedCard.label });
       setScores(nextScores);
       setMatchBurstCount((c) => c + 1);
       setPhase('resolving-match');
       playMatchSound(soundEnabled);
+      if (soundEnabled) {
+        window.setTimeout(() => {
+          playThemeCharacterWord(clickedCard.pairId, clickedCard.label, true);
+        }, 220);
+      }
 
       clearPendingTimer();
       if (totalMatchedNow >= boardSize.pairs) {
@@ -382,6 +401,7 @@ export function MemoryBoard({
     }
 
     // Mismatch: pause briefly so players memorize cards, then advance turn
+    setLastMatchedInfo(null);
     const nextIdx = (currentPlayerIdx + 1) % players.length;
     setNextPlayerName(players[nextIdx]?.name ?? activePlayer.name);
     setPhase('resolving-mismatch');
@@ -564,8 +584,18 @@ export function MemoryBoard({
       </section>
 
       {/* Fixed-Height Celebration / Turn Banner */}
-      <div className={bannerClass} role="status" aria-live="polite">
+      <div className={bannerClass} role="status" aria-live="polite" style={{ gap: 8 }}>
         <span>{bannerText}</span>
+        {lastMatchedInfo && (
+          <WordSoundButton
+            text={lastMatchedInfo.label}
+            pairId={lastMatchedInfo.pairId}
+            size="xs"
+            variant="mint"
+            buttonText={lastMatchedInfo.label}
+            testId="memory-matched-word-sound"
+          />
+        )}
       </div>
 
       {/* Full-Viewport Portrait Card Grid Stage */}
