@@ -3,6 +3,10 @@ import { BrandLogo, CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
+import {
+  SoundWaveSpeakerIcon,
+  WordSoundButton,
+} from '../../components/WordSoundButton';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import {
   clientToLogicalPoint,
@@ -30,6 +34,7 @@ import {
   type CircleSortQuestId,
 } from './circleSortData';
 import {
+  getCircleSortItemAudioPath,
   playCirclePageFanfare,
   playCircleSortCheerVoice,
   playCircleSortItemConfirmation,
@@ -738,6 +743,9 @@ export function CircleSortBoard({
   const { handlers: pointerHandlers } = usePointerStroke<LogicalPoint>({
     enabled: phase === 'playing',
     resolvePoint: (event) => {
+      if ((event.target as HTMLElement | null)?.closest('[data-sound-btn="true"]')) {
+        return null;
+      }
       if (!sheetRef.current) return null;
       return clientToLogicalPoint(
         sheetRef.current,
@@ -1014,12 +1022,24 @@ export function CircleSortBoard({
           </span>
           {Array.from({ length: currentPage.targetCount }, (_, idx) => {
             const foundSlot = circledItemsList[idx];
+            if (foundSlot) {
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  data-sound-btn="true"
+                  className="cs-progress-badge is-filled cs-progress-badge--btn"
+                  aria-label={`Hear "${foundSlot.label}"`}
+                  onClick={() => playCircleSortItemConfirmation(foundSlot.itemId, true)}
+                >
+                  <span>✓ {foundSlot.label}</span>
+                  <SoundWaveSpeakerIcon size={12} />
+                </button>
+              );
+            }
             return (
-              <span
-                key={idx}
-                className={`cs-progress-badge ${foundSlot ? 'is-filled' : ''}`}
-              >
-                {foundSlot ? `✓ ${foundSlot.label}` : `Spot ${idx + 1}`}
+              <span key={idx} className="cs-progress-badge">
+                {`Spot ${idx + 1}`}
               </span>
             );
           })}
@@ -1050,12 +1070,14 @@ export function CircleSortBoard({
               const isCircled = circledSet.has(slot.slotIndex);
               const isWrongTeach =
                 phase === 'teach-mistake' && wrongState?.slotIndex === slot.slotIndex;
+              const isDisabled = phase !== 'playing';
 
               return (
-                <button
+                <div
                   key={`${currentPage.pageUid}-${slot.slotIndex}-${slot.itemId}`}
-                  type="button"
-                  disabled={phase !== 'playing'}
+                  role="button"
+                  tabIndex={isDisabled ? -1 : 0}
+                  aria-disabled={isDisabled}
                   className={`cs-card ${isCircled ? 'is-circled' : ''} ${
                     isWrongTeach ? 'is-wrong-teach' : ''
                   }`}
@@ -1064,7 +1086,21 @@ export function CircleSortBoard({
                   data-slot-index={slot.slotIndex}
                   data-is-target={slot.isTarget ? 'true' : 'false'}
                   data-circled={isCircled ? 'true' : 'false'}
-                  onClick={() => handleCardButtonClick(slot.slotIndex)}
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement | null)?.closest('[data-sound-btn="true"]')) {
+                      return;
+                    }
+                    if (!isDisabled) {
+                      handleCardButtonClick(slot.slotIndex);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (isDisabled || e.target !== e.currentTarget) return;
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleCardButtonClick(slot.slotIndex);
+                    }
+                  }}
                 >
                   {isCircled && (
                     <>
@@ -1079,8 +1115,17 @@ export function CircleSortBoard({
                     <CircleSortItemIllustration itemId={slot.itemId} size={artSize} />
                   </span>
 
-                  <span className="cs-card__label" style={{ fontSize: labelFontSize }}>
-                    {slot.label}
+                  <span className="cs-card__label-row">
+                    <span className="cs-card__label" style={{ fontSize: labelFontSize }}>
+                      {slot.label}
+                    </span>
+                    <WordSoundButton
+                      text={slot.label}
+                      voiceClipPath={getCircleSortItemAudioPath(slot.itemId)}
+                      size="xs"
+                      variant="soft"
+                      testId={`cs-card-sound-${slot.itemId}`}
+                    />
                   </span>
 
                   {isWrongTeach && wrongState && (
@@ -1088,7 +1133,7 @@ export function CircleSortBoard({
                       {wrongState.pillLabel}
                     </span>
                   )}
-                </button>
+                </div>
               );
             })}
           </div>

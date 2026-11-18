@@ -122,6 +122,9 @@
 
 .quest-speaker-btn {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 8px 13px;
   border-radius: 999px;
   border: 2px solid #dcd8ff;
@@ -160,6 +163,7 @@
 }
 
 .quest-feedback-banner--teach {
+  gap: 8px;
   background: #f8f6f1;
   border: 2px solid #d5cfc2;
   color: #363e52;
@@ -205,6 +209,7 @@
 }
 
 .quest-choice-btn {
+  position: relative;
   min-height: 108px;
   max-height: 186px;
   padding: 12px 10px;
@@ -221,7 +226,20 @@
   transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
 }
 
-.quest-choice-btn:hover:not(:disabled) {
+.quest-choice-btn__sound,
+.quest-card-sound {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 2;
+}
+
+.quest-choice-btn[aria-disabled='true'],
+.quest-sort-basket[aria-disabled='true'] {
+  cursor: default;
+}
+
+.quest-choice-btn:hover:not([aria-disabled='true']) {
   border-color: #b7b5f5;
   background: #ffffff;
 }
@@ -315,6 +333,7 @@
 }
 
 .quest-seq-card {
+  position: relative;
   min-height: 108px;
   border-radius: 18px;
   border: 2.5px solid #e5e0d5;
@@ -332,7 +351,8 @@
   color: var(--text-primary);
 }
 
-.quest-seq-card:disabled {
+.quest-seq-card:disabled,
+.quest-seq-card.is-disabled {
   opacity: 0.35;
   cursor: default;
 }
@@ -345,6 +365,7 @@
 }
 
 .quest-sort-item {
+  position: relative;
   min-height: 98px;
   border-radius: 18px;
   border: 2.5px solid #e5e0d5;
@@ -379,6 +400,7 @@
 }
 
 .quest-sort-basket {
+  position: relative;
   min-height: 106px;
   border-radius: 20px;
   border: 3px dashed #c8c2b4;

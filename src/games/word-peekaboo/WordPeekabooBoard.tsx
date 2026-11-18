@@ -3,11 +3,16 @@ import { BrandLogo, CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
+import {
+  SoundWaveSpeakerIcon,
+  WordSoundButton,
+} from '../../components/WordSoundButton';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { useStageSize } from '../../engine/useStageSize';
 import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import { recordLearningSession, recordSkillAttempt } from '../../learning/learningStore';
 import { assetUrl } from '../../utils/assets';
+import { playThemeCharacterWord } from '../../utils/readAlongAudio';
 import {
   PEEKABOO_WORDS,
   TARGETS_PER_BOARD,
@@ -856,8 +861,19 @@ export function WordPeekabooBoard({
 
         {phase === 'character-found' && currentCard ? (
           <>
-            <span className="wpk-footer-copy" data-testid="peekaboo-found-copy">
-              Congratulations! You found {currentCard.character.name}!
+            <span
+              className="wpk-footer-copy"
+              data-testid="peekaboo-found-copy"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}
+            >
+              <span>Congratulations! You found {currentCard.character.name}!</span>
+              <WordSoundButton
+                text={currentCard.character.name}
+                pairId={currentCard.character.pairId}
+                size="xs"
+                variant="mint"
+                testId="peekaboo-found-word-sound"
+              />
             </span>
             <button
               type="button"
@@ -917,10 +933,21 @@ export function WordPeekabooBoard({
 
             <div className="wpk-win-gallery">
               {deck.map((card) => (
-                <div key={card.cardUid} className="wpk-win-card">
+                <button
+                  key={card.cardUid}
+                  type="button"
+                  className="wpk-win-card wpk-win-card--btn"
+                  aria-label={`Hear "${card.character.name}"`}
+                  onClick={() =>
+                    playThemeCharacterWord(card.character.pairId, card.character.name, true)
+                  }
+                >
                   <img src={assetUrl(card.character.imagePath)} alt={card.character.name} />
-                  <span>{card.character.name}</span>
-                </div>
+                  <span className="wpk-win-card__label">
+                    <span>{card.character.name}</span>
+                    <SoundWaveSpeakerIcon size={12} />
+                  </span>
+                </button>
               ))}
             </div>
 

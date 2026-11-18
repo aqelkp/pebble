@@ -1,0 +1,219 @@
+/* ==========================================================================
+ * Reusable Read-Along Sound Buttons & Word Pills (Pebble)
+ * Calm tactile speaker controls paired with printed words everywhere.
+ * ========================================================================== */
+
+.wsb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 999px;
+  border: 1.5px solid #d5d4f7;
+  background: #ecebff;
+  color: #4545ba;
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  transition:
+    transform 130ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.wsb-btn:hover:not(:disabled) {
+  background: #e1dfff;
+  border-color: #b7b5f5;
+  transform: scale(1.06);
+}
+
+.wsb-btn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.wsb-btn:focus-visible {
+  outline: 2.5px solid #5b5bd6;
+  outline-offset: 2px;
+}
+
+.wsb-btn--xs {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  font-size: 0.75rem;
+}
+
+.wsb-btn--xs.wsb-btn--has-text {
+  width: auto;
+  padding: 0 9px;
+}
+
+.wsb-btn--sm {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 0.84rem;
+}
+
+.wsb-btn--sm.wsb-btn--has-text {
+  width: auto;
+  padding: 0 11px;
+}
+
+.wsb-btn--md {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 12px;
+  font-size: 0.9rem;
+}
+
+.wsb-btn--mint {
+  background: #e4f6f3;
+  border-color: #8ad4ca;
+  color: #1c6b61;
+}
+
+.wsb-btn--mint:hover:not(:disabled) {
+  background: #d2f0eb;
+  border-color: #3ba99c;
+}
+
+.wsb-btn--solid {
+  background: #5b5bd6;
+  border-color: #4646b8;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(91, 91, 214, 0.24);
+}
+
+.wsb-btn--solid:hover:not(:disabled) {
+  background: #4b4bc2;
+}
+
+.wsb-btn--ghost {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: #d7dde9;
+  color: #4545ba;
+}
+
+.wsb-btn.is-speaking {
+  background: #3ba99c;
+  border-color: #247e73;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(59, 169, 156, 0.22);
+  transform: scale(1.08);
+}
+
+/* Interactive Word + Speaker Pill (e.g. Revealed Picture Nameplate) */
+.ra-word-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 14px;
+  border-radius: 999px;
+  border: 2px solid #8ad4ca;
+  background: #ffffff;
+  color: #1e2433;
+  font-family: var(--font-display);
+  font-size: 1.04rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 4px 14px rgba(59, 169, 156, 0.16);
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.ra-word-pill:hover {
+  border-color: #3ba99c;
+  background: #f4fbf9;
+  transform: translateY(-1px);
+}
+
+.ra-word-pill:active {
+  transform: scale(0.97);
+}
+
+.ra-word-pill.is-speaking {
+  border-color: #3ba99c;
+  background: #e4f6f3;
+  box-shadow: 0 0 0 4px rgba(59, 169, 156, 0.22);
+}
+
+.ra-word-pill__icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #e4f6f3;
+  color: #1d6b61;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ra-word-pill.is-speaking .ra-word-pill__icon {
+  background: #3ba99c;
+  color: #ffffff;
+}
+
+/* Word-by-Word Tappable Read-Along Phrase Card */
+.ra-phrase-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 2.5px solid #5b5bd6;
+  box-shadow: 0 4px 14px rgba(30, 36, 51, 0.06);
+}
+
+.ra-phrase-words {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ra-phrase-word {
+  appearance: none;
+  border: 1.5px solid #e4e7f2;
+  background: #f8f8fd;
+  color: #1e2433;
+  border-radius: 11px;
+  padding: 4px 10px;
+  font-family: var(--font-display);
+  font-size: clamp(1.18rem, 2.5vw, 1.48rem);
+  font-weight: 700;
+  line-height: 1.15;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    transform 120ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.ra-phrase-word:hover {
+  border-color: #9e9cf0;
+  background: #ecebff;
+  transform: translateY(-1px);
+}
+
+.ra-phrase-word.is-active {
+  border-color: #5b5bd6;
+  background: #5b5bd6;
+  color: #ffffff;
+  transform: scale(1.06);
+}

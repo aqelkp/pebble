@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, type KeyboardEvent, type MouseEvent } from 'react';
+import { WordSoundButton } from '../../components/WordSoundButton';
 import {
   OnePebbleArt,
   QuestArt,
@@ -12,6 +13,7 @@ import {
 import type {
   ChoiceQuestPrompt,
   MiniSortQuestPrompt,
+  QuestChoiceOption,
   QuestPrompt,
   SequenceQuestPrompt,
   TensOnesQuestPrompt,
@@ -26,6 +28,40 @@ interface SharedWidgetProps {
   onMistake: (explanationText: string, mistakeVoiceClipId?: string) => void;
 }
 
+function isFromSoundButton(e: { target: EventTarget | null }): boolean {
+  const el = e.target as HTMLElement | null;
+  return Boolean(el?.closest('[data-sound-btn="true"]'));
+}
+
+function resolveChoiceSpokenText(opt: QuestChoiceOption): string | null {
+  if (opt.label && opt.label.trim().length > 0) {
+    return opt.label.trim();
+  }
+  if (opt.largeText && opt.sublabel) {
+    if (/^\d+(st|nd|rd|th)$/i.test(opt.largeText.trim())) {
+      return opt.sublabel.trim();
+    }
+    return `${opt.largeText.trim()} ${opt.sublabel.trim()}`;
+  }
+  if (opt.largeText && opt.largeText.trim().length > 0) {
+    return opt.largeText.trim();
+  }
+  return null;
+}
+
+function handleCardKeyDown(
+  e: KeyboardEvent<HTMLDivElement>,
+  disabled: boolean,
+  onActivate: () => void,
+): void {
+  if (disabled) return;
+  if (e.target !== e.currentTarget) return;
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    onActivate();
+  }
+}
+
 /* ================= 1. CHOICE GRID ================= */
 function ChoiceGridWidget({
   prompt,
@@ -35,6 +71,7 @@ function ChoiceGridWidget({
 }: SharedWidgetProps & { prompt: ChoiceQuestPrompt }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [wrongId, setWrongId] = useState<string | null>(null);
+  const [hasWrongAttempt, setHasWrongAttempt] = useState(false);
 
   const count = prompt.choices.length;
   const gridMod =
@@ -45,12 +82,17 @@ function ChoiceGridWidget({
         : 'quest-choice-grid--4';
 
   const artSize = prompt.promptArt ? 58 : 74;
+  const isSightListenPrompt = prompt.conceptId.startsWith('sight:');
 
   return (
     <div className="quest-widget-body">
       {prompt.promptArt && (
         <div className="quest-prompt-hero">
-          <QuestArt spec={prompt.promptArt} size={74} />
+          <QuestArt
+            spec={prompt.promptArt}
+            size={74}
+            solvedClipId={prompt.solvedVoiceClipId}
+          />
         </div>
       )}
 
@@ -58,34 +100,55 @@ function ChoiceGridWidget({
         {prompt.choices.map((opt) => {
           const isSolved = selectedId === opt.id && opt.isCorrect;
           const isWrong = wrongId === opt.id;
+          const spokenText = resolveChoiceSpokenText(opt);
+          const showChoiceSound =
+            Boolean(spokenText) && (!isSightListenPrompt || hasWrongAttempt || isSolved);
+
+          const activateChoice = () => {
+            if (locked) return;
+            if (opt.isCorrect) {
+              setSelectedId(opt.id);
+              setWrongId(null);
+              onSolve();
+            } else {
+              setWrongId(opt.id);
+              setHasWrongAttempt(true);
+              onMistake(opt.wrongExplanation, opt.mistakeVoiceClipId);
+            }
+          };
+
           return (
-            <button
+            <div
               key={opt.id}
-              type="button"
-              disabled={locked}
+              role="button"
+              tabIndex={locked ? -1 : 0}
+              aria-disabled={locked}
               data-quest-choice={opt.isCorrect ? 'correct' : 'wrong'}
               className={`quest-choice-btn ${isSolved ? 'quest-choice-btn--correct' : ''} ${
                 isWrong ? 'quest-choice-btn--wrong-nudge' : ''
               }`}
-              onClick={() => {
-                if (locked) return;
-                if (opt.isCorrect) {
-                  setSelectedId(opt.id);
-                  setWrongId(null);
-                  onSolve();
-                } else {
-                  setWrongId(opt.id);
-                  onMistake(opt.wrongExplanation, opt.mistakeVoiceClipId);
-                }
+              onClick={(e: MouseEvent<HTMLDivElement>) => {
+                if (isFromSoundButton(e)) return;
+                activateChoice();
               }}
+              onKeyDown={(e) => handleCardKeyDown(e, locked, activateChoice)}
             >
+              {showChoiceSound && spokenText && (
+                <WordSoundButton
+                  text={spokenText}
+                  size="xs"
+                  variant="soft"
+                  className="quest-choice-btn__sound"
+                  testId={`quest-choice-sound-${opt.id}`}
+                />
+              )}
               {opt.art && <QuestArt spec={opt.art} size={artSize} />}
               {opt.largeText && (
                 <span className="quest-choice-btn__large">{opt.largeText}</span>
               )}
               {opt.label && <span className="quest-choice-btn__label">{opt.label}</span>}
               {opt.sublabel && <span className="quest-choice-btn__sub">{opt.sublabel}</span>}
-            </button>
+            </div>
           );
         })}
       </div>
@@ -155,6 +218,12 @@ function SequenceStripWidget({
               <span className="quest-seq-slot__num">{slotIdx + 1}</span>
               {placedItem ? (
                 <>
+                  <WordSoundButton
+                    text={placedItem.label}
+                    size="xs"
+                    variant="mint"
+                    className="quest-card-sound"
+                  />
                   {placedItem.art && <QuestArt spec={placedItem.art} size={50} />}
                   {placedItem.largeBadge && (
                     <span className="quest-choice-btn__large" style={{ fontSize: '1.8rem' }}>
@@ -181,17 +250,40 @@ function SequenceStripWidget({
       >
         {prompt.steps.map((item) => {
           const used = placedIds.includes(item.id);
+          const disabled = used || locked;
           return (
-            <button
+            <div
               key={item.id}
-              type="button"
-              draggable={!used && !locked}
-              disabled={used || locked}
+              role="button"
+              tabIndex={disabled ? -1 : 0}
+              aria-disabled={disabled}
+              draggable={!disabled}
               data-seq-order={item.correctOrder}
-              className="quest-seq-card"
-              onDragStart={() => setDragItemId(item.id)}
-              onClick={() => tryPlaceStep(item.id)}
+              className={`quest-seq-card ${disabled ? 'is-disabled' : ''}`}
+              onDragStart={(e) => {
+                if (isFromSoundButton(e)) {
+                  e.preventDefault();
+                  return;
+                }
+                setDragItemId(item.id);
+              }}
+              onClick={(e) => {
+                if (isFromSoundButton(e) || disabled) return;
+                tryPlaceStep(item.id);
+              }}
+              onKeyDown={(e) =>
+                handleCardKeyDown(e, disabled, () => tryPlaceStep(item.id))
+              }
             >
+              {!used && (
+                <WordSoundButton
+                  text={item.label}
+                  size="xs"
+                  variant="soft"
+                  className="quest-card-sound"
+                  testId={`quest-seq-sound-${item.id}`}
+                />
+              )}
               {item.art && <QuestArt spec={item.art} size={54} />}
               {item.largeBadge && (
                 <span className="quest-choice-btn__large" style={{ fontSize: '1.9rem' }}>
@@ -199,7 +291,7 @@ function SequenceStripWidget({
                 </span>
               )}
               <span style={{ textAlign: 'center' }}>{item.label}</span>
-            </button>
+            </div>
           );
         })}
       </div>
@@ -249,22 +341,45 @@ function MiniSorterWidget({
         {prompt.items.map((item) => {
           const isSorted = Boolean(sortedMap[item.id]);
           const isSelected = activeItemId === item.id && !isSorted;
+          const disabled = isSorted || locked;
           return (
-            <button
+            <div
               key={item.id}
-              type="button"
-              draggable={!isSorted && !locked}
-              disabled={isSorted || locked}
+              role="button"
+              tabIndex={disabled ? -1 : 0}
+              aria-disabled={disabled}
+              draggable={!disabled}
               data-sort-target={item.targetBasketId}
               className={`quest-sort-item ${isSelected ? 'quest-sort-item--selected' : ''} ${
                 isSorted ? 'quest-sort-item--sorted' : ''
               }`}
-              onDragStart={() => setSelectedItemId(item.id)}
-              onClick={() => setSelectedItemId(item.id)}
+              onDragStart={(e) => {
+                if (isFromSoundButton(e)) {
+                  e.preventDefault();
+                  return;
+                }
+                setSelectedItemId(item.id);
+              }}
+              onClick={(e) => {
+                if (isFromSoundButton(e) || disabled) return;
+                setSelectedItemId(item.id);
+              }}
+              onKeyDown={(e) =>
+                handleCardKeyDown(e, disabled, () => setSelectedItemId(item.id))
+              }
             >
+              {!isSorted && (
+                <WordSoundButton
+                  text={item.label}
+                  size="xs"
+                  variant="soft"
+                  className="quest-card-sound"
+                  testId={`quest-sort-item-sound-${item.id}`}
+                />
+              )}
               <QuestArt spec={item.art} size={48} />
               <span style={{ textAlign: 'center' }}>{item.label}</span>
-            </button>
+            </div>
           );
         })}
       </div>
@@ -276,10 +391,11 @@ function MiniSorterWidget({
         {prompt.baskets.map((basket) => {
           const countInBasket = Object.values(sortedMap).filter((b) => b === basket.id).length;
           return (
-            <button
+            <div
               key={basket.id}
-              type="button"
-              disabled={locked}
+              role="button"
+              tabIndex={locked ? -1 : 0}
+              aria-disabled={locked}
               data-basket-id={basket.id}
               className="quest-sort-basket"
               style={{ borderColor: basket.accentColor }}
@@ -290,8 +406,21 @@ function MiniSorterWidget({
                 e.preventDefault();
                 tryDropIntoBasket(activeItemId, basket.id);
               }}
-              onClick={() => tryDropIntoBasket(activeItemId, basket.id)}
+              onClick={(e) => {
+                if (isFromSoundButton(e) || locked) return;
+                tryDropIntoBasket(activeItemId, basket.id);
+              }}
+              onKeyDown={(e) =>
+                handleCardKeyDown(e, locked, () => tryDropIntoBasket(activeItemId, basket.id))
+              }
             >
+              <WordSoundButton
+                text={basket.label}
+                size="xs"
+                variant="soft"
+                className="quest-card-sound"
+                testId={`quest-basket-sound-${basket.id}`}
+              />
               <span
                 className="font-display"
                 style={{ fontSize: '1.05rem', fontWeight: 700, color: basket.accentColor }}
@@ -307,7 +436,7 @@ function MiniSorterWidget({
               >
                 {countInBasket} sorted
               </span>
-            </button>
+            </div>
           );
         })}
       </div>
@@ -376,9 +505,12 @@ function TensOnesTrayWidget({
         data-target-ones={prompt.targetOnes}
       >
         <div className="quest-tens-zone quest-tens-zone--tens">
-          <span className="font-display" style={{ fontWeight: 700, color: '#5B5BD6', fontSize: '1rem' }}>
-            10-Bundles (Tens): {tens} <span style={{ opacity: 0.78 }}>= {tens * 10}</span>
-          </span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span className="font-display" style={{ fontWeight: 700, color: '#5B5BD6', fontSize: '1rem' }}>
+              10-Bundles (Tens): {tens} <span style={{ opacity: 0.78 }}>= {tens * 10}</span>
+            </span>
+            <WordSoundButton text="Tens Bundles" size="xs" variant="soft" />
+          </div>
           <div className="quest-tens-visual">
             {tens === 0 ? (
               <span style={{ fontSize: '0.84rem', color: '#5C6478', textAlign: 'center' }}>
@@ -422,9 +554,12 @@ function TensOnesTrayWidget({
         </div>
 
         <div className="quest-tens-zone quest-tens-zone--ones">
-          <span className="font-display" style={{ fontWeight: 700, color: '#D15B40', fontSize: '1rem' }}>
-            Single Pebbles (Ones): {ones}
-          </span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span className="font-display" style={{ fontWeight: 700, color: '#D15B40', fontSize: '1rem' }}>
+              Single Pebbles (Ones): {ones}
+            </span>
+            <WordSoundButton text="Ones Pebbles" size="xs" variant="soft" />
+          </div>
           <div className="quest-tens-visual">
             {ones === 0 ? (
               <span style={{ fontSize: '0.84rem', color: '#5C6478', textAlign: 'center' }}>
@@ -635,7 +770,10 @@ function VisualStripWidget({
                     />
                   ))}
                 </div>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{col.label}</span>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{col.label}</span>
+                  <WordSoundButton text={col.label} size="xs" variant="soft" />
+                </div>
               </div>
             ))}
           </div>
@@ -643,6 +781,12 @@ function VisualStripWidget({
 
         {strip.subkind === 'length-measure' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1E2433' }}>
+                {strip.objectLabel}
+              </span>
+              <WordSoundButton text={strip.objectLabel} size="xs" variant="soft" />
+            </div>
             <div
               style={{
                 width: strip.unitBlocks * 44,
@@ -678,33 +822,53 @@ function VisualStripWidget({
           prompt.choices.length === 3 ? 'quest-choice-grid--3' : 'quest-choice-grid--4'
         }`}
       >
-        {prompt.choices.map((opt) => (
-          <button
-            key={opt.id}
-            type="button"
-            disabled={locked}
-            data-quest-choice={opt.isCorrect ? 'correct' : 'wrong'}
-            className={`quest-choice-btn ${solvedId === opt.id ? 'quest-choice-btn--correct' : ''}`}
-            style={{ minHeight: 88 }}
-            onClick={() => {
-              if (opt.isCorrect) {
-                setSolvedId(opt.id);
-                onSolve();
-              } else {
-                onMistake(opt.wrongExplanation, opt.mistakeVoiceClipId);
-              }
-            }}
-          >
-            {opt.art && <QuestArt spec={opt.art} size={42} />}
-            {opt.largeText && (
-              <span className="quest-choice-btn__large" style={{ fontSize: '1.85rem' }}>
-                {opt.largeText}
-              </span>
-            )}
-            {opt.label && <span className="quest-choice-btn__label">{opt.label}</span>}
-            {opt.sublabel && <span className="quest-choice-btn__sub">{opt.sublabel}</span>}
-          </button>
-        ))}
+        {prompt.choices.map((opt) => {
+          const spokenText = resolveChoiceSpokenText(opt);
+          const activateChoice = () => {
+            if (locked) return;
+            if (opt.isCorrect) {
+              setSolvedId(opt.id);
+              onSolve();
+            } else {
+              onMistake(opt.wrongExplanation, opt.mistakeVoiceClipId);
+            }
+          };
+
+          return (
+            <div
+              key={opt.id}
+              role="button"
+              tabIndex={locked ? -1 : 0}
+              aria-disabled={locked}
+              data-quest-choice={opt.isCorrect ? 'correct' : 'wrong'}
+              className={`quest-choice-btn ${solvedId === opt.id ? 'quest-choice-btn--correct' : ''}`}
+              style={{ minHeight: 88 }}
+              onClick={(e) => {
+                if (isFromSoundButton(e)) return;
+                activateChoice();
+              }}
+              onKeyDown={(e) => handleCardKeyDown(e, locked, activateChoice)}
+            >
+              {spokenText && (
+                <WordSoundButton
+                  text={spokenText}
+                  size="xs"
+                  variant="soft"
+                  className="quest-choice-btn__sound"
+                  testId={`quest-strip-choice-sound-${opt.id}`}
+                />
+              )}
+              {opt.art && <QuestArt spec={opt.art} size={42} />}
+              {opt.largeText && (
+                <span className="quest-choice-btn__large" style={{ fontSize: '1.85rem' }}>
+                  {opt.largeText}
+                </span>
+              )}
+              {opt.label && <span className="quest-choice-btn__label">{opt.label}</span>}
+              {opt.sublabel && <span className="quest-choice-btn__sub">{opt.sublabel}</span>}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

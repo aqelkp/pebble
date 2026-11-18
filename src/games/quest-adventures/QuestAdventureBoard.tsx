@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { GameStage } from '../../components/GameStage';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
+import {
+  SoundWaveSpeakerIcon,
+  WordSoundButton,
+} from '../../components/WordSoundButton';
 import type { FamilyProfile } from '../../context/FamilyProfilesContext';
 import { generateQuestDeck } from '../../curriculum/questEngine/questDeckBuilder';
 import {
@@ -380,7 +384,8 @@ export function QuestAdventureBoard({
                 )
               }
             >
-              Hear Clue
+              <SoundWaveSpeakerIcon size={15} />
+              <span>Hear Clue</span>
             </button>
           </div>
 
@@ -392,7 +397,8 @@ export function QuestAdventureBoard({
 
           {phase === 'teaching-mistake' && (
             <div className="quest-feedback-banner quest-feedback-banner--teach">
-              {teachMessage}
+              <span>{teachMessage}</span>
+              <WordSoundButton text={teachMessage} size="xs" variant="ghost" />
             </div>
           )}
 

@@ -12,10 +12,15 @@ import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
+import { WordSoundButton } from '../../components/WordSoundButton';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import { recordLearningSession } from '../../learning/learningStore';
 import { assetUrl } from '../../utils/assets';
+import {
+  playThemeCharacterTalk,
+  preloadThemeAudioForPairIds,
+} from '../../utils/readAlongAudio';
 import { getThemeSpec } from '../memory-match/themes';
 import {
   generateJigsawPuzzle,
@@ -195,6 +200,11 @@ export function StickerJigsawBoard({
   const slotRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const teachTimerRef = useRef<number | null>(null);
   const advanceTimerRef = useRef<number | null>(null);
+  const talkTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    preloadThemeAudioForPairIds(puzzles.map((p) => p.character.pairId));
+  }, [puzzles]);
 
   const [boardPx, setBoardPx] = useState(320);
 
@@ -225,6 +235,7 @@ export function StickerJigsawBoard({
     return () => {
       if (teachTimerRef.current) window.clearTimeout(teachTimerRef.current);
       if (advanceTimerRef.current) window.clearTimeout(advanceTimerRef.current);
+      if (talkTimerRef.current) window.clearTimeout(talkTimerRef.current);
     };
   }, []);
 
@@ -354,9 +365,18 @@ export function StickerJigsawBoard({
             text: `Sticker Complete! You built ${puzzle.character.label}!`,
           });
 
+          if (talkTimerRef.current) window.clearTimeout(talkTimerRef.current);
+          talkTimerRef.current = window.setTimeout(() => {
+            playThemeCharacterTalk(
+              puzzle.character.pairId,
+              puzzle.character.label,
+              soundEnabled,
+            );
+          }, 240);
+
           advanceTimerRef.current = window.setTimeout(() => {
             advanceAfterCompleteSticker(puzzleIndex + 1, nextMoves, mistakesCount);
-          }, 1250);
+          }, 2300);
         } else {
           playJigsawSnapSound(soundEnabled);
           setBanner({
@@ -572,6 +592,13 @@ export function StickerJigsawBoard({
           <div className="sj-character-pill">
             <span>{theme.title}</span>
             <strong>{puzzle.character.label}</strong>
+            <WordSoundButton
+              text={puzzle.character.label}
+              pairId={puzzle.character.pairId}
+              size="xs"
+              variant="mint"
+              testId="sj-word-sound-btn"
+            />
           </div>
 
           <div

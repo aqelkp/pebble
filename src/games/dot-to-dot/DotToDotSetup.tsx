@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BrandLogo } from '../../components/BrandLogo';
+import { WordSoundButton } from '../../components/WordSoundButton';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import { assetUrl } from '../../utils/assets';
 import { preloadAudioPaths, preloadImages } from '../../utils/wordAudio';
@@ -216,35 +217,49 @@ export function DotToDotSetup({
           2. Choose Picture World
         </h2>
         <div className="dtd-world-grid" role="radiogroup" aria-label="Picture world theme">
-          <button
-            type="button"
+          <div
             role="radio"
+            tabIndex={0}
             aria-checked={themeId === 'all'}
             className={`dtd-world-chip ${themeId === 'all' ? 'is-selected' : ''}`}
             data-testid="dot-theme-all"
             onClick={() => setThemeId('all')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setThemeId('all');
+              }
+            }}
           >
+            <WordSoundButton text="All Worlds" size="xs" variant="ghost" className="dtd-world-chip__sound" />
             <span className="dtd-world-chip__thumb">
               <img src={assetUrl('hub/dot-to-dot.png')} alt="" />
             </span>
             <span className="dtd-world-chip__label">All Worlds</span>
-          </button>
+          </div>
 
           {CARD_THEMES.map((theme) => (
-            <button
+            <div
               key={theme.id}
-              type="button"
               role="radio"
+              tabIndex={0}
               aria-checked={themeId === theme.id}
               className={`dtd-world-chip ${themeId === theme.id ? 'is-selected' : ''}`}
               data-testid={`dot-theme-${theme.id}`}
               onClick={() => setThemeId(theme.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setThemeId(theme.id);
+                }
+              }}
             >
+              <WordSoundButton text={theme.title} size="xs" variant="ghost" className="dtd-world-chip__sound" />
               <span className="dtd-world-chip__thumb">
                 <img src={assetUrl(theme.previewPaths[0])} alt="" />
               </span>
               <span className="dtd-world-chip__label">{theme.title}</span>
-            </button>
+            </div>
           ))}
         </div>
       </section>

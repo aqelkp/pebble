@@ -10,9 +10,14 @@ import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
+import { ReadAlongWordPill, WordSoundButton } from '../../components/WordSoundButton';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import { recordLearningSession } from '../../learning/learningStore';
+import {
+  playThemeCharacterWord,
+  preloadThemeAudioForPairIds,
+} from '../../utils/readAlongAudio';
 import { getThemeSpec } from '../memory-match/themes';
 import { StickerCutoutCanvas } from './StickerCutoutCanvas';
 import {
@@ -206,6 +211,10 @@ export function StickerSceneBoard({
   }, []);
 
   useEffect(() => {
+    preloadThemeAudioForPairIds(deck.flatMap((scene) => scene.slots.map((s) => s.stickerId)));
+  }, [deck]);
+
+  useEffect(() => {
     onGameActiveChange(!roundWon);
   }, [onGameActiveChange, roundWon]);
 
@@ -316,6 +325,7 @@ export function StickerSceneBoard({
             }
           }, 950);
         } else {
+          playThemeCharacterWord(item.stickerId, item.label, soundEnabled);
           setConfettiMode('match');
           setConfettiKey((k) => k + 1);
           const remaining = currentScene.slots.length - Object.keys(nextPlaced).length;
@@ -396,7 +406,8 @@ export function StickerSceneBoard({
     [placedBySlotUid],
   );
 
-  const handleTrayPointerDown = (e: ReactPointerEvent<HTMLButtonElement>, item: StickerTrayItem) => {
+  const handleTrayPointerDown = (e: ReactPointerEvent<HTMLDivElement>, item: StickerTrayItem) => {
+    if ((e.target as HTMLElement | null)?.closest('[data-sound-btn="true"]')) return;
     if (teachFeedback || pauseActive || roundWon) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     playStickerPickupSound(soundEnabled);
@@ -412,7 +423,7 @@ export function StickerSceneBoard({
     });
   };
 
-  const handleTrayPointerMove = (e: ReactPointerEvent<HTMLButtonElement>) => {
+  const handleTrayPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!dragState || dragState.pointerId !== e.pointerId) return;
     const dx = e.clientX - dragState.startX;
     const dy = e.clientY - dragState.startY;
@@ -427,7 +438,7 @@ export function StickerSceneBoard({
     });
   };
 
-  const handleTrayPointerUp = (e: ReactPointerEvent<HTMLButtonElement>) => {
+  const handleTrayPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!dragState || dragState.pointerId !== e.pointerId) return;
     const { isDragging, item } = dragState;
     const dropUid = isDragging ? findHoverSlotUid(e.clientX, e.clientY) : null;
@@ -530,7 +541,12 @@ export function StickerSceneBoard({
           style={{ width: `${sceneDims.width}px`, height: `${sceneDims.height}px` }}
         >
           <SceneBackdropSvg backdrop={currentScene.backdrop} />
-          <span className="ss-backdrop-badge">{currentScene.backdrop.label}</span>
+          <div className="ss-backdrop-badge-wrap">
+            <ReadAlongWordPill
+              text={currentScene.backdrop.label}
+              className="ss-backdrop-pill"
+            />
+          </div>
 
           {currentScene.slots.map((slot) => {
             const placed = placedBySlotUid[slot.slotUid];
@@ -620,10 +636,13 @@ export function StickerSceneBoard({
           {tray.map((item) => {
             const selected = selectedUid === item.uid;
             const draggingThis = dragState?.isDragging && dragState.item.uid === item.uid;
+            const isDisabled = Boolean(teachFeedback) || pauseActive || roundWon;
             return (
-              <button
+              <div
                 key={item.uid}
-                type="button"
+                role="button"
+                tabIndex={isDisabled ? -1 : 0}
+                aria-disabled={isDisabled}
                 data-testid={`ss-tray-sticker-${item.stickerId}`}
                 data-sticker-id={item.stickerId}
                 className={`ss-tray-sticker-btn ${
@@ -633,7 +652,13 @@ export function StickerSceneBoard({
                 onPointerMove={handleTrayPointerMove}
                 onPointerUp={handleTrayPointerUp}
                 onPointerCancel={() => setDragState(null)}
-                disabled={Boolean(teachFeedback) || pauseActive || roundWon}
+                onKeyDown={(e) => {
+                  if (isDisabled || e.target !== e.currentTarget) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedUid((prev) => (prev === item.uid ? null : item.uid));
+                  }
+                }}
                 aria-pressed={selected}
                 aria-label={`${item.label} sticker`}
               >
@@ -643,8 +668,17 @@ export function StickerSceneBoard({
                   mode="cutout"
                   size={74}
                 />
-                <span className="ss-tray-sticker-btn__label">{item.label}</span>
-              </button>
+                <span className="ss-tray-sticker-btn__label-row">
+                  <span className="ss-tray-sticker-btn__label">{item.label}</span>
+                  <WordSoundButton
+                    text={item.label}
+                    pairId={item.stickerId}
+                    size="xs"
+                    variant="soft"
+                    testId={`ss-sticker-sound-${item.stickerId}`}
+                  />
+                </span>
+              </div>
             );
           })}
         </div>

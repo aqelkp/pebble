@@ -72,6 +72,15 @@ function playStaticClip(relativePath: string, fallbackPhrase: string, enabled: b
       }
     });
 
+    audio.addEventListener('error', () => {
+      if (activeAudioEl === audio) {
+        activeAudioEl = null;
+      }
+      if (playbackNonce === currentNonce && fallbackPhrase) {
+        speakWithSynthesis(fallbackPhrase, true);
+      }
+    });
+
     const playPromise = audio.play();
     if (playPromise && typeof playPromise.catch === 'function') {
       playPromise.catch(() => {
@@ -85,6 +94,18 @@ function playStaticClip(relativePath: string, fallbackPhrase: string, enabled: b
       speakWithSynthesis(fallbackPhrase, true);
     }
   }
+}
+
+/**
+ * Plays any allow-listed static relative audio clip (e.g. `audio/themes/talk/lk-01.mp3`),
+ * falling back to Web Speech only if the static clip cannot play.
+ */
+export function playRelativeAudioClip(
+  relativePath: string,
+  fallbackPhrase: string,
+  enabled: boolean,
+): void {
+  playStaticClip(relativePath, fallbackPhrase, enabled);
 }
 
 /**

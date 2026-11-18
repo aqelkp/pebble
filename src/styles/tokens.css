@@ -513,12 +513,20 @@ h3,
   color: var(--text-secondary);
 }
 
+.game-card__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
 .game-card__title {
   font-family: var(--font-display);
   font-size: 1.45rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 6px;
+  margin: 0;
 }
 
 .game-card--featured .game-card__title {
@@ -4534,6 +4542,13 @@ h3,
   justify-content: center;
 }
 
+.wf-clue-card__caption-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .wf-clue-card__caption {
   margin: 0;
   font-family: var(--font-display);
@@ -6141,6 +6156,7 @@ h3,
 }
 
 .ps-tray-card {
+  position: relative;
   width: 66px;
   height: 78px;
   border-radius: 15px;
@@ -6158,6 +6174,15 @@ h3,
   user-select: none;
   -webkit-user-select: none;
   transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.ps-tray-card__sound {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 22px;
+  height: 22px;
+  z-index: 2;
 }
 
 .ps-tray-card:hover {
@@ -6324,6 +6349,13 @@ h3,
   font-weight: 600;
   line-height: 1.28;
   color: var(--text-primary, #1e2433);
+}
+
+.think-again-card__hint-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .think-again-card__hint {
@@ -9062,6 +9094,18 @@ h3,
   display: block;
 }
 
+.ss-backdrop-badge-wrap {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 6;
+}
+
+.ss-backdrop-pill {
+  font-size: 0.84rem;
+  padding: 4px 8px 4px 12px;
+}
+
 .ss-backdrop-badge {
   position: absolute;
   top: 12px;
@@ -9194,9 +9238,15 @@ h3,
   transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
 }
 
-.ss-tray-sticker-btn:hover:not(:disabled) {
+.ss-tray-sticker-btn:hover:not([aria-disabled='true']) {
   transform: translateY(-2px);
   border-color: var(--indigo-border);
+}
+
+.ss-tray-sticker-btn__label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .ss-tray-sticker-btn--selected {

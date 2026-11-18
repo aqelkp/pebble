@@ -26,6 +26,7 @@ export type ResolvedDotKind = 'numbers' | 'countdown' | 'letters';
 
 export interface DotPuzzleItem {
   id: string;
+  pairId: string;
   word: string;
   imagePath: string;
   themeId: ThemeId;
@@ -467,6 +468,7 @@ export function buildDotPuzzleDeck(config: DotToDotConfig): DotPuzzleItem[] {
 
     return {
       id: entry.id,
+      pairId: entry.rawPairId,
       word: entry.word,
       imagePath: entry.imagePath,
       themeId: entry.themeId,

@@ -515,7 +515,7 @@ export function buildPlantsAndDietQuizPrompt(): ChoiceQuestPrompt {
       correct: { label: 'Wooden Chair', art: { kind: 'quest-icon' as const, id: 'plant-wooden-chair' as const } },
       wrongs: [
         { label: 'Glass of Milk', art: { kind: 'word-art' as const, id: 'milk' as const } },
-        { label: 'Woolly Egg', art: { kind: 'word-art' as const, id: 'egg' as const } },
+        { label: 'Fresh Egg', art: { kind: 'word-art' as const, id: 'egg' as const } },
       ],
       explain: 'Milk and eggs come from animals — wood for chairs comes from trees!',
     },

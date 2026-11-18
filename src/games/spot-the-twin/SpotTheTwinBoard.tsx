@@ -3,6 +3,7 @@ import { CrownIcon } from '../../components/BrandLogo';
 import { ConfettiBurst } from '../../components/ConfettiBurst';
 import { GameHelpButton } from '../../components/GameHelpButton';
 import { ThinkAgainOverlay } from '../../components/ThinkAgainOverlay';
+import { WordSoundButton } from '../../components/WordSoundButton';
 import { getAvatarSrc, type FamilyProfile } from '../../context/FamilyProfilesContext';
 import type { JourneyBoardContext } from '../../journey/journeyTypes';
 import { recordLearningSession } from '../../learning/learningStore';
@@ -349,18 +350,40 @@ export function SpotTheTwinBoard({
         }`}
         role="status"
         aria-live="polite"
+        style={{ gap: 8 }}
       >
-        {banner.text}
+        <span>{banner.text}</span>
+        {phase === 'matched' && (
+          <WordSoundButton
+            text={currentPair.twinWord.word}
+            voiceClipPath={`audio/words/${currentPair.twinWord.id}.mp3`}
+            size="xs"
+            variant="mint"
+          />
+        )}
       </div>
 
       <main className="stt-stage" ref={stageRef}>
         {renderCard(currentPair.leftCard, 'top', 'Top picture card')}
-        <div className="stt-center-pill" aria-hidden="true">
+        <div
+          className="stt-center-pill"
+          aria-hidden={phase !== 'matched'}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        >
           <span>
             {phase === 'matched'
               ? `${currentPair.twinWord.word}!`
               : '1 Picture Matches Both Cards'}
           </span>
+          {phase === 'matched' && (
+            <WordSoundButton
+              text={currentPair.twinWord.word}
+              voiceClipPath={`audio/words/${currentPair.twinWord.id}.mp3`}
+              size="xs"
+              variant="mint"
+              testId="stt-matched-word-sound"
+            />
+          )}
         </div>
         {renderCard(currentPair.rightCard, 'bottom', 'Bottom picture card')}
       </main>
