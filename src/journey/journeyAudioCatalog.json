@@ -897,6 +897,839 @@
         }
       ]
     },
+    "compare-quest": {
+      "id": "compare-quest",
+      "text": "Compare both sides and place greater than, less than, or equal in the middle!",
+      "audioPath": "audio/journey/compare-quest.mp3",
+      "durationMs": 4415,
+      "words": [
+        {
+          "word": "Compare",
+          "startMs": 0,
+          "endMs": 443
+        },
+        {
+          "word": "both",
+          "startMs": 443,
+          "endMs": 611
+        },
+        {
+          "word": "sides",
+          "startMs": 611,
+          "endMs": 1057
+        },
+        {
+          "word": "and",
+          "startMs": 1057,
+          "endMs": 1257
+        },
+        {
+          "word": "place",
+          "startMs": 1257,
+          "endMs": 1534
+        },
+        {
+          "word": "greater",
+          "startMs": 1534,
+          "endMs": 1902
+        },
+        {
+          "word": "than,",
+          "startMs": 1902,
+          "endMs": 2407
+        },
+        {
+          "word": "less",
+          "startMs": 2407,
+          "endMs": 2505
+        },
+        {
+          "word": "than,",
+          "startMs": 2505,
+          "endMs": 2905
+        },
+        {
+          "word": "or",
+          "startMs": 2905,
+          "endMs": 3176
+        },
+        {
+          "word": "equal",
+          "startMs": 3176,
+          "endMs": 3582
+        },
+        {
+          "word": "in",
+          "startMs": 3582,
+          "endMs": 3747
+        },
+        {
+          "word": "the",
+          "startMs": 3747,
+          "endMs": 3958
+        },
+        {
+          "word": "middle!",
+          "startMs": 3958,
+          "endMs": 4415
+        }
+      ]
+    },
+    "word-trace": {
+      "id": "word-trace",
+      "text": "Listen to the word, then trace each letter left to right along the four lines!",
+      "audioPath": "audio/journey/word-trace.mp3",
+      "durationMs": 4376,
+      "words": [
+        {
+          "word": "Listen",
+          "startMs": 0,
+          "endMs": 467
+        },
+        {
+          "word": "to",
+          "startMs": 467,
+          "endMs": 742
+        },
+        {
+          "word": "the",
+          "startMs": 742,
+          "endMs": 955
+        },
+        {
+          "word": "word,",
+          "startMs": 955,
+          "endMs": 1231
+        },
+        {
+          "word": "then",
+          "startMs": 1231,
+          "endMs": 1518
+        },
+        {
+          "word": "trace",
+          "startMs": 1518,
+          "endMs": 1759
+        },
+        {
+          "word": "each",
+          "startMs": 1759,
+          "endMs": 1892
+        },
+        {
+          "word": "letter",
+          "startMs": 1892,
+          "endMs": 2278
+        },
+        {
+          "word": "left",
+          "startMs": 2278,
+          "endMs": 2661
+        },
+        {
+          "word": "to",
+          "startMs": 2661,
+          "endMs": 2736
+        },
+        {
+          "word": "right",
+          "startMs": 2736,
+          "endMs": 3096
+        },
+        {
+          "word": "along",
+          "startMs": 3096,
+          "endMs": 3509
+        },
+        {
+          "word": "the",
+          "startMs": 3509,
+          "endMs": 3603
+        },
+        {
+          "word": "four",
+          "startMs": 3603,
+          "endMs": 3795
+        },
+        {
+          "word": "lines!",
+          "startMs": 3795,
+          "endMs": 4376
+        }
+      ]
+    },
+    "mystery-express": {
+      "id": "mystery-express",
+      "text": "Solve each puzzle at the railway gate to send the train chugging ahead!",
+      "audioPath": "audio/journey/mystery-express.mp3",
+      "durationMs": 4093,
+      "words": [
+        {
+          "word": "Solve",
+          "startMs": 0,
+          "endMs": 372
+        },
+        {
+          "word": "each",
+          "startMs": 372,
+          "endMs": 454
+        },
+        {
+          "word": "puzzle",
+          "startMs": 454,
+          "endMs": 948
+        },
+        {
+          "word": "at",
+          "startMs": 948,
+          "endMs": 1226
+        },
+        {
+          "word": "the",
+          "startMs": 1226,
+          "endMs": 1348
+        },
+        {
+          "word": "railway",
+          "startMs": 1348,
+          "endMs": 1828
+        },
+        {
+          "word": "gate",
+          "startMs": 1828,
+          "endMs": 2200
+        },
+        {
+          "word": "to",
+          "startMs": 2200,
+          "endMs": 2417
+        },
+        {
+          "word": "send",
+          "startMs": 2417,
+          "endMs": 2529
+        },
+        {
+          "word": "the",
+          "startMs": 2529,
+          "endMs": 2902
+        },
+        {
+          "word": "train",
+          "startMs": 2902,
+          "endMs": 2998
+        },
+        {
+          "word": "chugging",
+          "startMs": 2998,
+          "endMs": 3487
+        },
+        {
+          "word": "ahead!",
+          "startMs": 3487,
+          "endMs": 4093
+        }
+      ]
+    },
+    "pebble-creek": {
+      "id": "pebble-creek",
+      "text": "Solve each river puzzle to drop a stepping stone across Pebble Creek!",
+      "audioPath": "audio/journey/pebble-creek.mp3",
+      "durationMs": 4141,
+      "words": [
+        {
+          "word": "Solve",
+          "startMs": 0,
+          "endMs": 231
+        },
+        {
+          "word": "each",
+          "startMs": 231,
+          "endMs": 551
+        },
+        {
+          "word": "river",
+          "startMs": 551,
+          "endMs": 1068
+        },
+        {
+          "word": "puzzle",
+          "startMs": 1068,
+          "endMs": 1530
+        },
+        {
+          "word": "to",
+          "startMs": 1530,
+          "endMs": 1746
+        },
+        {
+          "word": "drop",
+          "startMs": 1746,
+          "endMs": 1832
+        },
+        {
+          "word": "a",
+          "startMs": 1832,
+          "endMs": 2163
+        },
+        {
+          "word": "stepping",
+          "startMs": 2163,
+          "endMs": 2665
+        },
+        {
+          "word": "stone",
+          "startMs": 2665,
+          "endMs": 2785
+        },
+        {
+          "word": "across",
+          "startMs": 2785,
+          "endMs": 3407
+        },
+        {
+          "word": "Pebble",
+          "startMs": 3407,
+          "endMs": 3754
+        },
+        {
+          "word": "Creek!",
+          "startMs": 3754,
+          "endMs": 4141
+        }
+      ]
+    },
+    "cloud-balloon": {
+      "id": "cloud-balloon",
+      "text": "Solve each sky puzzle to float your hot air balloon higher into the clouds!",
+      "audioPath": "audio/journey/cloud-balloon.mp3",
+      "durationMs": 4637,
+      "words": [
+        {
+          "word": "Solve",
+          "startMs": 0,
+          "endMs": 386
+        },
+        {
+          "word": "each",
+          "startMs": 386,
+          "endMs": 601
+        },
+        {
+          "word": "sky",
+          "startMs": 601,
+          "endMs": 785
+        },
+        {
+          "word": "puzzle",
+          "startMs": 785,
+          "endMs": 1369
+        },
+        {
+          "word": "to",
+          "startMs": 1369,
+          "endMs": 1477
+        },
+        {
+          "word": "float",
+          "startMs": 1477,
+          "endMs": 1748
+        },
+        {
+          "word": "your",
+          "startMs": 1748,
+          "endMs": 2118
+        },
+        {
+          "word": "hot",
+          "startMs": 2118,
+          "endMs": 2368
+        },
+        {
+          "word": "air",
+          "startMs": 2368,
+          "endMs": 2627
+        },
+        {
+          "word": "balloon",
+          "startMs": 2627,
+          "endMs": 3011
+        },
+        {
+          "word": "higher",
+          "startMs": 3011,
+          "endMs": 3470
+        },
+        {
+          "word": "into",
+          "startMs": 3470,
+          "endMs": 4042
+        },
+        {
+          "word": "the",
+          "startMs": 4042,
+          "endMs": 4321
+        },
+        {
+          "word": "clouds!",
+          "startMs": 4321,
+          "endMs": 4637
+        }
+      ]
+    },
+    "treasure-keys": {
+      "id": "treasure-keys",
+      "text": "Solve five puzzles to turn the golden keys and pop open the treasure chest!",
+      "audioPath": "audio/journey/treasure-keys.mp3",
+      "durationMs": 4625,
+      "words": [
+        {
+          "word": "Solve",
+          "startMs": 0,
+          "endMs": 380
+        },
+        {
+          "word": "five",
+          "startMs": 380,
+          "endMs": 509
+        },
+        {
+          "word": "puzzles",
+          "startMs": 509,
+          "endMs": 1038
+        },
+        {
+          "word": "to",
+          "startMs": 1038,
+          "endMs": 1300
+        },
+        {
+          "word": "turn",
+          "startMs": 1300,
+          "endMs": 1480
+        },
+        {
+          "word": "the",
+          "startMs": 1480,
+          "endMs": 1748
+        },
+        {
+          "word": "golden",
+          "startMs": 1748,
+          "endMs": 2211
+        },
+        {
+          "word": "keys",
+          "startMs": 2211,
+          "endMs": 2600
+        },
+        {
+          "word": "and",
+          "startMs": 2600,
+          "endMs": 2834
+        },
+        {
+          "word": "pop",
+          "startMs": 2834,
+          "endMs": 3042
+        },
+        {
+          "word": "open",
+          "startMs": 3042,
+          "endMs": 3533
+        },
+        {
+          "word": "the",
+          "startMs": 3533,
+          "endMs": 3752
+        },
+        {
+          "word": "treasure",
+          "startMs": 3752,
+          "endMs": 4196
+        },
+        {
+          "word": "chest!",
+          "startMs": 4196,
+          "endMs": 4625
+        }
+      ]
+    },
+    "letter-trace-numbers": {
+      "id": "letter-trace-numbers",
+      "text": "Start at circle one and trace each number stroke in order along the arrows!",
+      "audioPath": "audio/journey/letter-trace-numbers.mp3",
+      "durationMs": 4455,
+      "words": [
+        {
+          "word": "Start",
+          "startMs": 0,
+          "endMs": 359
+        },
+        {
+          "word": "at",
+          "startMs": 359,
+          "endMs": 559
+        },
+        {
+          "word": "circle",
+          "startMs": 559,
+          "endMs": 977
+        },
+        {
+          "word": "one",
+          "startMs": 977,
+          "endMs": 1342
+        },
+        {
+          "word": "and",
+          "startMs": 1342,
+          "endMs": 1438
+        },
+        {
+          "word": "trace",
+          "startMs": 1438,
+          "endMs": 1812
+        },
+        {
+          "word": "each",
+          "startMs": 1812,
+          "endMs": 1967
+        },
+        {
+          "word": "number",
+          "startMs": 1967,
+          "endMs": 2449
+        },
+        {
+          "word": "stroke",
+          "startMs": 2449,
+          "endMs": 2736
+        },
+        {
+          "word": "in",
+          "startMs": 2736,
+          "endMs": 2963
+        },
+        {
+          "word": "order",
+          "startMs": 2963,
+          "endMs": 3341
+        },
+        {
+          "word": "along",
+          "startMs": 3341,
+          "endMs": 3714
+        },
+        {
+          "word": "the",
+          "startMs": 3714,
+          "endMs": 3920
+        },
+        {
+          "word": "arrows!",
+          "startMs": 3920,
+          "endMs": 4455
+        }
+      ]
+    },
+    "letter-trace-shapes": {
+      "id": "letter-trace-shapes",
+      "text": "Start at circle one and trace each shape side in order along the arrows!",
+      "audioPath": "audio/journey/letter-trace-shapes.mp3",
+      "durationMs": 4155,
+      "words": [
+        {
+          "word": "Start",
+          "startMs": 0,
+          "endMs": 354
+        },
+        {
+          "word": "at",
+          "startMs": 354,
+          "endMs": 399
+        },
+        {
+          "word": "circle",
+          "startMs": 399,
+          "endMs": 970
+        },
+        {
+          "word": "one",
+          "startMs": 970,
+          "endMs": 1317
+        },
+        {
+          "word": "and",
+          "startMs": 1317,
+          "endMs": 1408
+        },
+        {
+          "word": "trace",
+          "startMs": 1408,
+          "endMs": 1807
+        },
+        {
+          "word": "each",
+          "startMs": 1807,
+          "endMs": 1982
+        },
+        {
+          "word": "shape",
+          "startMs": 1982,
+          "endMs": 2271
+        },
+        {
+          "word": "side",
+          "startMs": 2271,
+          "endMs": 2436
+        },
+        {
+          "word": "in",
+          "startMs": 2436,
+          "endMs": 2534
+        },
+        {
+          "word": "order",
+          "startMs": 2534,
+          "endMs": 3023
+        },
+        {
+          "word": "along",
+          "startMs": 3023,
+          "endMs": 3513
+        },
+        {
+          "word": "the",
+          "startMs": 3513,
+          "endMs": 3619
+        },
+        {
+          "word": "arrows!",
+          "startMs": 3619,
+          "endMs": 4155
+        }
+      ]
+    },
+    "dot-to-dot-countdown": {
+      "id": "dot-to-dot-countdown",
+      "text": "Count backward down to zero in order to reveal the surprise picture!",
+      "audioPath": "audio/journey/dot-to-dot-countdown.mp3",
+      "durationMs": 4078,
+      "words": [
+        {
+          "word": "Count",
+          "startMs": 0,
+          "endMs": 356
+        },
+        {
+          "word": "backward",
+          "startMs": 356,
+          "endMs": 786
+        },
+        {
+          "word": "down",
+          "startMs": 786,
+          "endMs": 1038
+        },
+        {
+          "word": "to",
+          "startMs": 1038,
+          "endMs": 1242
+        },
+        {
+          "word": "zero",
+          "startMs": 1242,
+          "endMs": 1670
+        },
+        {
+          "word": "in",
+          "startMs": 1670,
+          "endMs": 1870
+        },
+        {
+          "word": "order",
+          "startMs": 1870,
+          "endMs": 2171
+        },
+        {
+          "word": "to",
+          "startMs": 2171,
+          "endMs": 2430
+        },
+        {
+          "word": "reveal",
+          "startMs": 2430,
+          "endMs": 2936
+        },
+        {
+          "word": "the",
+          "startMs": 2936,
+          "endMs": 3119
+        },
+        {
+          "word": "surprise",
+          "startMs": 3119,
+          "endMs": 3574
+        },
+        {
+          "word": "picture!",
+          "startMs": 3574,
+          "endMs": 4078
+        }
+      ]
+    },
+    "word-trace-numbers": {
+      "id": "word-trace-numbers",
+      "text": "Listen to the number and write each stroke from left to right along the arrows!",
+      "audioPath": "audio/journey/word-trace-numbers.mp3",
+      "durationMs": 4354,
+      "words": [
+        {
+          "word": "Listen",
+          "startMs": 0,
+          "endMs": 405
+        },
+        {
+          "word": "to",
+          "startMs": 405,
+          "endMs": 753
+        },
+        {
+          "word": "the",
+          "startMs": 753,
+          "endMs": 971
+        },
+        {
+          "word": "number",
+          "startMs": 971,
+          "endMs": 1331
+        },
+        {
+          "word": "and",
+          "startMs": 1331,
+          "endMs": 1493
+        },
+        {
+          "word": "write",
+          "startMs": 1493,
+          "endMs": 1714
+        },
+        {
+          "word": "each",
+          "startMs": 1714,
+          "endMs": 2000
+        },
+        {
+          "word": "stroke",
+          "startMs": 2000,
+          "endMs": 2235
+        },
+        {
+          "word": "from",
+          "startMs": 2235,
+          "endMs": 2511
+        },
+        {
+          "word": "left",
+          "startMs": 2511,
+          "endMs": 2783
+        },
+        {
+          "word": "to",
+          "startMs": 2783,
+          "endMs": 2866
+        },
+        {
+          "word": "right",
+          "startMs": 2866,
+          "endMs": 3272
+        },
+        {
+          "word": "along",
+          "startMs": 3272,
+          "endMs": 3533
+        },
+        {
+          "word": "the",
+          "startMs": 3533,
+          "endMs": 3785
+        },
+        {
+          "word": "arrows!",
+          "startMs": 3785,
+          "endMs": 4354
+        }
+      ]
+    },
+    "circle-sort": {
+      "id": "circle-sort",
+      "text": "Listen to the group clue and circle all the pictures that belong!",
+      "audioPath": "audio/journey/circle-sort.mp3",
+      "durationMs": 3620,
+      "words": [
+        {
+          "word": "Listen",
+          "startMs": 0,
+          "endMs": 414
+        },
+        {
+          "word": "to",
+          "startMs": 414,
+          "endMs": 570
+        },
+        {
+          "word": "the",
+          "startMs": 570,
+          "endMs": 854
+        },
+        {
+          "word": "group",
+          "startMs": 854,
+          "endMs": 1149
+        },
+        {
+          "word": "clue",
+          "startMs": 1149,
+          "endMs": 1267
+        },
+        {
+          "word": "and",
+          "startMs": 1267,
+          "endMs": 1511
+        },
+        {
+          "word": "circle",
+          "startMs": 1511,
+          "endMs": 1915
+        },
+        {
+          "word": "all",
+          "startMs": 1915,
+          "endMs": 2094
+        },
+        {
+          "word": "the",
+          "startMs": 2094,
+          "endMs": 2388
+        },
+        {
+          "word": "pictures",
+          "startMs": 2388,
+          "endMs": 2933
+        },
+        {
+          "word": "that",
+          "startMs": 2933,
+          "endMs": 3100
+        },
+        {
+          "word": "belong!",
+          "startMs": 3100,
+          "endMs": 3620
+        }
+      ]
+    },
     "pipe-countdown": {
       "id": "pipe-countdown",
       "text": "Plug each leaking pipe from biggest down to zero to start the garden fountain!",

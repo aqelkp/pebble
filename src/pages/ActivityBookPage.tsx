@@ -185,6 +185,9 @@ export function ActivityBookPage({
               A–Z Covered: {coveredInSelectedCount} /{' '}
               {journeyState.settings.selectedLetters.length}
             </span>
+            <span className="badge-pill badge-pill--indigo">
+              {journeyState.settings.enabledGames.length} Worlds Mix
+            </span>
           </div>
         </div>
       </section>
@@ -203,6 +206,11 @@ export function ActivityBookPage({
               <span className="badge-pill badge-pill--indigo">
                 Activity #{currentActivity.activityNumber} • Up Next
               </span>
+              {currentActivity.isNewGameIntro && (
+                <span className="badge-pill badge-pill--coral" data-testid="hero-new-game-badge">
+                  New Game! • Welcome Lesson
+                </span>
+              )}
               {currentActivity.isFunBreak && (
                 <span className="badge-pill badge-pill--coral">Fun Break</span>
               )}
@@ -261,7 +269,10 @@ export function ActivityBookPage({
               >
                 <div className="ab-node__top">
                   <span className="ab-node__num">#{act.activityNumber}</span>
-                  {act.isFunBreak && !isDone && !isCurrent && (
+                  {act.isNewGameIntro && !isDone && (
+                    <span className="ab-node__fun-tag">New!</span>
+                  )}
+                  {act.isFunBreak && !act.isNewGameIntro && !isDone && !isCurrent && (
                     <span className="ab-node__fun-tag">Fun</span>
                   )}
                   {isDone && (

@@ -71,37 +71,50 @@ export const K1_CVC_WORD_IDS: readonly CanonicalWordId[] = CANONICAL_WORDS.filte
 
 export const K1_BENCHMARK: CurriculumBenchmarkSpec = {
   classLevel: 'k1',
-  title: 'K1 / Lower Kindergarten',
+  title: 'K1 / Lower Kindergarten (KLAY Syllabus)',
   ageRange: 'Ages 3.5 – 4.5',
   description:
-    'Foundational letter-sound recognition (A–Z), 130 everyday picture words, early 3-letter CVC word building, counting 1–10, and pattern logic.',
+    'Complete KLAY K1 curriculum: A–Z phonics, CVC blending, sight words & short phrases, numbers 0–50, place value (tens & ones), ordinals, 2D/3D shapes, pre-math & bar graphs, and General Awareness.',
   domains: [
     {
       id: 'literacy',
       title: 'Language & Literacy',
-      subtitle: 'A–Z phonics, 130 core K1 words, stroke-order writing & 3-letter CVC spelling',
+      subtitle: 'A–Z sounds, CVC blending, sight words, short phrases & Aa–Zz/word writing',
       accentColor: '#5B5BD6',
       targetSkills: [
         'initial_letter_sound',
         'picture_recognition',
         'word_spelling',
         'sight_word_reading',
+        'phrase_reading',
         'letter_formation',
       ],
     },
     {
       id: 'numeracy',
-      title: 'Math & Numeracy',
-      subtitle: 'One-to-one counting (1–10) & joining small groups',
+      title: 'Math, Shapes & Pre-Math',
+      subtitle: 'Numbers 0–50, tens & ones, 1st–10th, ±1 number line, 2D/3D shapes, comparisons & bar graphs',
       accentColor: '#3BA99C',
-      targetSkills: ['quantity_counting', 'group_joining'],
+      targetSkills: [
+        'quantity_counting',
+        'group_joining',
+        'number_sense_50',
+        'shapes_premath',
+      ],
+    },
+    {
+      id: 'general-awareness',
+      title: 'General Awareness (World)',
+      subtitle: 'Body & senses, community helpers, animals & lifecycles, plants, transport, 3Rs & sky',
+      accentColor: '#2E8B7D',
+      targetSkills: ['general_awareness', 'sequence_order'],
     },
     {
       id: 'cognition',
-      title: 'Logic & Visual Memory',
-      subtitle: 'Row-column pattern deduction & visual working memory',
+      title: 'Logic, Patterns & Memory',
+      subtitle: 'Patterns, sequencing, row-column grid deduction & visual recall',
       accentColor: '#F27A5E',
-      targetSkills: ['grid_deduction', 'visual_recall'],
+      targetSkills: ['grid_deduction', 'sequence_order', 'visual_recall'],
     },
     {
       id: 'self-regulation',
@@ -114,6 +127,9 @@ export const K1_BENCHMARK: CurriculumBenchmarkSpec = {
         'sight_word_reading',
         'letter_formation',
         'quantity_counting',
+        'number_sense_50',
+        'shapes_premath',
+        'general_awareness',
         'grid_deduction',
       ],
     },
@@ -121,7 +137,7 @@ export const K1_BENCHMARK: CurriculumBenchmarkSpec = {
   targetLetters: ALL_K1_LETTERS,
   coreWordIds: K1_CORE_WORD_IDS,
   cvcWordIds: K1_CVC_WORD_IDS,
-  targetNumbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  targetNumbers: Array.from({ length: 51 }, (_, idx) => idx),
   masteryThresholdPct: 85,
   minExposuresForMastery: 3,
 };

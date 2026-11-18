@@ -92,7 +92,52 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
   }
 
   if (activity.gameId === 'letter-trace') {
-    const letter = activity.lettersCovered?.[0] ?? 'A';
+    const traceMode =
+      activity.payload.gameId === 'letter-trace'
+        ? (activity.payload.config.traceMode ?? 'letters')
+        : 'letters';
+
+    if (traceMode === 'shapes') {
+      return (
+        <div className="intro-demo-stage intro-demo-stage--trace" aria-hidden="true">
+          <div className="intro-demo-trace-card">
+            <svg viewBox="0 0 220 118" className="intro-demo-trace-svg">
+              <circle
+                cx="66"
+                cy="60"
+                r="34"
+                fill="none"
+                stroke="#5B5BD6"
+                strokeWidth="7"
+              />
+              <polygon
+                points="158,24 194,92 122,92"
+                fill="none"
+                stroke="#D8D3EE"
+                strokeWidth="7"
+                strokeLinejoin="round"
+              />
+              <circle cx="66" cy="26" r="11" fill="#5B5BD6" stroke="#FFFFFF" strokeWidth="2.5" />
+              <text
+                x="66"
+                y="30"
+                textAnchor="middle"
+                fontFamily="Fredoka, sans-serif"
+                fontSize="12"
+                fontWeight="700"
+                fill="#FFFFFF"
+              >
+                1
+              </text>
+              <circle cx="34" cy="60" r="7" fill="#F2B84B" className="intro-demo-trace-pebble" />
+            </svg>
+          </div>
+        </div>
+      );
+    }
+
+    const leftGlyph = traceMode === 'numbers' ? '1' : (activity.lettersCovered?.[0] ?? 'A');
+    const rightGlyph = traceMode === 'numbers' ? '2' : leftGlyph.toLowerCase();
     return (
       <div className="intro-demo-stage intro-demo-stage--trace" aria-hidden="true">
         <div className="intro-demo-trace-card">
@@ -117,7 +162,7 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
               fontWeight="700"
               fill="#5B5BD6"
             >
-              {letter}
+              {leftGlyph}
             </text>
             <text
               x="156"
@@ -128,7 +173,7 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
               fontWeight="700"
               fill="#E5E0D5"
             >
-              {letter.toLowerCase()}
+              {rightGlyph}
             </text>
             <circle cx="64" cy="24" r="11" fill="#5B5BD6" stroke="#FFFFFF" strokeWidth="2.5" />
             <text
@@ -307,10 +352,16 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
   }
 
   if (activity.gameId === 'dot-to-dot') {
+    const seqMode =
+      activity.payload.gameId === 'dot-to-dot' ? activity.payload.config.sequenceMode : 'numbers';
+    const startDot =
+      activity.payload.gameId === 'dot-to-dot' ? activity.payload.config.dotCount : 10;
     const labels =
-      activity.payload.gameId === 'dot-to-dot' && activity.payload.config.sequenceMode === 'letters'
+      seqMode === 'letters'
         ? ['A', 'B', 'C', 'D', 'E']
-        : ['1', '2', '3', '4', '5'];
+        : seqMode === 'countdown'
+          ? [0, 1, 2, 3, 4].map((offset) => String(startDot - offset))
+          : ['1', '2', '3', '4', '5'];
     return (
       <div className="intro-demo-stage intro-demo-stage--dots" aria-hidden="true">
         <svg viewBox="0 0 240 120" className="intro-demo-dots-svg">
@@ -352,7 +403,11 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
             </g>
           ))}
         </svg>
-        <span className="intro-demo-twin-caption">Drag or tap dots in order to reveal color!</span>
+        <span className="intro-demo-twin-caption">
+          {seqMode === 'countdown'
+            ? `Count backward from ${startDot} down to 0 to reveal color!`
+            : 'Drag or tap dots in order to reveal color!'}
+        </span>
       </div>
     );
   }
@@ -429,6 +484,261 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     );
   }
 
+  if (
+    activity.gameId === 'mystery-express' ||
+    activity.gameId === 'pebble-creek' ||
+    activity.gameId === 'cloud-balloon' ||
+    activity.gameId === 'treasure-keys'
+  ) {
+    const questCount =
+      activity.payload.gameId === activity.gameId ? activity.payload.config.roundLength : 5;
+    const questUnit = activity.gameId === 'treasure-keys' ? 'Keys' : 'Quests';
+    return (
+      <div className="intro-demo-stage intro-demo-stage--train" aria-hidden="true">
+        <img
+          src={assetUrl(activity.artPath)}
+          alt=""
+          style={{
+            width: 88,
+            height: 88,
+            borderRadius: 20,
+            objectFit: 'cover',
+            boxShadow: '0 6px 16px rgba(30, 36, 51, 0.14)',
+          }}
+        />
+        <span className="intro-demo-arrow">→</span>
+        <div className="intro-demo-train-car">
+          <span className="intro-demo-train-car__letter">{questCount}</span>
+          <span className="intro-demo-train-car__sub">{questUnit}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (activity.gameId === 'compare-quest') {
+    return (
+      <div
+        className="intro-demo-stage"
+        aria-hidden="true"
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div
+            style={{
+              background: '#FAF6EC',
+              border: '2px solid #DFC9A3',
+              borderRadius: 16,
+              padding: '8px 12px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <div style={{ display: 'flex', gap: 4 }}>
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+            </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+            </div>
+            <strong style={{ fontFamily: 'var(--font-display)', color: '#4949C0', fontSize: '1.1rem' }}>
+              5
+            </strong>
+          </div>
+
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 18,
+              background: '#E4F6F3',
+              border: '3px solid #3BA99C',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'var(--font-display)',
+              fontSize: '2.2rem',
+              fontWeight: 700,
+              color: '#1F786D',
+            }}
+          >
+            &gt;
+          </div>
+
+          <div
+            style={{
+              background: '#FAF6EC',
+              border: '2px solid #DFC9A3',
+              borderRadius: 16,
+              padding: '8px 12px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <div style={{ display: 'flex', gap: 4 }}>
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+              <img src={assetUrl('themes/fruits/01-apple.png')} alt="" width={28} height={28} />
+            </div>
+            <strong style={{ fontFamily: 'var(--font-display)', color: '#4949C0', fontSize: '1.1rem' }}>
+              3
+            </strong>
+          </div>
+        </div>
+        <span className="intro-demo-twin-caption">
+          Wide open side points to the bigger side — tap, drag, or write &gt;, =, or &lt;!
+        </span>
+      </div>
+    );
+  }
+
+  if (activity.gameId === 'word-trace') {
+    return (
+      <div className="intro-demo-stage intro-demo-stage--word" aria-hidden="true">
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            padding: '10px 16px',
+            borderRadius: 18,
+            background: '#FFFDF9',
+            border: '2px solid #E5DECB',
+          }}
+        >
+          <WordFunArt id="cat" size={68} />
+          <svg width="146" height="74" viewBox="0 0 146 74">
+            <line x1="6" y1="14" x2="140" y2="14" stroke="#E86F58" strokeWidth="1.8" />
+            <line
+              x1="6"
+              y1="30"
+              x2="140"
+              y2="30"
+              stroke="#6CA6E0"
+              strokeWidth="1.6"
+              strokeDasharray="6 5"
+            />
+            <line x1="6" y1="52" x2="140" y2="52" stroke="#4B8FD6" strokeWidth="2.2" />
+            <line x1="6" y1="64" x2="140" y2="64" stroke="#E86F58" strokeWidth="1.8" />
+            <text
+              x="22"
+              y="50"
+              fontFamily="Fredoka, sans-serif"
+              fontSize="36"
+              fontWeight="700"
+              fill="#5B5BD6"
+            >
+              ca
+            </text>
+            <text
+              x="86"
+              y="50"
+              fontFamily="Fredoka, sans-serif"
+              fontSize="36"
+              fontWeight="700"
+              fill="#D8D3EE"
+            >
+              t
+            </text>
+            <circle cx="94" cy="18" r="9.5" fill="#5B5BD6" stroke="#FFFFFF" strokeWidth="2" />
+            <text
+              x="94"
+              y="21.5"
+              textAnchor="middle"
+              fontFamily="Fredoka, sans-serif"
+              fontSize="11"
+              fontWeight="700"
+              fill="#FFFFFF"
+            >
+              1
+            </text>
+          </svg>
+        </div>
+        <span className="intro-demo-twin-caption">
+          Write each letter left-to-right on the 4-line notebook!
+        </span>
+      </div>
+    );
+  }
+
+  if (activity.gameId === 'circle-sort') {
+    return (
+      <div
+        className="intro-demo-stage"
+        aria-hidden="true"
+        style={{ flexDirection: 'column', gap: 10 }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 14,
+            background: '#FFFDF8',
+            border: '2px solid #E5DFD3',
+            borderRadius: 20,
+            padding: '12px 18px',
+            boxShadow: '0 4px 12px rgba(30, 36, 51, 0.06)',
+          }}
+        >
+          <div style={{ position: 'relative', padding: 6 }}>
+            <WordIllustration id="lion" size={50} />
+            <svg
+              viewBox="0 0 80 80"
+              style={{
+                position: 'absolute',
+                inset: -4,
+                width: 'calc(100% + 8px)',
+                height: 'calc(100% + 8px)',
+                pointerEvents: 'none',
+              }}
+            >
+              <path
+                d="M 41 7 C 64 6, 75 21, 74 42 C 73 63, 57 75, 37 74 C 17 73, 6 58, 8 38 C 9 18, 25 8, 45 10"
+                fill="rgba(59, 169, 156, 0.10)"
+                stroke="#3BA99C"
+                strokeWidth="4.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+          <div style={{ padding: 6, opacity: 0.78 }}>
+            <WordIllustration id="cow" size={48} />
+          </div>
+          <div style={{ position: 'relative', padding: 6 }}>
+            <WordIllustration id="tiger" size={50} />
+            <svg
+              viewBox="0 0 80 80"
+              style={{
+                position: 'absolute',
+                inset: -4,
+                width: 'calc(100% + 8px)',
+                height: 'calc(100% + 8px)',
+                pointerEvents: 'none',
+              }}
+            >
+              <path
+                d="M 39 8 C 62 7, 74 22, 73 41 C 72 62, 56 74, 36 73 C 16 72, 7 57, 9 37 C 11 18, 26 9, 44 11"
+                fill="rgba(59, 169, 156, 0.10)"
+                stroke="#3BA99C"
+                strokeWidth="4.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        </div>
+        <span className="intro-demo-twin-caption">
+          Tap or draw a circle around every picture that belongs!
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="intro-demo-stage intro-demo-stage--safari" aria-hidden="true">
       <div className="intro-demo-safari-animals">
@@ -462,7 +772,7 @@ export function ActivityIntroModal({
   onCancel,
 }: ActivityIntroModalProps) {
   const isHelpMode = mode === 'help';
-  const effectiveWait = !isHelpMode && waitForVoiceIntro;
+  const effectiveWait = !isHelpMode && (waitForVoiceIntro || Boolean(activity.isNewGameIntro));
   const voiceSpec = useMemo(() => getJourneyVoiceSpec(activity.voiceClipId), [activity.voiceClipId]);
   const customChildName = useMemo(() => normalizeSpokenName(childName), [childName]);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -740,6 +1050,11 @@ export function ActivityIntroModal({
         <main className="intro-card">
           <div className="intro-card__header">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+              {activity.isNewGameIntro && !isHelpMode && (
+                <span className="badge-pill badge-pill--coral" data-testid="intro-new-game-badge">
+                  New Game! • Welcome Lesson
+                </span>
+              )}
               <span className="badge-pill badge-pill--mint">
                 {isHelpMode ? 'Game Guide • Watch & Listen' : 'Get Ready • Watch & Listen'}
               </span>

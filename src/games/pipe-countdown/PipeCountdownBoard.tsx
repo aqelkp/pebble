@@ -1365,8 +1365,8 @@ export function PipeCountdownBoard({
         onStartAgain={handleRestartCurrentPipe}
       />
 
-      {/* Session Winner Celebration Modal */}
-      {phase === 'won' && (
+      {/* Session Winner Celebration Modal (Free Play) */}
+      {phase === 'won' && !journeyContext && (
         <div
           className="modal-backdrop"
           role="dialog"
@@ -1405,44 +1405,31 @@ export function PipeCountdownBoard({
             </div>
 
             <div className="winner-actions">
-              {journeyContext ? (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handlePlayAgain}
+                data-testid="countdown-play-again-btn"
+              >
+                Play Again
+              </button>
+              <div className="winner-actions__row">
                 <button
                   type="button"
-                  className="btn-primary"
-                  onClick={() => journeyContext.onActivityComplete()}
-                  data-testid="countdown-journey-continue-btn"
+                  className="btn-secondary"
+                  onClick={onChangeSetup}
                 >
-                  Continue Adventure →
+                  Change Setup
                 </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    onClick={handlePlayAgain}
-                    data-testid="countdown-play-again-btn"
-                  >
-                    Play Again
-                  </button>
-                  <div className="winner-actions__row">
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={onChangeSetup}
-                    >
-                      Change Setup
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={onBackToHub}
-                      data-testid="countdown-win-hub-btn"
-                    >
-                      Games
-                    </button>
-                  </div>
-                </>
-              )}
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={onBackToHub}
+                  data-testid="countdown-win-hub-btn"
+                >
+                  Games
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -548,19 +548,19 @@ export function preloadLetterMistakeAudio(letters: readonly LetterId[]): void {
 }
 
 export function getNumberAudioPath(n: number): string {
-  const clamped = Math.min(10, Math.max(1, Math.round(n)));
+  const clamped = Math.min(50, Math.max(0, Math.round(n)));
   return `audio/numbers/${clamped}.mp3`;
 }
 
 export function playNumberAudio(n: number, enabled: boolean): void {
-  const clamped = Math.min(10, Math.max(1, Math.round(n)));
+  const clamped = Math.min(50, Math.max(0, Math.round(n)));
   playStaticClip(getNumberAudioPath(clamped), String(clamped), enabled);
 }
 
-export function preloadNumbersAudio(maxCount = 10): void {
-  const capped = Math.min(10, Math.max(1, Math.round(maxCount)));
+export function preloadNumbersAudio(maxCount = 10, includeZero = false): void {
+  const capped = Math.min(50, Math.max(0, Math.round(maxCount)));
   const paths: string[] = [];
-  for (let i = 1; i <= capped; i += 1) {
+  for (let i = includeZero ? 0 : 1; i <= capped; i += 1) {
     paths.push(getNumberAudioPath(i));
   }
   preloadAudioPaths(paths);
@@ -580,9 +580,10 @@ export function playDotMistakeAudio(
   enabled: boolean,
   onComplete?: () => void,
 ): void {
+  const parsedNum = Number(targetLabel);
   const nextPath = isLetter
     ? getLetterAudioPath(targetLabel.toUpperCase() as LetterId)
-    : getNumberAudioPath(Number(targetLabel) || 1);
+    : getNumberAudioPath(Number.isFinite(parsedNum) ? parsedNum : 1);
   playAudioSequence(
     [
       { relativePath: MISTAKE_FIND_NEXT_AUDIO_PATH, pauseAfterMs: 65 },
@@ -602,8 +603,9 @@ export function preloadDotMistakeAudio(
     MISTAKE_FIND_NEXT_AUDIO_PATH,
     THINK_OR_START_AGAIN_AUDIO_PATH,
     AWESOME_JOB_AUDIO_PATH,
+    getNumberAudioPath(0),
   ];
-  const capped = Math.min(10, Math.max(1, Math.round(maxNumber)));
+  const capped = Math.min(20, Math.max(1, Math.round(maxNumber)));
   for (let i = 1; i <= capped; i += 1) {
     paths.push(getNumberAudioPath(i));
   }

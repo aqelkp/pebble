@@ -492,5 +492,105 @@ function renderArtwork(id: WordArtId) {
           <path d="M32 104C44 96 56 112 68 104C80 96 92 112 104 104C114 98 122 106 128 104" stroke="#E4F6F3" strokeWidth="4" strokeLinecap="round" />
         </>
       );
+
+    case 'the':
+      return (
+        <>
+          <circle cx="80" cy="82" r="64" fill="#ECEBFF" />
+          <path d="M30 52Q55 44 80 54Q105 44 130 52V114Q105 106 80 116Q55 106 30 114Z" fill="#FFFFFF" stroke="#5B5BD6" strokeWidth="4" strokeLinejoin="round" />
+          <line x1="80" y1="54" x2="80" y2="116" stroke="#5B5BD6" strokeWidth="3.5" />
+          <line x1="42" y1="70" x2="68" y2="70" stroke="#9AA3B8" strokeWidth="3.5" strokeLinecap="round" />
+          <line x1="42" y1="84" x2="68" y2="84" stroke="#9AA3B8" strokeWidth="3.5" strokeLinecap="round" />
+          <circle cx="105" cy="82" r="14" fill="#F2B84B" />
+        </>
+      );
+
+    case 'see':
+      return (
+        <>
+          <circle cx="80" cy="82" r="64" fill="#E4F6F3" />
+          <ellipse cx="56" cy="82" rx="20" ry="24" fill="#FFFFFF" stroke="#1E2433" strokeWidth="4" />
+          <ellipse cx="104" cy="82" rx="20" ry="24" fill="#FFFFFF" stroke="#1E2433" strokeWidth="4" />
+          <circle cx="58" cy="82" r="9" fill="#3BA99C" />
+          <circle cx="106" cy="82" r="9" fill="#3BA99C" />
+          <circle cx="60" cy="80" r="3.5" fill="#FFFFFF" />
+          <circle cx="108" cy="80" r="3.5" fill="#FFFFFF" />
+        </>
+      );
+
+    case 'can':
+      return (
+        <>
+          <circle cx="80" cy="82" r="64" fill="#FEF5E1" />
+          <circle cx="80" cy="56" r="18" fill="#F2C6A0" stroke="#5C3D28" strokeWidth="3.5" />
+          <path d="M52 108Q80 78 108 108" fill="#3BA99C" stroke="#1E665D" strokeWidth="4" strokeLinecap="round" />
+          <path d="M46 84L32 58M114 84L128 58" stroke="#F27A5E" strokeWidth="6" strokeLinecap="round" />
+          <circle cx="74" cy="54" r="2.5" fill="#1E2433" />
+          <circle cx="86" cy="54" r="2.5" fill="#1E2433" />
+          <path d="M74 62Q80 68 86 62" stroke="#5C3D28" strokeWidth="2.8" strokeLinecap="round" />
+        </>
+      );
+
+    case 'you':
+      return (
+        <>
+          <circle cx="80" cy="82" r="64" fill="#ECEBFF" />
+          <rect x="40" y="42" width="80" height="82" rx="40" fill="#FFFFFF" stroke="#5B5BD6" strokeWidth="5" />
+          <circle cx="80" cy="74" r="18" fill="#F2C6A0" />
+          <path d="M56 116Q80 94 104 116" fill="#F27A5E" />
+          <circle cx="74" cy="72" r="2.5" fill="#1E2433" />
+          <circle cx="86" cy="72" r="2.5" fill="#1E2433" />
+          <path d="M74 80Q80 85 86 80" stroke="#5C3D28" strokeWidth="2.5" strokeLinecap="round" />
+        </>
+      );
+
+    case 'are':
+      return (
+        <>
+          <circle cx="80" cy="82" r="64" fill="#E4F6F3" />
+          <circle cx="56" cy="76" r="20" fill="#F2C6A0" stroke="#5C3D28" strokeWidth="3.5" />
+          <circle cx="104" cy="76" r="20" fill="#D89F70" stroke="#5C3D28" strokeWidth="3.5" />
+          <path d="M50 80Q56 86 62 80M98 80Q104 86 110 80" stroke="#5C3D28" strokeWidth="2.8" strokeLinecap="round" />
+          <path d="M36 116Q56 96 76 116" fill="#5B5BD6" />
+          <path d="M84 116Q104 96 124 116" fill="#F2B84B" />
+        </>
+      );
+
+    case 'she':
+      return (
+        <>
+          <circle cx="80" cy="82" r="64" fill="#FDECE7" />
+          <path d="M48 78Q48 42 80 42Q112 42 112 78" fill="#4A3525" />
+          <circle cx="80" cy="76" r="22" fill="#F2C6A0" stroke="#5C3D28" strokeWidth="3.5" />
+          <circle cx="96" cy="52" r="8" fill="#F27A5E" />
+          <circle cx="73" cy="74" r="2.5" fill="#1E2433" />
+          <circle cx="87" cy="74" r="2.5" fill="#1E2433" />
+          <path d="M73 83Q80 89 87 83" stroke="#5C3D28" strokeWidth="2.8" strokeLinecap="round" />
+          <path d="M54 120Q80 96 106 120" fill="#F27A5E" />
+        </>
+      );
+
+    case 'all':
+      return (
+        <>
+          <circle cx="80" cy="82" r="64" fill="#FEF5E1" />
+          <ellipse cx="80" cy="56" rx="26" ry="15" fill="#3BA99C" stroke="#1E665D" strokeWidth="3.5" />
+          <ellipse cx="58" cy="88" rx="24" ry="15" fill="#F27A5E" stroke="#9E3F29" strokeWidth="3.5" />
+          <ellipse cx="102" cy="88" rx="24" ry="15" fill="#5B5BD6" stroke="#373799" strokeWidth="3.5" />
+          <ellipse cx="80" cy="112" rx="28" ry="14" fill="#F2B84B" stroke="#9A6B10" strokeWidth="3.5" />
+        </>
+      );
+
+    case 'for':
+      return (
+        <>
+          <circle cx="80" cy="82" r="64" fill="#ECEBFF" />
+          <rect x="44" y="68" width="72" height="54" rx="10" fill="#F27A5E" stroke="#9E3F29" strokeWidth="4" />
+          <rect x="38" y="56" width="84" height="16" rx="6" fill="#F2B84B" stroke="#9A6B10" strokeWidth="3.5" />
+          <rect x="74" y="56" width="12" height="66" fill="#FFF8EC" />
+          <circle cx="68" cy="48" r="10" fill="none" stroke="#3BA99C" strokeWidth="5" />
+          <circle cx="92" cy="48" r="10" fill="none" stroke="#3BA99C" strokeWidth="5" />
+        </>
+      );
   }
 }

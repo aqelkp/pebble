@@ -107,9 +107,13 @@ This allows tall playing cards for `4 × 4`, `4 × 5` (default), and `5 × 6` gr
 1. **New Memory Theme:** Add 16 PNGs (`512 × 512`) under `public/themes/<theme-id>/` and register a `ThemeSpec` entry in `CARD_THEMES` (`src/games/memory-match/themes.ts`).
 2. **New Game Module (Plugin Flow — Zero `src/App.tsx` Edits):**
    1. Create Setup and Board components under `src/games/<game-id>/`, reusing Pebble's shared micro-toolkit (`src/engine/useStageSize.ts` + `solveGridFit`, `src/engine/useGameLoop.ts`, `src/engine/usePointerStroke.ts`, and `src/components/GameStage.tsx`).
-   2. Add the new `GameId`, metadata, and `shelf` (`letters-words`, `numbers-logic`, `draw-create`, or `fun-rewards`) to `GAME_REGISTRY` in `src/games/registry.ts`.
+   2. Add the new `GameId`, metadata, and `shelf` (`letters-words`, `numbers-logic`, `world-discovery`, `draw-create`, or `fun-rewards`) to `GAME_REGISTRY` in `src/games/registry.ts`.
    3. Add the game's pure config validator and default builder to `src/games/gameConfigs.ts` (keeping imports type-only for TSX files so Vite splits every Setup/Board into independent lazy chunks).
-   4. Register the lazy `Setup`/`Board` plugin, `activeSessionStorageKey`, and `leaveCopy` in `GAME_PLUGINS` inside `src/games/plugins.tsx` (plus a Guided Activity Book adapter in `src/journey/lessonRegistry.ts` when included in the curriculum).
+   4. Register the lazy `Setup`/`Board` plugin, `activeSessionStorageKey`, and `leaveCopy` in `GAME_PLUGINS` inside `src/games/plugins.tsx`.
+   5. Register the Guided Activity Book adapter in `src/journey/lessonRegistry.ts` following `.agents/rules/learning-journey-updates.md`:
+      - Assign one of the 4 K1 Learning Pillars (`phonics-reading`, `numbers-math`, `spelling-writing`, `logic-world`) or `fun-break`.
+      - Implement a gentle `ctx.gameOrdinal === 0` starter configuration plus progressive `gameOrdinal >= 1` K1 spiral modes, offline Kokoro voice clip (`scripts/sync-journey-audio.mjs`), and `ActivityIntroModal` preview.
+      - Existing learners keep past slots frozen via `completedSnapshots` (`src/journey/journeyStorage.ts`) and receive newly added games automatically at their next stop via `pendingIntroGames` (`isNewGameIntro: true`) without resetting progress (unless `CURRENT_JOURNEY_EPOCH` is intentionally bumped for a Tier C cohort reset).
 
 ## Security Controls
 

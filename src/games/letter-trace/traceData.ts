@@ -8,12 +8,16 @@ import type { LetterWordSpec } from '../letter-train/letterData';
 export type TraceCaseMode = 'both' | 'upper' | 'lower';
 export type TraceRoundSize = 4 | 6 | 10;
 export type TraceOrderMode = 'alphabetical' | 'shuffle';
+export type TraceContentMode = 'letters' | 'numbers' | 'shapes' | 'words';
+export type TraceNumberRange = '0-9' | '10-20' | '21-50' | '0-50';
 
 export interface LetterTraceConfig {
   selectedLetters: LetterId[];
   caseMode: TraceCaseMode;
   roundSize: TraceRoundSize;
   orderMode: TraceOrderMode;
+  traceMode?: TraceContentMode;
+  numberRange?: TraceNumberRange;
 }
 
 export interface TracePoint {
@@ -74,11 +78,11 @@ export const GRASS_LINE_Y = 385;
 export const ROOT_LINE_Y = 475;
 
 const HALF_CAP = STROKE_WIDTH / 2; // 13
-const Y_SKY = SKY_LINE_Y + HALF_CAP; // 108
-const Y_FENCE = FENCE_LINE_Y + HALF_CAP; // 248
-const Y_MID = Math.round((Y_SKY + (GRASS_LINE_Y - HALF_CAP)) / 2); // 240
-const Y_GRASS = GRASS_LINE_Y - HALF_CAP; // 372
-const Y_ROOT = ROOT_LINE_Y - HALF_CAP; // 462
+export const Y_SKY = SKY_LINE_Y + HALF_CAP; // 108
+export const Y_FENCE = FENCE_LINE_Y + HALF_CAP; // 248
+export const Y_MID = Math.round((Y_SKY + (GRASS_LINE_Y - HALF_CAP)) / 2); // 240
+export const Y_GRASS = GRASS_LINE_Y - HALF_CAP; // 372
+export const Y_ROOT = ROOT_LINE_Y - HALF_CAP; // 462
 
 export const STRAIGHT_LETTERS: readonly LetterId[] = ['L', 'I', 'T', 'F', 'E', 'H'];
 export const SLANT_LETTERS: readonly LetterId[] = ['V', 'W', 'X', 'Y', 'Z', 'A', 'K', 'M', 'N'];
@@ -91,12 +95,17 @@ export const DESCENDER_LOWER_LETTERS = new Set<LetterId>(['G', 'J', 'P', 'Q', 'Y
 
 const TRACE_MASTERY_KEY = 'pebble.letter-trace.mastery.v1';
 
+const VALID_TRACE_MODES = new Set<TraceContentMode>(['letters', 'numbers', 'shapes', 'words']);
+const VALID_NUMBER_RANGES = new Set<TraceNumberRange>(['0-9', '10-20', '21-50', '0-50']);
+
 export function getDefaultLetterTraceConfig(): LetterTraceConfig {
   return {
     selectedLetters: [...ALL_LETTERS],
     caseMode: 'both',
     roundSize: 6,
     orderMode: 'alphabetical',
+    traceMode: 'letters',
+    numberRange: '0-50',
   };
 }
 
@@ -120,10 +129,16 @@ export function isValidLetterTraceConfig(value: unknown): value is LetterTraceCo
   if (c.orderMode !== 'alphabetical' && c.orderMode !== 'shuffle') {
     return false;
   }
+  if (c.traceMode !== undefined && !VALID_TRACE_MODES.has(c.traceMode)) {
+    return false;
+  }
+  if (c.numberRange !== undefined && !VALID_NUMBER_RANGES.has(c.numberRange)) {
+    return false;
+  }
   return true;
 }
 
-type SegmentDef =
+export type SegmentDef =
   | { type: 'L'; x1: number; y1: number; x2: number; y2: number }
   | {
       type: 'C';
@@ -137,7 +152,7 @@ type SegmentDef =
       y3: number;
     };
 
-interface StrokeDef {
+export interface StrokeDef {
   kind?: 'line' | 'dot';
   hint: string;
   segments?: readonly SegmentDef[];
@@ -145,11 +160,11 @@ interface StrokeDef {
   ghostOffset?: { dx: number; dy: number };
 }
 
-function ln(x1: number, y1: number, x2: number, y2: number): SegmentDef {
+export function ln(x1: number, y1: number, x2: number, y2: number): SegmentDef {
   return { type: 'L', x1, y1, x2, y2 };
 }
 
-function cb(
+export function cb(
   p0: readonly [number, number],
   p1: readonly [number, number],
   p2: readonly [number, number],
@@ -168,7 +183,7 @@ function cb(
   };
 }
 
-function stroke(
+export function stroke(
   hint: string,
   segments: readonly SegmentDef[],
   ghostOffset?: { dx: number; dy: number },
@@ -176,7 +191,7 @@ function stroke(
   return { kind: 'line', hint, segments, ghostOffset };
 }
 
-function dot(hint: string, x: number, y: number): StrokeDef {
+export function dot(hint: string, x: number, y: number): StrokeDef {
   return { kind: 'dot', hint, dotPoint: { x, y } };
 }
 
@@ -388,7 +403,7 @@ const UPPER_STROKES: Record<LetterId, readonly StrokeDef[]> = {
 /**
  * Hand-crafted school-manuscript stroke specs for all 26 Small letters (a–z).
  */
-const LOWER_STROKES: Record<Lowercase<LetterId>, readonly StrokeDef[]> = {
+export const LOWER_STROKES: Record<Lowercase<LetterId>, readonly StrokeDef[]> = {
   a: [
     magicCLower('Magic C curve around first'),
     stroke('Short line straight down', [ln(46, Y_FENCE, 46, Y_GRASS)]),
@@ -706,7 +721,7 @@ function angleAtStrokeProgress(strokeSpec: ResolvedTraceStroke, progress: number
   return (Math.atan2(p1.y - p0.y, p1.x - p0.x) * 180) / Math.PI;
 }
 
-function resolveGlyphStrokes(
+export function resolveGlyphStrokes(
   glyphCase: 'upper' | 'lower',
   defs: readonly StrokeDef[],
   offsetX: number,

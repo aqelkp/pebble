@@ -289,10 +289,10 @@ function loadSavedNavState(): SavedNavState {
 
 function PebbleRouter() {
   const { profiles, soundEnabled, toggleSound, updateProfile } = useFamilyProfiles();
+  const [journeyState, setJourneyState] = useState<JourneyProgressState>(() => loadJourneyState());
   const [initialNav] = useState<SavedNavState>(() => loadSavedNavState());
   const [screen, setScreen] = useState<Screen>(initialNav.screen);
   const [gameConfigs, setGameConfigs] = useState<SavedGameConfigs>(initialNav.gameConfigs);
-  const [journeyState, setJourneyState] = useState<JourneyProgressState>(() => loadJourneyState());
   const [dailyLimit, setDailyLimit] = useState<DailyPlayLimitState>(() =>
     loadDailyPlayLimitState(),
   );
@@ -306,9 +306,42 @@ function PebbleRouter() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   const curriculum = useMemo(
-    () => buildJourneyCurriculum(journeyState.settings, profiles),
-    [journeyState.settings, profiles],
+    () =>
+      buildJourneyCurriculum(journeyState.settings, profiles, {
+        currentActivityIndex: journeyState.currentActivityIndex,
+        completedSnapshots: journeyState.completedSnapshots,
+        pendingIntroGames: journeyState.pendingIntroGames,
+      }),
+    [
+      journeyState.completedSnapshots,
+      journeyState.currentActivityIndex,
+      journeyState.pendingIntroGames,
+      journeyState.settings,
+      profiles,
+    ],
   );
+
+  const journeyActivityIndex = screen.view === 'journey-play' ? screen.activityIndex : -1;
+  const activeJourneyActivity = useMemo(
+    () => (journeyActivityIndex >= 0 ? (curriculum[journeyActivityIndex] ?? curriculum[0] ?? null) : null),
+    [curriculum, journeyActivityIndex],
+  );
+
+  const journeyContext = useMemo<JourneyBoardContext | undefined>(() => {
+    if (!activeJourneyActivity) return undefined;
+    return {
+      chapterNumber: activeJourneyActivity.chapterNumber,
+      activityNumberInChapter: activeJourneyActivity.numberInChapter,
+      totalInChapter: ACTIVITIES_PER_CHAPTER,
+      globalActivityNumber: activeJourneyActivity.activityNumber,
+      onActivityComplete: () => {
+        isGameActiveRef.current = false;
+        clearSavedGameById(activeJourneyActivity.gameId);
+        setJourneyState((prev) => markJourneyActivityCompleted(prev, activeJourneyActivity));
+        setCompletedActivity(activeJourneyActivity);
+      },
+    };
+  }, [activeJourneyActivity]);
 
   useEffect(() => {
     saveJourneyState(journeyState);
@@ -685,6 +718,7 @@ function PebbleRouter() {
             }))
           }
           onResetJourney={() => {
+            clearAllSavedGames();
             setJourneyState((prev) => ({
               ...getDefaultJourneyState(),
               settings: prev.settings,
@@ -731,22 +765,8 @@ function PebbleRouter() {
       );
     }
 
-    if (screen.view === 'journey-play') {
-      const activeActivity = curriculum[screen.activityIndex] ?? curriculum[0];
-      const journeyContext: JourneyBoardContext = {
-        chapterNumber: activeActivity.chapterNumber,
-        activityNumberInChapter: activeActivity.numberInChapter,
-        totalInChapter: ACTIVITIES_PER_CHAPTER,
-        globalActivityNumber: activeActivity.activityNumber,
-        onActivityComplete: () => {
-          isGameActiveRef.current = false;
-          clearSavedGameById(activeActivity.gameId);
-          setJourneyState((prev) => markJourneyActivityCompleted(prev, activeActivity));
-          setCompletedActivity(activeActivity);
-        },
-      };
-
-      return renderPluginBoard(activeActivity.gameId, activeActivity.payload.config, {
+    if (screen.view === 'journey-play' && activeJourneyActivity && journeyContext) {
+      return renderPluginBoard(activeJourneyActivity.gameId, activeJourneyActivity.payload.config, {
         gameKey: screen.gameKey,
         profiles,
         soundEnabled,

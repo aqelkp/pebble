@@ -1,4 +1,5 @@
 import type { FamilyProfile } from '../context/FamilyProfilesContext';
+import { getCircleSortPackSpec } from '../games/circle-sort/circleSortData';
 import { getThemeLabel } from '../games/dot-to-dot/dotEngine';
 import { getDefaultGameConfig, isValidGameConfig, type GameConfigMap } from '../games/gameConfigs';
 import { getThemeSpec } from '../games/memory-match/themes';
@@ -8,6 +9,9 @@ import { getVehicleSpec } from '../games/rescue-road/roadEngine';
 import { getTwinItemsPerCard } from '../games/spot-the-twin/twinEngine';
 import { getWordPackSpec } from '../games/word-fun/wordBank';
 import { getPeekabooPackSpec, getPeekabooWorldSpec } from '../games/word-peekaboo/peekabooData';
+import { getCompareModeSpec } from '../games/compare-quest/compareData';
+import { getWordTracePackSpec } from '../games/word-trace/wordTraceEngine';
+import { getQuestPackSpec } from '../curriculum/questEngine/questTypes';
 import { getCountdownModeSpec } from '../games/pipe-countdown/countdownData';
 import type { JourneyActivity } from './journeyTypes';
 
@@ -36,6 +40,7 @@ export function buildStandaloneHelpActivity(
     activityNumber: 1,
     chapterNumber: 1,
     numberInChapter: 1,
+    gameOrdinal: 0,
   };
 
   switch (gameId) {
@@ -72,15 +77,28 @@ export function buildStandaloneHelpActivity(
 
     case 'letter-trace': {
       const cfg = resolveConfig('letter-trace', rawConfig, profiles);
+      const traceMode = cfg.traceMode ?? 'letters';
+      const voiceClipId =
+        traceMode === 'numbers'
+          ? 'letter-trace-numbers'
+          : traceMode === 'shapes'
+            ? 'letter-trace-shapes'
+            : 'letter-trace';
+      const subtitle =
+        traceMode === 'numbers'
+          ? `Numbers (${cfg.numberRange ?? '0-50'})`
+          : traceMode === 'shapes'
+            ? '2D Shape Strokes'
+            : 'Capital & Small Stroke Order';
       return {
         ...base,
         gameId,
         title: 'Letter Trace',
-        subtitle: 'Capital & Small Stroke Order',
-        detailLine: 'Start at Circle 1 and trace each letter stroke in strict order along the arrows!',
+        subtitle,
+        detailLine: 'Start at Circle 1 and trace each stroke in strict order along the arrows!',
         artPath: 'hub/letter-trace.png',
-        voiceClipId: 'letter-trace',
-        lettersCovered: cfg.selectedLetters.slice(0, 5),
+        voiceClipId,
+        lettersCovered: traceMode === 'letters' ? cfg.selectedLetters.slice(0, 5) : undefined,
         payload: { gameId, config: cfg },
       };
     }
@@ -216,9 +234,11 @@ export function buildStandaloneHelpActivity(
       const seqLabel =
         cfg.sequenceMode === 'numbers'
           ? `1–${cfg.dotCount}`
-          : cfg.sequenceMode === 'letters'
-            ? `A–${String.fromCharCode(64 + cfg.dotCount)}`
-            : `1–${cfg.dotCount} & A–${String.fromCharCode(64 + cfg.dotCount)}`;
+          : cfg.sequenceMode === 'countdown'
+            ? `${cfg.dotCount}→0 Countdown`
+            : cfg.sequenceMode === 'letters'
+              ? `A–${String.fromCharCode(64 + cfg.dotCount)}`
+              : `1–${cfg.dotCount}, ${cfg.dotCount}→0 & Letters`;
       return {
         ...base,
         gameId,
@@ -226,7 +246,7 @@ export function buildStandaloneHelpActivity(
         subtitle: `${getThemeLabel(cfg.themeId)} • ${seqLabel}`,
         detailLine: 'Connect the dots in order around the shadow to watch full color bloom!',
         artPath: 'hub/dot-to-dot.png',
-        voiceClipId: 'dot-to-dot',
+        voiceClipId: cfg.sequenceMode === 'countdown' ? 'dot-to-dot-countdown' : 'dot-to-dot',
         payload: { gameId, config: cfg },
       };
     }
@@ -244,6 +264,78 @@ export function buildStandaloneHelpActivity(
           'Listen closely for the one spoken word, tap it to peel a tile, and uncover the hidden friend!',
         artPath: 'hub/word-peekaboo.png',
         voiceClipId: 'word-peekaboo',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'compare-quest': {
+      const cfg = resolveConfig('compare-quest', rawConfig, profiles);
+      const mode = getCompareModeSpec(cfg.modeId);
+      return {
+        ...base,
+        gameId,
+        title: 'Compare Quest',
+        subtitle: `${mode.title} (${mode.rangeBadge})`,
+        detailLine:
+          'Compare both sides — tap, drag, or write >, =, or < in the center box (wide side points to bigger)!',
+        artPath: 'hub/compare-quest.png',
+        voiceClipId: 'compare-quest',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'word-trace': {
+      const cfg = resolveConfig('word-trace', rawConfig, profiles);
+      const pack = getWordTracePackSpec(cfg.packId);
+      return {
+        ...base,
+        gameId,
+        title: 'Word Trace',
+        subtitle: `${pack.title} • 4-Line Notebook`,
+        detailLine:
+          'Listen to the prompt and trace each stroke from left to right starting at Circle 1!',
+        artPath: 'hub/word-trace.png',
+        voiceClipId: cfg.packId === 'numbers' ? 'word-trace-numbers' : 'word-trace',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'mystery-express':
+    case 'pebble-creek':
+    case 'cloud-balloon':
+    case 'treasure-keys': {
+      const cfg = resolveConfig(gameId, rawConfig, profiles);
+      const pack = getQuestPackSpec(cfg.packId);
+      const skinTitles = {
+        'mystery-express': 'Mystery Express',
+        'pebble-creek': 'Pebble Creek Bridge',
+        'cloud-balloon': 'Cloud Balloon Quest',
+        'treasure-keys': '5-Key Treasure Chest',
+      } as const;
+      return {
+        ...base,
+        gameId,
+        title: skinTitles[gameId],
+        subtitle: `${pack.title} • ${cfg.roundLength} stops`,
+        detailLine: pack.subtitle,
+        artPath: `hub/${gameId}.png`,
+        voiceClipId: gameId,
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'circle-sort': {
+      const cfg = resolveConfig('circle-sort', rawConfig, profiles);
+      const pack = getCircleSortPackSpec(cfg.packId);
+      return {
+        ...base,
+        gameId,
+        title: 'Circle & Sort',
+        subtitle: `${pack.title} • ${cfg.gridMode === '2x3' ? '2×3' : '3×3'}`,
+        detailLine:
+          'Listen to the group clue, then tap or draw a circle around every picture that belongs!',
+        artPath: 'hub/circle-sort.png',
+        voiceClipId: 'circle-sort',
         payload: { gameId, config: cfg },
       };
     }

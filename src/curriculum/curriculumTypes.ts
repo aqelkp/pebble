@@ -4,7 +4,12 @@ export type ClassLevelId = 'nursery' | 'k1' | 'k2' | 'grade1';
 
 export type CurriculumFrameworkId = 'early-years-intl' | 'eyfs-uk' | 'nep-foundation';
 
-export type CurriculumDomainId = 'literacy' | 'numeracy' | 'cognition' | 'self-regulation';
+export type CurriculumDomainId =
+  | 'literacy'
+  | 'numeracy'
+  | 'general-awareness'
+  | 'cognition'
+  | 'self-regulation';
 
 export type SkillType =
   | 'picture_recognition'
@@ -15,7 +20,12 @@ export type SkillType =
   | 'group_joining'
   | 'grid_deduction'
   | 'visual_recall'
-  | 'sight_word_reading';
+  | 'sight_word_reading'
+  | 'phrase_reading'
+  | 'number_sense_50'
+  | 'shapes_premath'
+  | 'general_awareness'
+  | 'sequence_order';
 
 export type WordCategory = 'animals' | 'food' | 'nature' | 'vehicles' | 'home' | 'concepts';
 
@@ -91,6 +101,26 @@ export const SKILL_LABELS: Record<SkillType, { label: string; question: string }
   sight_word_reading: {
     label: 'Sight & CVC Word Reading',
     question: 'Can he hear a spoken word and find it in print?',
+  },
+  phrase_reading: {
+    label: 'Phrases & CVC Sound Position',
+    question: 'Can he read short CVC + sight-word phrases and spot middle/ending sounds?',
+  },
+  number_sense_50: {
+    label: 'Numbers 0–50, Tens/Ones & Ordinals',
+    question: 'Can he recognise 0–50, build tens & ones, read zero–ten, and find 1st–10th?',
+  },
+  shapes_premath: {
+    label: '2D/3D Shapes, Comparisons & Graphs',
+    question: 'Can he identify 2D/3D shapes, compare sizes/volumes, measure length, and read bar graphs?',
+  },
+  general_awareness: {
+    label: 'General Awareness & World Around Us',
+    question: 'Does he know body senses, helpers, animals, plants, transport, 3Rs, and the sky?',
+  },
+  sequence_order: {
+    label: 'Lifecycles, Routines & Number Order',
+    question: 'Can he sequence lifecycles, times of day, and forward/backward counts?',
   },
 };
 
