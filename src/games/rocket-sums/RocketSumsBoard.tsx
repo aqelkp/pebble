@@ -430,7 +430,7 @@ export function RocketSumsBoard({
               setConfettiKey((k) => k + 1);
               playRocketLaunchFanfare(roundFlawless, soundEnabled);
               journeyOnCompleteRef.current?.();
-            }, 2350);
+            }, 3400);
           } else {
             promptMistakesRef.current = 0;
             setSolvedCount(nextSolved);
@@ -567,6 +567,23 @@ export function RocketSumsBoard({
             ))}
           </div>
 
+          <div className="rs-star-streaks" aria-hidden="true">
+            {[
+              { left: '14%', delay: '0s' },
+              { left: '28%', delay: '0.28s' },
+              { left: '43%', delay: '0.12s' },
+              { left: '61%', delay: '0.42s' },
+              { left: '76%', delay: '0.18s' },
+              { left: '89%', delay: '0.55s' },
+            ].map((s, idx) => (
+              <span
+                key={idx}
+                className="rs-star-streak"
+                style={{ left: s.left, animationDelay: s.delay }}
+              />
+            ))}
+          </div>
+
           <div className="rs-launchpad-hud-top">
             <span
               className={`rs-prep-pill ${
@@ -618,6 +635,31 @@ export function RocketSumsBoard({
               </div>
             </div>
 
+            <svg
+              className="rs-gantry-wrap"
+              viewBox="0 0 60 112"
+              fill="none"
+              aria-hidden="true"
+            >
+              <rect x="6" y="10" width="8" height="102" rx="3" fill="#8A96B8" />
+              <rect x="24" y="10" width="8" height="102" rx="3" fill="#707CA0" />
+              <path
+                d="M14 28L24 44M24 28L14 44M14 54L24 70M24 54L14 70M14 80L24 96M24 80L14 96"
+                stroke="#B8C3DE"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              <rect
+                x="18"
+                y="22"
+                width="36"
+                height="7"
+                rx="3.5"
+                fill="#F27A5E"
+                className="rs-gantry-arm"
+              />
+            </svg>
+
             <div
               className={`rs-rocket-rig ${
                 phase === 'launching'
@@ -630,12 +672,14 @@ export function RocketSumsBoard({
               }`}
               data-testid="rocket-rig"
             >
-              <RocketGlyph size={84} />
+              <RocketGlyph size={102} />
               <div className="rs-rocket-flame" aria-hidden="true" />
             </div>
 
-            <div className="rs-smoke-puff rs-smoke-puff--left" aria-hidden="true" />
-            <div className="rs-smoke-puff rs-smoke-puff--right" aria-hidden="true" />
+            <div className="rs-smoke-puff rs-smoke-puff--left-1" aria-hidden="true" />
+            <div className="rs-smoke-puff rs-smoke-puff--left-2" aria-hidden="true" />
+            <div className="rs-smoke-puff rs-smoke-puff--right-1" aria-hidden="true" />
+            <div className="rs-smoke-puff rs-smoke-puff--right-2" aria-hidden="true" />
             <div className="rs-launchpad-deck" aria-hidden="true" />
           </div>
 
