@@ -42,6 +42,12 @@ import {
   type CountdownModeId,
   type CountdownRoundLength,
 } from '../games/pipe-countdown/countdownData';
+import {
+  getRocketModeSpec,
+  type RocketModeId,
+  type RocketRoundLength,
+  type RocketVisualMode,
+} from '../games/rocket-sums/rocketData';
 import type { JourneyActivityAdapter, JourneyLearningPillar } from './journeyTypes';
 
 const COMPARE_MODE_ROTATION: readonly CompareModeId[] = [
@@ -922,6 +928,51 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
           gameId: 'pipe-countdown',
           config: {
             modeId,
+            roundLength,
+          },
+        },
+      };
+    },
+  },
+
+  'rocket-sums': {
+    gameId: 'rocket-sums',
+    title: 'Rocket Sums',
+    artPath: 'hub/rocket-sums.png',
+    pillar: 'numbers-math',
+    category: 'math',
+    buildActivity: (ctx) => {
+      let modeId: RocketModeId = 'k1-sums-5';
+      if (ctx.gameOrdinal === 0) {
+        modeId = 'k1-sums-5';
+      } else if (ctx.chapterNumber <= 5) {
+        modeId = ctx.gameOrdinal % 2 === 1 ? 'k1-sums-5' : 'k1-sums-10';
+      } else if (ctx.chapterNumber <= 14) {
+        modeId = ctx.gameOrdinal % 3 === 2 ? 'k1-single-digit' : 'k1-sums-10';
+      } else {
+        modeId = ctx.gameOrdinal % 3 === 2 ? 'k1-single-digit' : 'k1-sums-10';
+      }
+
+      const visualMode: RocketVisualMode =
+        ctx.gameOrdinal === 0 || ctx.gameOrdinal % 2 === 1
+          ? 'pictures-and-numbers'
+          : 'numbers-only';
+      const roundLength: RocketRoundLength =
+        ctx.gameOrdinal === 0 || ctx.settings.durationMode === 'short' ? 6 : 8;
+      const spec = getRocketModeSpec(modeId);
+
+      return {
+        title: 'Rocket Sums',
+        subtitle: `${spec.title} • ${roundLength} launches`,
+        detailLine: `Add ${spec.rangeBadge} quickly to launch your rocket to the Moon!`,
+        artPath: 'hub/rocket-sums.png',
+        voiceClipId: 'rocket-sums',
+        payload: {
+          gameId: 'rocket-sums',
+          config: {
+            classLevel: spec.classLevel,
+            modeId,
+            visualMode: spec.supportsPictures ? visualMode : 'numbers-only',
             roundLength,
           },
         },

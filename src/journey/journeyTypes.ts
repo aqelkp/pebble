@@ -19,6 +19,7 @@ import type { CompareQuestConfig } from '../games/compare-quest/compareData';
 import type { WordTraceConfig } from '../games/word-trace/wordTraceEngine';
 import type { QuestGameConfig } from '../curriculum/questEngine/questTypes';
 import type { PipeCountdownConfig } from '../games/pipe-countdown/countdownData';
+import type { RocketSumsConfig } from '../games/rocket-sums/rocketData';
 
 export const TOTAL_CHAPTERS = 20;
 export const ACTIVITIES_PER_CHAPTER = 20;
@@ -70,7 +71,8 @@ export type JourneyVoiceClipId =
   | 'cloud-balloon'
   | 'treasure-keys'
   | 'circle-sort'
-  | 'pipe-countdown';
+  | 'pipe-countdown'
+  | 'rocket-sums';
 
 export interface JourneyBoardContext {
   chapterNumber: number;
@@ -137,7 +139,8 @@ export type JourneyActivityPayload =
   | { gameId: 'cloud-balloon'; config: QuestGameConfig }
   | { gameId: 'treasure-keys'; config: QuestGameConfig }
   | { gameId: 'circle-sort'; config: CircleSortConfig }
-  | { gameId: 'pipe-countdown'; config: PipeCountdownConfig };
+  | { gameId: 'pipe-countdown'; config: PipeCountdownConfig }
+  | { gameId: 'rocket-sums'; config: RocketSumsConfig };
 
 export interface JourneyActivity {
   index: number;

@@ -21,7 +21,8 @@ export type GameId =
   | 'cloud-balloon'
   | 'treasure-keys'
   | 'circle-sort'
-  | 'pipe-countdown';
+  | 'pipe-countdown'
+  | 'rocket-sums';
 
 export type HubShelfId =
   | 'letters-words'
@@ -264,6 +265,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['numeracy', 'self-regulation'],
       targetSkills: ['quantity_counting'],
       conceptUnitLabel: 'Backward Countdown 9 → 0',
+    },
+  },
+  {
+    id: 'rocket-sums',
+    title: 'Rocket Sums',
+    description:
+      'Build instant mental addition fluency (0–10 & 1-digit sums) with fruit groups or pure numbers—answer fast for Turbo Boosts to launch your rocket to the Moon!',
+    badgeText: 'New Game',
+    ageHint: 'K1 / K2 • Quick Addition',
+    artPath: 'hub/rocket-sums.png',
+    shelf: 'numbers-logic',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Builds rapid 1-digit mental addition automaticity without finger counting, using calm 10-second check-ins, picture-to-number bridging, and class-level progression.',
+      domains: ['numeracy', 'cognition', 'self-regulation'],
+      targetSkills: ['group_joining', 'quantity_counting'],
+      conceptUnitLabel: '1-Digit Mental Addition',
     },
   },
   {

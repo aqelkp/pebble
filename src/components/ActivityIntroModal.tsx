@@ -739,6 +739,49 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     );
   }
 
+  if (activity.gameId === 'rocket-sums') {
+    return (
+      <div className="intro-demo-stage" aria-hidden="true" style={{ flexDirection: 'column', gap: 10 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 16px',
+            borderRadius: 18,
+            background: '#FFFDF9',
+            border: '2px solid #E5DFD3',
+          }}
+        >
+          <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: '#1E2433' }}>
+            5 + 2 =
+          </strong>
+          <span
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 14,
+              background: '#E4F6F3',
+              border: '2.5px solid #3BA99C',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.8rem',
+              fontWeight: 700,
+              color: '#1F786D',
+            }}
+          >
+            7
+          </span>
+        </div>
+        <span className="intro-demo-twin-caption">
+          Tap the sum quickly to fuel your rocket to the Moon!
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="intro-demo-stage intro-demo-stage--safari" aria-hidden="true">
       <div className="intro-demo-safari-animals">
