@@ -1885,6 +1885,109 @@
           "endMs": 4143
         }
       ]
+    },
+    "splash-tank": {
+      "id": "splash-tank",
+      "text": "Look at the water level and the target flag! Pour the right bucket to fill the tank without spilling!",
+      "audioPath": "audio/journey/splash-tank.mp3",
+      "durationMs": 5483,
+      "words": [
+        {
+          "word": "Look",
+          "startMs": 0,
+          "endMs": 293
+        },
+        {
+          "word": "at",
+          "startMs": 293,
+          "endMs": 414
+        },
+        {
+          "word": "the",
+          "startMs": 414,
+          "endMs": 583
+        },
+        {
+          "word": "water",
+          "startMs": 583,
+          "endMs": 1149
+        },
+        {
+          "word": "level",
+          "startMs": 1149,
+          "endMs": 1399
+        },
+        {
+          "word": "and",
+          "startMs": 1399,
+          "endMs": 1729
+        },
+        {
+          "word": "the",
+          "startMs": 1729,
+          "endMs": 1858
+        },
+        {
+          "word": "target",
+          "startMs": 1858,
+          "endMs": 2292
+        },
+        {
+          "word": "flag!",
+          "startMs": 2292,
+          "endMs": 2653
+        },
+        {
+          "word": "Pour",
+          "startMs": 2653,
+          "endMs": 2741
+        },
+        {
+          "word": "the",
+          "startMs": 2741,
+          "endMs": 2985
+        },
+        {
+          "word": "right",
+          "startMs": 2985,
+          "endMs": 3327
+        },
+        {
+          "word": "bucket",
+          "startMs": 3327,
+          "endMs": 3626
+        },
+        {
+          "word": "to",
+          "startMs": 3626,
+          "endMs": 3832
+        },
+        {
+          "word": "fill",
+          "startMs": 3832,
+          "endMs": 4010
+        },
+        {
+          "word": "the",
+          "startMs": 4010,
+          "endMs": 4279
+        },
+        {
+          "word": "tank",
+          "startMs": 4279,
+          "endMs": 4567
+        },
+        {
+          "word": "without",
+          "startMs": 4567,
+          "endMs": 5030
+        },
+        {
+          "word": "spilling!",
+          "startMs": 5030,
+          "endMs": 5483
+        }
+      ]
     }
   }
 }

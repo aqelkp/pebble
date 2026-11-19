@@ -181,6 +181,16 @@ const RocketSumsBoard = lazy(() =>
     default: m.RocketSumsBoard,
   })),
 );
+const SplashTankSetup = lazy(() =>
+  import('./splash-tank/SplashTankSetup').then((m) => ({
+    default: m.SplashTankSetup,
+  })),
+);
+const SplashTankBoard = lazy(() =>
+  import('./splash-tank/SplashTankBoard').then((m) => ({
+    default: m.SplashTankBoard,
+  })),
+);
 
 export interface LeaveGameCopy {
   headline: string;
@@ -1217,6 +1227,57 @@ const GAME_PLUGINS: GamePluginRegistry = {
       journeyContext,
     }) => (
       <RocketSumsBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'splash-tank': {
+    id: 'splash-tank',
+    activeSessionStorageKey: 'pebble.splash-tank.active.v1',
+    leaveCopy: {
+      headline: 'Leave Splash Tank?',
+      subtitle: 'Your current water tank progress will reset.',
+      keepPlayingLabel: 'Keep Pouring',
+    },
+    ...makeConfigAccessors('splash-tank'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./splash-tank/SplashTankSetup'),
+        import('./splash-tank/SplashTankBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onEditProfiles, onStartGame }) => (
+      <SplashTankSetup
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig('splash-tank', profiles)}
+        onBackToHub={onBackToHub}
+        onEditProfiles={onEditProfiles}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <SplashTankBoard
         key={gameKey}
         gameKey={gameKey}
         config={config}

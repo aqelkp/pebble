@@ -14,6 +14,7 @@ import { getWordTracePackSpec } from '../games/word-trace/wordTraceEngine';
 import { getQuestPackSpec } from '../curriculum/questEngine/questTypes';
 import { getCountdownModeSpec } from '../games/pipe-countdown/countdownData';
 import { getRocketModeSpec } from '../games/rocket-sums/rocketData';
+import { getSplashModeSpec } from '../games/splash-tank/tankData';
 import type { JourneyActivity } from './journeyTypes';
 
 function resolveConfig<K extends GameId>(
@@ -369,6 +370,22 @@ export function buildStandaloneHelpActivity(
           'Tap the total number fast to fuel your rocket! Correct answers move you closer to the Moon.',
         artPath: 'hub/rocket-sums.png',
         voiceClipId: 'rocket-sums',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'splash-tank': {
+      const cfg = resolveConfig('splash-tank', rawConfig, profiles);
+      const mode = getSplashModeSpec(cfg.modeId);
+      return {
+        ...base,
+        gameId,
+        title: 'Splash Tank',
+        subtitle: `${mode.classBadge} • ${mode.title}`,
+        detailLine:
+          'Tap or drag the right capacity bucket to fill the water tank to the target flag without spilling!',
+        artPath: 'hub/splash-tank.png',
+        voiceClipId: 'splash-tank',
         payload: { gameId, config: cfg },
       };
     }

@@ -135,6 +135,10 @@ const JOURNEY_PROMPTS = [
     id: 'rocket-sums',
     text: 'Add the two numbers together and tap the total quickly to launch your rocket!',
   },
+  {
+    id: 'splash-tank',
+    text: 'Look at the water level and the target flag! Pour the right bucket to fill the tank without spilling!',
+  },
 ];
 
 const UI_PROMPTS = [

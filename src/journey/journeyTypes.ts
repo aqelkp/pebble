@@ -20,6 +20,7 @@ import type { WordTraceConfig } from '../games/word-trace/wordTraceEngine';
 import type { QuestGameConfig } from '../curriculum/questEngine/questTypes';
 import type { PipeCountdownConfig } from '../games/pipe-countdown/countdownData';
 import type { RocketSumsConfig } from '../games/rocket-sums/rocketData';
+import type { SplashTankConfig } from '../games/splash-tank/tankData';
 
 export const TOTAL_CHAPTERS = 20;
 export const ACTIVITIES_PER_CHAPTER = 20;
@@ -72,7 +73,8 @@ export type JourneyVoiceClipId =
   | 'treasure-keys'
   | 'circle-sort'
   | 'pipe-countdown'
-  | 'rocket-sums';
+  | 'rocket-sums'
+  | 'splash-tank';
 
 export interface JourneyBoardContext {
   chapterNumber: number;
@@ -140,7 +142,8 @@ export type JourneyActivityPayload =
   | { gameId: 'treasure-keys'; config: QuestGameConfig }
   | { gameId: 'circle-sort'; config: CircleSortConfig }
   | { gameId: 'pipe-countdown'; config: PipeCountdownConfig }
-  | { gameId: 'rocket-sums'; config: RocketSumsConfig };
+  | { gameId: 'rocket-sums'; config: RocketSumsConfig }
+  | { gameId: 'splash-tank'; config: SplashTankConfig };
 
 export interface JourneyActivity {
   index: number;

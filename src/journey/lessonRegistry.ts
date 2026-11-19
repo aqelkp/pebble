@@ -48,6 +48,11 @@ import {
   type RocketRoundLength,
   type RocketVisualMode,
 } from '../games/rocket-sums/rocketData';
+import {
+  getSplashModeSpec,
+  type SplashTankModeId,
+  type SplashTankRoundLength,
+} from '../games/splash-tank/tankData';
 import type { JourneyActivityAdapter, JourneyLearningPillar } from './journeyTypes';
 
 const COMPARE_MODE_ROTATION: readonly CompareModeId[] = [
@@ -973,6 +978,46 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
             classLevel: spec.classLevel,
             modeId,
             visualMode: spec.supportsPictures ? visualMode : 'numbers-only',
+            roundLength,
+          },
+        },
+      };
+    },
+  },
+
+  'splash-tank': {
+    gameId: 'splash-tank',
+    title: 'Splash Tank',
+    artPath: 'hub/splash-tank.png',
+    pillar: 'numbers-math',
+    category: 'math',
+    buildActivity: (ctx) => {
+      let modeId: SplashTankModeId = 'k1-warmup';
+      if (ctx.gameOrdinal === 0) {
+        modeId = 'k1-warmup';
+      } else if (ctx.chapterNumber <= 8) {
+        modeId = ctx.gameOrdinal % 2 === 1 ? 'k1-warmup' : 'k1-core';
+      } else if (ctx.chapterNumber <= 15) {
+        modeId = ctx.gameOrdinal % 3 === 2 ? 'k2-scaffold' : 'k1-core';
+      } else {
+        modeId = ctx.gameOrdinal % 2 === 0 ? 'k2-scaffold' : 'k1-core';
+      }
+
+      const roundLength: SplashTankRoundLength =
+        ctx.gameOrdinal === 0 || ctx.settings.durationMode === 'short' ? 6 : 8;
+      const spec = getSplashModeSpec(modeId);
+
+      return {
+        title: 'Splash Tank',
+        subtitle: `${spec.title} • ${roundLength} tanks`,
+        detailLine: 'Pour the right bucket to fill the tank to the target flag without spilling!',
+        artPath: 'hub/splash-tank.png',
+        voiceClipId: 'splash-tank',
+        payload: {
+          gameId: 'splash-tank',
+          config: {
+            classLevel: spec.classLevel,
+            modeId,
             roundLength,
           },
         },

@@ -782,6 +782,52 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     );
   }
 
+  if (activity.gameId === 'splash-tank') {
+    return (
+      <div className="intro-demo-stage" aria-hidden="true" style={{ flexDirection: 'column', gap: 10 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 16px',
+            borderRadius: 18,
+            background: '#FFFDF9',
+            border: '2px solid #E5DFD3',
+          }}
+        >
+          <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', color: '#267F75' }}>
+            4 +
+          </strong>
+          <span
+            style={{
+              width: 46,
+              height: 46,
+              borderRadius: 14,
+              background: '#ECEBFF',
+              border: '2.5px solid #5B5BD6',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.75rem',
+              fontWeight: 700,
+              color: '#5B5BD6',
+            }}
+          >
+            3
+          </span>
+          <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', color: '#F27A5E' }}>
+            = 7
+          </strong>
+        </div>
+        <span className="intro-demo-twin-caption">
+          Pour the right bucket to reach the target flag without spilling!
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="intro-demo-stage intro-demo-stage--safari" aria-hidden="true">
       <div className="intro-demo-safari-animals">

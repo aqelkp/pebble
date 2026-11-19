@@ -22,7 +22,8 @@ export type GameId =
   | 'treasure-keys'
   | 'circle-sort'
   | 'pipe-countdown'
-  | 'rocket-sums';
+  | 'rocket-sums'
+  | 'splash-tank';
 
 export type HubShelfId =
   | 'letters-words'
@@ -285,6 +286,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['numeracy', 'cognition', 'self-regulation'],
       targetSkills: ['group_joining', 'quantity_counting'],
       conceptUnitLabel: '1-Digit Mental Addition',
+    },
+  },
+  {
+    id: 'splash-tank',
+    title: 'Splash Tank',
+    description:
+      'Pour the right capacity bucket into a graduated water pipe so it reaches the target flag without overflowing—spin the waterwheel on an exact fill!',
+    badgeText: 'New Game',
+    ageHint: 'K1 / K2 • Missing Addends',
+    artPath: 'hub/splash-tank.png',
+    shelf: 'numbers-logic',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Builds missing-addend / delta addition intuition (start + ? = target) using a graduated 1–10 / 1–20 water tank, overflow zone awareness, and teach-first gap explanations.',
+      domains: ['numeracy', 'cognition', 'self-regulation'],
+      targetSkills: ['group_joining', 'quantity_counting'],
+      conceptUnitLabel: 'Missing-Addend Addition',
     },
   },
   {
