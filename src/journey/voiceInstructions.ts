@@ -50,6 +50,7 @@ export const ALL_JOURNEY_VOICE_CLIP_IDS: readonly JourneyVoiceClipId[] = [
   'treasure-keys',
   'circle-sort',
   'pipe-countdown',
+  'rocket-sums',
 ];
 
 const warmedVoiceElements = new Map<JourneyVoiceClipId, HTMLAudioElement>();

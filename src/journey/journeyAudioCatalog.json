@@ -1807,6 +1807,84 @@
           "endMs": 4578
         }
       ]
+    },
+    "rocket-sums": {
+      "id": "rocket-sums",
+      "text": "Add the two numbers together and tap the total quickly to launch your rocket!",
+      "audioPath": "audio/journey/rocket-sums.mp3",
+      "durationMs": 4143,
+      "words": [
+        {
+          "word": "Add",
+          "startMs": 0,
+          "endMs": 264
+        },
+        {
+          "word": "the",
+          "startMs": 264,
+          "endMs": 358
+        },
+        {
+          "word": "two",
+          "startMs": 358,
+          "endMs": 713
+        },
+        {
+          "word": "numbers",
+          "startMs": 713,
+          "endMs": 1044
+        },
+        {
+          "word": "together",
+          "startMs": 1044,
+          "endMs": 1699
+        },
+        {
+          "word": "and",
+          "startMs": 1699,
+          "endMs": 1868
+        },
+        {
+          "word": "tap",
+          "startMs": 1868,
+          "endMs": 2107
+        },
+        {
+          "word": "the",
+          "startMs": 2107,
+          "endMs": 2152
+        },
+        {
+          "word": "total",
+          "startMs": 2152,
+          "endMs": 2632
+        },
+        {
+          "word": "quickly",
+          "startMs": 2632,
+          "endMs": 3058
+        },
+        {
+          "word": "to",
+          "startMs": 3058,
+          "endMs": 3195
+        },
+        {
+          "word": "launch",
+          "startMs": 3195,
+          "endMs": 3407
+        },
+        {
+          "word": "your",
+          "startMs": 3407,
+          "endMs": 3584
+        },
+        {
+          "word": "rocket!",
+          "startMs": 3584,
+          "endMs": 4143
+        }
+      ]
     }
   }
 }

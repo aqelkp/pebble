@@ -88,6 +88,11 @@ import {
   isValidPipeCountdownConfig,
   type PipeCountdownConfig,
 } from './pipe-countdown/countdownData';
+import {
+  getDefaultRocketSumsConfig,
+  isValidRocketSumsConfig,
+  type RocketSumsConfig,
+} from './rocket-sums/rocketData';
 
 // TODO(security): Pebble runs 100% locally in the browser as a static client-only PWA with no
 // backend server, authentication, or database. All saved game configuration objects restored from
@@ -116,6 +121,7 @@ export interface GameConfigMap {
   'treasure-keys': QuestGameConfig;
   'circle-sort': CircleSortConfig;
   'pipe-countdown': PipeCountdownConfig;
+  'rocket-sums': RocketSumsConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -234,6 +240,7 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'treasure-keys': isValidQuestGameConfig,
   'circle-sort': isValidCircleSortConfig,
   'pipe-countdown': isValidPipeCountdownConfig,
+  'rocket-sums': isValidRocketSumsConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -314,5 +321,7 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultCircleSortConfig() as GameConfigMap[K];
     case 'pipe-countdown':
       return getDefaultPipeCountdownConfig() as GameConfigMap[K];
+    case 'rocket-sums':
+      return getDefaultRocketSumsConfig() as GameConfigMap[K];
   }
 }

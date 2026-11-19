@@ -131,6 +131,10 @@ const JOURNEY_PROMPTS = [
     id: 'pipe-countdown',
     text: 'Plug each leaking pipe from biggest down to zero to start the garden fountain!',
   },
+  {
+    id: 'rocket-sums',
+    text: 'Add the two numbers together and tap the total quickly to launch your rocket!',
+  },
 ];
 
 const UI_PROMPTS = [

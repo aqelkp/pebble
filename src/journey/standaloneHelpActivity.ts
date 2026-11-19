@@ -13,6 +13,7 @@ import { getCompareModeSpec } from '../games/compare-quest/compareData';
 import { getWordTracePackSpec } from '../games/word-trace/wordTraceEngine';
 import { getQuestPackSpec } from '../curriculum/questEngine/questTypes';
 import { getCountdownModeSpec } from '../games/pipe-countdown/countdownData';
+import { getRocketModeSpec } from '../games/rocket-sums/rocketData';
 import type { JourneyActivity } from './journeyTypes';
 
 function resolveConfig<K extends GameId>(
@@ -352,6 +353,22 @@ export function buildStandaloneHelpActivity(
           'Drag or tap the widest numbered repair rod into the leaking pipe gap down to cap 0!',
         artPath: 'hub/pipe-countdown.png',
         voiceClipId: 'pipe-countdown',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'rocket-sums': {
+      const cfg = resolveConfig('rocket-sums', rawConfig, profiles);
+      const mode = getRocketModeSpec(cfg.modeId);
+      return {
+        ...base,
+        gameId,
+        title: 'Rocket Sums',
+        subtitle: `${mode.classBadge} • ${mode.title}`,
+        detailLine:
+          'Tap the total number fast to fuel your rocket! Correct answers move you closer to the Moon.',
+        artPath: 'hub/rocket-sums.png',
+        voiceClipId: 'rocket-sums',
         payload: { gameId, config: cfg },
       };
     }

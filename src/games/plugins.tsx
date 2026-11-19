@@ -171,6 +171,16 @@ const PipeCountdownBoard = lazy(() =>
     default: m.PipeCountdownBoard,
   })),
 );
+const RocketSumsSetup = lazy(() =>
+  import('./rocket-sums/RocketSumsSetup').then((m) => ({
+    default: m.RocketSumsSetup,
+  })),
+);
+const RocketSumsBoard = lazy(() =>
+  import('./rocket-sums/RocketSumsBoard').then((m) => ({
+    default: m.RocketSumsBoard,
+  })),
+);
 
 export interface LeaveGameCopy {
   headline: string;
@@ -1156,6 +1166,57 @@ const GAME_PLUGINS: GamePluginRegistry = {
       journeyContext,
     }) => (
       <PipeCountdownBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+
+  'rocket-sums': {
+    id: 'rocket-sums',
+    activeSessionStorageKey: 'pebble.rocket-sums.active.v1',
+    leaveCopy: {
+      headline: 'Leave Rocket Sums?',
+      subtitle: 'Your current rocket launch progress will reset.',
+      keepPlayingLabel: 'Keep Launching',
+    },
+    ...makeConfigAccessors('rocket-sums'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./rocket-sums/RocketSumsSetup'),
+        import('./rocket-sums/RocketSumsBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onEditProfiles, onStartGame }) => (
+      <RocketSumsSetup
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig('rocket-sums', profiles)}
+        onBackToHub={onBackToHub}
+        onEditProfiles={onEditProfiles}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <RocketSumsBoard
         key={gameKey}
         gameKey={gameKey}
         config={config}
