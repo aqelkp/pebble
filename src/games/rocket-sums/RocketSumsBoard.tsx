@@ -430,7 +430,7 @@ export function RocketSumsBoard({
               setConfettiKey((k) => k + 1);
               playRocketLaunchFanfare(roundFlawless, soundEnabled);
               journeyOnCompleteRef.current?.();
-            }, 1900);
+            }, 2350);
           } else {
             promptMistakesRef.current = 0;
             setSolvedCount(nextSolved);
@@ -545,129 +545,146 @@ export function RocketSumsBoard({
         </div>
       </header>
 
-      <main className="rs-board-stage" data-testid="rocket-sums-board">
-        {phase === 'won' ? (
-          <section className="rs-win-card" data-testid="rocket-win-card">
-            <RocketGlyph size={68} />
-            <h2>Moon Launch Complete!</h2>
-            <p>
-              Awesome mental math, {childProfile.name}! You solved {config.roundLength} sums
-              {fastCount > 0 ? ` with ${fastCount} Turbo Fast recalls!` : '!'}
-            </p>
-            {mistakes === 0 && (
-              <span className="rs-stat-chip rs-stat-chip--honey">
-                <CrownIcon size={16} />
-                <span>Zero-Mistake Launch Crown!</span>
-              </span>
-            )}
-            <div className="rs-win-actions">
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={handlePlayAgain}
-                data-testid="rocket-play-again-btn"
-              >
-                Launch Again
-              </button>
-              <button type="button" className="btn-secondary" onClick={onBackToHub}>
-                Back to Games
-              </button>
-            </div>
-          </section>
-        ) : (
-          <>
-            <section
-              className={`rs-launchpad-scene ${phase === 'launching' ? 'is-launching' : ''}`}
-              data-testid="rocket-launchpad-scene"
-            >
-              <div className="rs-sky-stars" aria-hidden="true">
-                {SKY_DOTS.map((dot, idx) => (
-                  <span
-                    key={idx}
-                    className="rs-sky-dot"
-                    style={{ left: dot.left, top: dot.top, width: dot.size, height: dot.size }}
-                  />
-                ))}
-              </div>
+      <main
+        className={`rs-board-stage ${
+          phase === 'launching' || phase === 'won' ? 'is-launch-expanded' : ''
+        }`}
+        data-testid="rocket-sums-board"
+      >
+        <section
+          className={`rs-launchpad-scene ${
+            phase === 'launching' || phase === 'won' ? 'is-launching' : ''
+          }`}
+          data-testid="rocket-launchpad-scene"
+        >
+          <div className="rs-sky-stars" aria-hidden="true">
+            {SKY_DOTS.map((dot, idx) => (
+              <span
+                key={idx}
+                className="rs-sky-dot"
+                style={{ left: dot.left, top: dot.top, width: dot.size, height: dot.size }}
+              />
+            ))}
+          </div>
 
-              <div className="rs-launchpad-hud-top">
-                <span className={`rs-prep-pill ${phase === 'launching' ? 'is-liftoff' : ''}`}>
-                  {phase === 'launching'
-                    ? '3… 2… 1… LIFTOFF!'
-                    : solvedCount === 0
-                      ? 'Preparing our rocket! Answer to add fuel!'
-                      : solvedCount === config.roundLength - 1
-                        ? 'Final fuel cell! Ready for liftoff!'
-                        : `Fueling rocket… ${solvedCount} of ${config.roundLength} ready!`}
-                </span>
-                {fastCount > 0 && (
-                  <span className="rs-rocket-badge">{fastCount} Turbo</span>
-                )}
-              </div>
-
-              <div className="rs-moon-target" aria-hidden="true">
-                <span className="rs-moon-badge">Moon</span>
-                <MoonTargetGlyph size={44} />
-              </div>
-
-              <div className="rs-launchpad-stage-row">
-                <div className="rs-fuel-gauge-card">
-                  <div className="rs-fuel-gauge-label">
-                    <span>Rocket Fuel</span>
-                    <span className="rs-track-rocket" style={{ fontSize: '0.8rem' }}>
-                      {solvedCount} / {config.roundLength}
-                    </span>
-                  </div>
-                  <div
-                    className="rs-fuel-cells"
-                    aria-label={`Fuel ${solvedCount} of ${config.roundLength}`}
-                  >
-                    {Array.from({ length: config.roundLength }, (_, idx) => {
-                      const isDone = idx < solvedCount;
-                      const isCurrent = idx === solvedCount;
-                      return (
-                        <span
-                          key={idx}
-                          className={`rs-fuel-cell ${
-                            isDone ? 'is-filled' : isCurrent ? 'is-next' : ''
-                          }`}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div
-                  className={`rs-rocket-rig ${
-                    phase === 'launching'
-                      ? 'is-launching'
-                      : phase === 'celebrating'
-                        ? 'is-fuel-pulse'
-                        : ''
-                  }`}
-                  data-testid="rocket-rig"
-                >
-                  <RocketGlyph size={84} />
-                  <div className="rs-rocket-flame" aria-hidden="true" />
-                </div>
-
-                <div className="rs-smoke-puff rs-smoke-puff--left" aria-hidden="true" />
-                <div className="rs-smoke-puff rs-smoke-puff--right" aria-hidden="true" />
-                <div className="rs-launchpad-deck" aria-hidden="true" />
-              </div>
-            </section>
-
-            <section
-              className={`rs-question-card ${
-                phase === 'celebrating'
-                  ? 'is-celebrating'
-                  : phase === 'teach-mistake'
-                    ? 'is-mistake'
-                    : phase === 'timeout-reveal'
-                      ? 'is-timeout'
-                      : ''
+          <div className="rs-launchpad-hud-top">
+            <span
+              className={`rs-prep-pill ${
+                phase === 'launching' || phase === 'won' ? 'is-liftoff' : ''
               }`}
             >
+              {phase === 'won'
+                ? 'Reached the Moon!'
+                : phase === 'launching'
+                  ? '3… 2… 1… LIFTOFF!'
+                  : solvedCount === 0
+                    ? 'Preparing our rocket! Answer to add fuel!'
+                    : solvedCount === config.roundLength - 1
+                      ? 'Final fuel cell! Ready for liftoff!'
+                      : `Fueling rocket… ${solvedCount} of ${config.roundLength} ready!`}
+            </span>
+            {fastCount > 0 && <span className="rs-rocket-badge">{fastCount} Turbo</span>}
+          </div>
+
+          <div className="rs-moon-target" aria-hidden="true">
+            <span className="rs-moon-badge">Moon</span>
+            <MoonTargetGlyph size={44} />
+          </div>
+
+          <div className="rs-launchpad-stage-row">
+            <div className="rs-fuel-gauge-card">
+              <div className="rs-fuel-gauge-label">
+                <span>Rocket Fuel</span>
+                <span className="rs-track-rocket" style={{ fontSize: '0.8rem' }}>
+                  {solvedCount} / {config.roundLength}
+                </span>
+              </div>
+              <div
+                className="rs-fuel-cells"
+                aria-label={`Fuel ${solvedCount} of ${config.roundLength}`}
+              >
+                {Array.from({ length: config.roundLength }, (_, idx) => {
+                  const isDone = idx < solvedCount;
+                  const isCurrent = idx === solvedCount;
+                  return (
+                    <span
+                      key={idx}
+                      className={`rs-fuel-cell ${
+                        isDone ? 'is-filled' : isCurrent ? 'is-next' : ''
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            <div
+              className={`rs-rocket-rig ${
+                phase === 'launching'
+                  ? 'is-launching'
+                  : phase === 'won'
+                    ? 'is-arrived'
+                    : phase === 'celebrating'
+                      ? 'is-fuel-pulse'
+                      : ''
+              }`}
+              data-testid="rocket-rig"
+            >
+              <RocketGlyph size={84} />
+              <div className="rs-rocket-flame" aria-hidden="true" />
+            </div>
+
+            <div className="rs-smoke-puff rs-smoke-puff--left" aria-hidden="true" />
+            <div className="rs-smoke-puff rs-smoke-puff--right" aria-hidden="true" />
+            <div className="rs-launchpad-deck" aria-hidden="true" />
+          </div>
+
+          {phase === 'won' && (
+            <div className="rs-win-overlay-card" data-testid="rocket-win-card">
+              <div className="rs-win-overlay-inner">
+                <RocketGlyph size={64} />
+                <h2>Moon Launch Complete!</h2>
+                <p>
+                  Awesome mental math, {childProfile.name}! You solved {config.roundLength} sums
+                  {fastCount > 0 ? ` with ${fastCount} Turbo Fast recalls!` : '!'}
+                </p>
+                {mistakes === 0 && (
+                  <span className="rs-stat-chip rs-stat-chip--honey">
+                    <CrownIcon size={16} />
+                    <span>Zero-Mistake Launch Crown!</span>
+                  </span>
+                )}
+                <div className="rs-win-actions">
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={handlePlayAgain}
+                    data-testid="rocket-play-again-btn"
+                  >
+                    Launch Again
+                  </button>
+                  <button type="button" className="btn-secondary" onClick={onBackToHub}>
+                    Back to Games
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <section
+          className={`rs-question-card ${
+            phase === 'launching' || phase === 'won'
+              ? 'is-collapsing'
+              : phase === 'celebrating'
+                ? 'is-celebrating'
+                : phase === 'teach-mistake'
+                  ? 'is-mistake'
+                  : phase === 'timeout-reveal'
+                    ? 'is-timeout'
+                    : ''
+          }`}
+        >
               <div className="rs-timer-row">
                 <div className="rs-timer-bar-wrap" aria-hidden="true">
                   <div className="rs-timer-bar-fill" style={{ width: `${timerPct}%` }} />
@@ -779,7 +796,12 @@ export function RocketSumsBoard({
               )}
             </section>
 
-            <section className="rs-pad-wrap" aria-label="Answer number pad">
+            <section
+              className={`rs-pad-wrap ${
+                phase === 'launching' || phase === 'won' ? 'is-collapsing' : ''
+              }`}
+              aria-label="Answer number pad"
+            >
               <div className="rs-pad-grid">
                 {padNumbers.map((num) => {
                   const isCorrectShown =
@@ -802,8 +824,6 @@ export function RocketSumsBoard({
                 })}
               </div>
             </section>
-          </>
-        )}
       </main>
 
       <ThinkAgainOverlay

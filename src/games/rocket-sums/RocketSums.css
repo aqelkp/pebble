@@ -182,12 +182,18 @@
   justify-content: space-between;
   gap: 10px;
   padding-bottom: 6px;
+  transition: gap 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rs-board-stage.is-launch-expanded {
+  gap: 0;
 }
 
 /* Visual Launchpad & Sky Scene */
 .rs-launchpad-scene {
   position: relative;
-  height: 204px;
+  flex: 0 0 204px;
+  min-height: 204px;
   border-radius: 24px;
   overflow: hidden;
   border: 2.5px solid var(--border-subtle);
@@ -197,11 +203,12 @@
   flex-direction: column;
   justify-content: space-between;
   padding: 12px 16px 0;
-  transition: height 0.35s ease;
+  transition: flex 0.9s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.5s ease;
 }
 
 .rs-launchpad-scene.is-launching {
-  height: 290px;
+  flex: 1 1 0%;
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .rs-sky-stars {
@@ -324,7 +331,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: transform 1.6s cubic-bezier(0.22, 0.85, 0.35, 1);
+  transition: transform 2.1s cubic-bezier(0.22, 0.85, 0.35, 1) 0.2s;
   z-index: 3;
 }
 
@@ -333,7 +340,12 @@
 }
 
 .rs-rocket-rig.is-launching {
-  transform: translateY(-175px) scale(0.86);
+  transform: translateY(-460px) scale(1.06);
+}
+
+.rs-rocket-rig.is-arrived {
+  transform: translateY(-540px) scale(0.95);
+  transition: transform 0.6s ease;
 }
 
 @keyframes rs-rocket-fuel-bounce {
@@ -472,7 +484,7 @@
 
 .rs-question-card {
   position: relative;
-  flex: 1;
+  flex: 1 1 0%;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -484,6 +496,24 @@
   background: var(--surface-card);
   border: 2.5px solid var(--border-subtle);
   box-shadow: 0 10px 26px rgba(30, 36, 51, 0.06);
+  max-height: 600px;
+  transition:
+    flex 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    max-height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.42s ease,
+    padding 0.75s ease,
+    border-width 0.5s ease;
+}
+
+.rs-question-card.is-collapsing {
+  flex: 0 0 0px;
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .rs-question-card.is-celebrating {
@@ -683,6 +713,67 @@
   border: 2px solid var(--border-subtle);
   border-radius: 24px;
   padding: 12px 14px;
+  max-height: 240px;
+  transition:
+    max-height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.42s ease,
+    padding 0.75s ease,
+    border-width 0.5s ease;
+}
+
+.rs-pad-wrap.is-collapsing {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.rs-win-overlay-card {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: rs-win-fade-in 0.55s ease forwards;
+}
+
+@keyframes rs-win-fade-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.rs-win-overlay-inner {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 24px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  border: 2.5px solid var(--mint-match);
+  box-shadow: 0 16px 40px rgba(15, 20, 42, 0.28);
+  text-align: center;
+}
+
+.rs-win-overlay-inner h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  color: var(--text-primary);
+}
+
+.rs-win-overlay-inner p {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
 }
 
 .rs-pad-grid {
