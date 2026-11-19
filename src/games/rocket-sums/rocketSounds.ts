@@ -93,6 +93,36 @@ export function playRocketLaunchFanfare(flawless: boolean, enabled: boolean): vo
   }
 }
 
+export function playRocketLiftoffWhoosh(enabled: boolean): void {
+  if (!enabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(520, now + 1.4);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.exponentialRampToValueAtTime(0.09, now + 0.18);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.55);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 1.6);
+  } catch {
+    // Ignore Web Audio errors
+  }
+  // Cheerful ascending liftoff notes
+  playTone(523.25, 0.05, 0.18, 'triangle', 0.085);
+  playTone(659.25, 0.28, 0.18, 'triangle', 0.085);
+  playTone(783.99, 0.52, 0.22, 'triangle', 0.09);
+  playTone(1046.5, 0.8, 0.45, 'triangle', 0.1);
+}
+
 export function playRocketAnswerVoice(
   answer: number,
   enabled: boolean,

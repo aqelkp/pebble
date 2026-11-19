@@ -29,6 +29,7 @@ import {
   playRocketAnswerVoice,
   playRocketCorrectChime,
   playRocketLaunchFanfare,
+  playRocketLiftoffWhoosh,
   playRocketTimeoutPauseChime,
   playRocketWrongTap,
   preloadRocketAssets,
@@ -48,7 +49,14 @@ interface RocketSumsBoardProps {
   journeyContext?: JourneyBoardContext;
 }
 
-type BoardPhase = 'playing' | 'celebrating' | 'timeout-reveal' | 'teach-mistake' | 'think-again' | 'won';
+type BoardPhase =
+  | 'playing'
+  | 'celebrating'
+  | 'launching'
+  | 'timeout-reveal'
+  | 'teach-mistake'
+  | 'think-again'
+  | 'won';
 
 interface PersistedRocketSession {
   version: 1;
@@ -107,6 +115,33 @@ function RocketGlyph({ size = 28 }: { size?: number }) {
     </svg>
   );
 }
+
+function MoonTargetGlyph({ size = 44 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <circle cx="24" cy="24" r="19" fill="#F2B84B" />
+      <circle cx="31" cy="18" r="13" fill="#2E3A7A" opacity="0.22" />
+      <circle cx="17" cy="22" r="2.2" fill="#5A3B06" />
+      <circle cx="25" cy="22" r="2.2" fill="#5A3B06" />
+      <path
+        d="M18 28C20 30.5 23.5 30.5 25.5 28"
+        stroke="#5A3B06"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+const SKY_DOTS = [
+  { left: '12%', top: '18%', size: 5 },
+  { left: '28%', top: '12%', size: 4 },
+  { left: '46%', top: '20%', size: 6 },
+  { left: '64%', top: '14%', size: 4 },
+  { left: '78%', top: '28%', size: 5 },
+  { left: '20%', top: '42%', size: 4 },
+  { left: '68%', top: '46%', size: 5 },
+];
 
 // TODO(security): Pebble runs locally as a static client-only PWA; all restored sessionStorage
 // prompt objects and counters are validated against strict allow-lists and bounds.
@@ -386,10 +421,16 @@ export function RocketSumsBoard({
               conceptsTested: [`${modeSpec.classBadge}:${modeSpec.title}`],
             });
             setSolvedCount(nextSolved);
-            setPhase('won');
+            setPhase('launching');
             setConfettiKey((k) => k + 1);
-            playRocketLaunchFanfare(roundFlawless, soundEnabled);
-            journeyOnCompleteRef.current?.();
+            playRocketLiftoffWhoosh(soundEnabled);
+
+            teachTimerRef.current = window.setTimeout(() => {
+              setPhase('won');
+              setConfettiKey((k) => k + 1);
+              playRocketLaunchFanfare(roundFlawless, soundEnabled);
+              journeyOnCompleteRef.current?.();
+            }, 1900);
           } else {
             promptMistakesRef.current = 0;
             setSolvedCount(nextSolved);
@@ -463,8 +504,8 @@ export function RocketSumsBoard({
   return (
     <div className="app-shell app-shell--board">
       <ConfettiBurst
-        active={phase === 'celebrating' || phase === 'won'}
-        mode={phase === 'won' ? 'win' : 'match'}
+        active={phase === 'celebrating' || phase === 'launching' || phase === 'won'}
+        mode={phase === 'won' || phase === 'launching' ? 'win' : 'match'}
         burstKey={confettiKey}
       />
 
@@ -535,29 +576,86 @@ export function RocketSumsBoard({
           </section>
         ) : (
           <>
-            <div className="rs-hud-strip">
-              <div className="rs-track-rocket">
-                <RocketGlyph size={24} />
-                <span>
-                  {solvedCount} / {config.roundLength}
+            <section
+              className={`rs-launchpad-scene ${phase === 'launching' ? 'is-launching' : ''}`}
+              data-testid="rocket-launchpad-scene"
+            >
+              <div className="rs-sky-stars" aria-hidden="true">
+                {SKY_DOTS.map((dot, idx) => (
+                  <span
+                    key={idx}
+                    className="rs-sky-dot"
+                    style={{ left: dot.left, top: dot.top, width: dot.size, height: dot.size }}
+                  />
+                ))}
+              </div>
+
+              <div className="rs-launchpad-hud-top">
+                <span className={`rs-prep-pill ${phase === 'launching' ? 'is-liftoff' : ''}`}>
+                  {phase === 'launching'
+                    ? '3… 2… 1… LIFTOFF!'
+                    : solvedCount === 0
+                      ? 'Preparing our rocket! Answer to add fuel!'
+                      : solvedCount === config.roundLength - 1
+                        ? 'Final fuel cell! Ready for liftoff!'
+                        : `Fueling rocket… ${solvedCount} of ${config.roundLength} ready!`}
                 </span>
+                {fastCount > 0 && (
+                  <span className="rs-rocket-badge">{fastCount} Turbo</span>
+                )}
               </div>
-              <div className="rs-track" aria-label={`Progress ${solvedCount} of ${config.roundLength}`}>
-                {Array.from({ length: config.roundLength }, (_, idx) => {
-                  const isDone = idx < solvedCount;
-                  const isCurrent = idx === solvedCount;
-                  return (
-                    <span
-                      key={idx}
-                      className={`rs-track-node ${isDone ? 'is-done' : isCurrent ? 'is-current' : ''}`}
-                    />
-                  );
-                })}
+
+              <div className="rs-moon-target" aria-hidden="true">
+                <span className="rs-moon-badge">Moon</span>
+                <MoonTargetGlyph size={44} />
               </div>
-              {fastCount > 0 && (
-                <span className="rs-rocket-badge">{fastCount} Turbo</span>
-              )}
-            </div>
+
+              <div className="rs-launchpad-stage-row">
+                <div className="rs-fuel-gauge-card">
+                  <div className="rs-fuel-gauge-label">
+                    <span>Rocket Fuel</span>
+                    <span className="rs-track-rocket" style={{ fontSize: '0.8rem' }}>
+                      {solvedCount} / {config.roundLength}
+                    </span>
+                  </div>
+                  <div
+                    className="rs-fuel-cells"
+                    aria-label={`Fuel ${solvedCount} of ${config.roundLength}`}
+                  >
+                    {Array.from({ length: config.roundLength }, (_, idx) => {
+                      const isDone = idx < solvedCount;
+                      const isCurrent = idx === solvedCount;
+                      return (
+                        <span
+                          key={idx}
+                          className={`rs-fuel-cell ${
+                            isDone ? 'is-filled' : isCurrent ? 'is-next' : ''
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div
+                  className={`rs-rocket-rig ${
+                    phase === 'launching'
+                      ? 'is-launching'
+                      : phase === 'celebrating'
+                        ? 'is-fuel-pulse'
+                        : ''
+                  }`}
+                  data-testid="rocket-rig"
+                >
+                  <RocketGlyph size={84} />
+                  <div className="rs-rocket-flame" aria-hidden="true" />
+                </div>
+
+                <div className="rs-smoke-puff rs-smoke-puff--left" aria-hidden="true" />
+                <div className="rs-smoke-puff rs-smoke-puff--right" aria-hidden="true" />
+                <div className="rs-launchpad-deck" aria-hidden="true" />
+              </div>
+            </section>
 
             <section
               className={`rs-question-card ${

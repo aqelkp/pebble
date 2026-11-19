@@ -184,6 +184,233 @@
   padding-bottom: 6px;
 }
 
+/* Visual Launchpad & Sky Scene */
+.rs-launchpad-scene {
+  position: relative;
+  height: 204px;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 2.5px solid var(--border-subtle);
+  background: linear-gradient(180deg, #27326b 0%, #4450a6 45%, #84b4e8 85%, #d6ecfa 100%);
+  box-shadow: 0 8px 22px rgba(30, 36, 51, 0.09);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 16px 0;
+  transition: height 0.35s ease;
+}
+
+.rs-launchpad-scene.is-launching {
+  height: 290px;
+}
+
+.rs-sky-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.rs-sky-dot {
+  position: absolute;
+  border-radius: 999px;
+  background: rgba(255, 246, 200, 0.85);
+}
+
+.rs-moon-target {
+  position: absolute;
+  top: 14px;
+  right: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 2;
+}
+
+.rs-moon-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff8df;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  backdrop-filter: blur(4px);
+}
+
+.rs-launchpad-hud-top {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 72%;
+}
+
+.rs-prep-pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 700;
+  box-shadow: 0 3px 10px rgba(20, 26, 48, 0.14);
+}
+
+.rs-prep-pill.is-liftoff {
+  background: var(--honey-accent);
+  color: #4b3104;
+}
+
+.rs-launchpad-stage-row {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 10px;
+}
+
+.rs-fuel-gauge-card {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 12px rgba(20, 26, 48, 0.14);
+  min-width: 138px;
+}
+
+.rs-fuel-gauge-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rs-fuel-cells {
+  display: flex;
+  gap: 4px;
+}
+
+.rs-fuel-cell {
+  flex: 1;
+  height: 11px;
+  border-radius: 999px;
+  background: #e4dfd4;
+  transition: background-color 0.25s ease, transform 0.25s ease;
+}
+
+.rs-fuel-cell.is-filled {
+  background: linear-gradient(180deg, #4cd3c2, var(--mint-match));
+  transform: scaleY(1.12);
+}
+
+.rs-fuel-cell.is-next {
+  background: #d3d1ff;
+}
+
+.rs-rocket-rig {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 1.6s cubic-bezier(0.22, 0.85, 0.35, 1);
+  z-index: 3;
+}
+
+.rs-rocket-rig.is-fuel-pulse {
+  animation: rs-rocket-fuel-bounce 0.48s ease;
+}
+
+.rs-rocket-rig.is-launching {
+  transform: translateY(-175px) scale(0.86);
+}
+
+@keyframes rs-rocket-fuel-bounce {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-8px) scale(1.04); }
+}
+
+.rs-rocket-flame {
+  width: 24px;
+  height: 22px;
+  margin-top: -6px;
+  border-radius: 0 0 999px 999px;
+  background: radial-gradient(circle at 50% 20%, #fff7b2 0%, #f2b84b 45%, #f27a5e 100%);
+  opacity: 0;
+  transform: scaleY(0.5);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.rs-rocket-rig.is-fuel-pulse .rs-rocket-flame {
+  opacity: 0.9;
+  transform: scaleY(1);
+}
+
+.rs-rocket-rig.is-launching .rs-rocket-flame {
+  opacity: 1;
+  height: 54px;
+  width: 30px;
+  transform: scaleY(1.15);
+  animation: rs-flame-flicker 0.14s infinite alternate;
+}
+
+@keyframes rs-flame-flicker {
+  from { transform: scaleY(1.05) scaleX(0.94); }
+  to { transform: scaleY(1.22) scaleX(1.06); }
+}
+
+.rs-launchpad-deck {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 16px;
+  background: linear-gradient(180deg, #646c84 0%, #444b60 100%);
+  border-top: 2px solid #8a93ad;
+}
+
+.rs-smoke-puff {
+  position: absolute;
+  bottom: 10px;
+  width: 64px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 250, 240, 0.85);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rs-launchpad-scene.is-launching .rs-smoke-puff--left {
+  left: calc(50% - 70px);
+  animation: rs-smoke-billow-l 1.2s ease-out forwards;
+}
+
+.rs-launchpad-scene.is-launching .rs-smoke-puff--right {
+  right: calc(50% - 70px);
+  animation: rs-smoke-billow-r 1.2s ease-out forwards;
+}
+
+@keyframes rs-smoke-billow-l {
+  0% { opacity: 0.9; transform: translate(0, 0) scale(0.6); }
+  100% { opacity: 0; transform: translate(-44px, -14px) scale(1.6); }
+}
+
+@keyframes rs-smoke-billow-r {
+  0% { opacity: 0.9; transform: translate(0, 0) scale(0.6); }
+  100% { opacity: 0; transform: translate(44px, -14px) scale(1.6); }
+}
+
 .rs-hud-strip {
   display: flex;
   align-items: center;
