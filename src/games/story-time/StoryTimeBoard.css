@@ -1,0 +1,454 @@
+/* ================================
+   Story Time — Setup Bookshelf
+   ================================ */
+.story-setup-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 28px;
+  gap: 16px;
+}
+
+.story-setup-main {
+  width: 100%;
+  max-width: 728px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.story-setup-hero {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.story-setup-title {
+  font-family: var(--font-display, 'Fredoka', sans-serif);
+  font-size: clamp(1.75rem, 4vw, 2.2rem);
+  font-weight: 700;
+  color: #1e2433;
+  margin: 0;
+}
+
+.story-setup-subtitle {
+  margin: 0 auto;
+  max-width: 560px;
+  color: #5c6478;
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+
+.story-shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 520px) {
+  .story-shelf-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.story-book-card {
+  appearance: none;
+  border: 2.5px solid #e7e3d8;
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 10px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 6px 18px rgba(30, 36, 51, 0.05);
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.story-book-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(30, 36, 51, 0.09);
+}
+
+.story-book-card.is-selected {
+  border-color: var(--book-accent, #5b5bd6);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--book-accent, #5b5bd6) 22%, transparent),
+    0 12px 26px rgba(30, 36, 51, 0.1);
+}
+
+.story-book-card__art {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f2efe7;
+}
+
+.story-book-card__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.story-book-card__pages {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1e2433;
+  font-family: var(--font-display, 'Fredoka', sans-serif);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(30, 36, 51, 0.12);
+}
+
+.story-book-card__body {
+  padding: 2px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.story-book-card__title {
+  margin: 0;
+  font-family: var(--font-display, 'Fredoka', sans-serif);
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #1e2433;
+}
+
+.story-book-card__sub {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #5c6478;
+  line-height: 1.35;
+}
+
+.story-setup-footer-card {
+  background: #ffffff;
+  border: 2px solid #ebe6db;
+  border-radius: 22px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.story-autoplay-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.96rem;
+  font-weight: 500;
+  color: #1e2433;
+  cursor: pointer;
+}
+
+.story-autoplay-toggle input {
+  width: 20px;
+  height: 20px;
+  accent-color: #5b5bd6;
+}
+
+.story-start-cta {
+  min-width: 230px;
+}
+
+/* ================================
+   Story Time — Full-Height 100dvh Board
+   ================================ */
+.story-board-page {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 18px 16px;
+  gap: 12px;
+  background: #f7f5f0;
+  box-sizing: border-box;
+}
+
+.story-top-bar {
+  flex: 0 0 auto;
+  min-height: 46px;
+}
+
+.story-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.story-header-title {
+  font-family: var(--font-display, 'Fredoka', sans-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e2433;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.story-page-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.story-page-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #dcd6c8;
+  transition: all 180ms ease;
+}
+
+.story-page-dot.is-done {
+  background: #3ba99c;
+}
+
+.story-page-dot.is-current {
+  width: 24px;
+  background: #5b5bd6;
+}
+
+.story-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.story-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 728px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.story-picture-frame {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  border-radius: 26px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 3px solid #ffffff;
+  box-shadow:
+    0 14px 34px rgba(30, 36, 51, 0.1),
+    0 0 0 1px rgba(30, 36, 51, 0.06);
+  animation: storyPageFade 240ms ease-out;
+}
+
+@keyframes storyPageFade {
+  from {
+    opacity: 0.45;
+    transform: scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.story-picture-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.story-page-chip,
+.story-tier-chip {
+  position: absolute;
+  bottom: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-family: var(--font-display, 'Fredoka', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+}
+
+.story-page-chip {
+  left: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1e2433;
+}
+
+.story-tier-chip {
+  right: 12px;
+  background: rgba(236, 235, 255, 0.92);
+  color: #4646c4;
+}
+
+.story-text-card {
+  flex: 0 0 auto;
+  background: #ffffff;
+  border: 2.5px solid #e9e4d9;
+  border-radius: 26px;
+  padding: 14px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 10px 26px rgba(30, 36, 51, 0.06);
+}
+
+.story-text-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.story-read-hint {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #5c6478;
+}
+
+.story-replay-pill {
+  appearance: none;
+  border: 1.5px solid #d9d6ff;
+  background: #ecebff;
+  color: #4646c4;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: var(--font-display, 'Fredoka', sans-serif);
+  font-size: 0.92rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: transform 140ms ease, background-color 140ms ease;
+}
+
+.story-replay-pill:hover {
+  background: #e0deff;
+  transform: translateY(-1px);
+}
+
+.story-text-body {
+  min-height: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+}
+
+.story-nav-dock {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 12px;
+}
+
+.story-nav-btn {
+  min-height: 58px;
+  font-size: 1.15rem;
+}
+
+.story-nav-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ================================
+   Story Complete Modal (Standalone)
+   ================================ */
+.story-complete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(30, 36, 51, 0.48);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.story-complete-card {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border-radius: 30px;
+  padding: 22px 24px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 24px 60px rgba(30, 36, 51, 0.24);
+}
+
+.story-complete-cover {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #f2efe7;
+}
+
+.story-complete-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.story-complete-card h2 {
+  margin: 0;
+  font-family: var(--font-display, 'Fredoka', sans-serif);
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #1e2433;
+}
+
+.story-complete-card p {
+  margin: 0;
+  color: #5c6478;
+  font-size: 1rem;
+}
+
+.story-complete-actions {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.story-complete-shelf-link {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #5b5bd6;
+  font-family: var(--font-display, 'Fredoka', sans-serif);
+  font-size: 0.96rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 10px;
+}

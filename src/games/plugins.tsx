@@ -202,6 +202,16 @@ const WordHuntBoard = lazy(() =>
     default: m.WordHuntBoard,
   })),
 );
+const StoryTimeSetup = lazy(() =>
+  import('./story-time/StoryTimeSetup').then((m) => ({
+    default: m.StoryTimeSetup,
+  })),
+);
+const StoryTimeBoard = lazy(() =>
+  import('./story-time/StoryTimeBoard').then((m) => ({
+    default: m.StoryTimeBoard,
+  })),
+);
 
 export interface LeaveGameCopy {
   headline: string;
@@ -1339,6 +1349,54 @@ const GAME_PLUGINS: GamePluginRegistry = {
       journeyContext,
     }) => (
       <WordHuntBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+  'story-time': {
+    id: 'story-time',
+    activeSessionStorageKey: 'pebble.story-time.active.v1',
+    leaveCopy: {
+      headline: 'Close this storybook?',
+      subtitle: 'You can open it again anytime from Story Time.',
+      keepPlayingLabel: 'Keep Reading',
+    },
+    ...makeConfigAccessors('story-time'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./story-time/StoryTimeSetup'),
+        import('./story-time/StoryTimeBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onStartGame }) => (
+      <StoryTimeSetup
+        initialConfig={initialConfig ?? getDefaultGameConfig('story-time', profiles)}
+        onBackToHub={onBackToHub}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <StoryTimeBoard
         key={gameKey}
         gameKey={gameKey}
         config={config}

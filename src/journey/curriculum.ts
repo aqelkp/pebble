@@ -153,6 +153,7 @@ const STARTER_PILLAR_ORDER: Record<
 };
 
 const STARTER_FUN_ORDER: readonly GameRegistryEntry['id'][] = [
+  'story-time',
   'memory-match',
   'sticker-scene',
   'rescue-road',

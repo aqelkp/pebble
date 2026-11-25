@@ -1,0 +1,2022 @@
+{
+  "pages": {
+    "sam-and-the-mud/page-1": {
+      "audioPath": "audio/stories/sam-and-the-mud/page-1.mp3",
+      "durationMs": 2352,
+      "words": [
+        {
+          "word": "Sam",
+          "startMs": 0,
+          "endMs": 202
+        },
+        {
+          "word": "is",
+          "startMs": 202,
+          "endMs": 569
+        },
+        {
+          "word": "an",
+          "startMs": 569,
+          "endMs": 711
+        },
+        {
+          "word": "ant.",
+          "startMs": 711,
+          "endMs": 1330
+        },
+        {
+          "word": "Pip",
+          "startMs": 1330,
+          "endMs": 1566
+        },
+        {
+          "word": "is",
+          "startMs": 1566,
+          "endMs": 1833
+        },
+        {
+          "word": "a",
+          "startMs": 1833,
+          "endMs": 1921
+        },
+        {
+          "word": "pig.",
+          "startMs": 1921,
+          "endMs": 2352
+        }
+      ]
+    },
+    "sam-and-the-mud/page-2": {
+      "audioPath": "audio/stories/sam-and-the-mud/page-2.mp3",
+      "durationMs": 1601,
+      "words": [
+        {
+          "word": "Sam",
+          "startMs": 0,
+          "endMs": 324
+        },
+        {
+          "word": "met",
+          "startMs": 324,
+          "endMs": 622
+        },
+        {
+          "word": "Pip",
+          "startMs": 622,
+          "endMs": 841
+        },
+        {
+          "word": "in",
+          "startMs": 841,
+          "endMs": 1091
+        },
+        {
+          "word": "his",
+          "startMs": 1091,
+          "endMs": 1169
+        },
+        {
+          "word": "sty.",
+          "startMs": 1169,
+          "endMs": 1601
+        }
+      ]
+    },
+    "sam-and-the-mud/page-3": {
+      "audioPath": "audio/stories/sam-and-the-mud/page-3.mp3",
+      "durationMs": 1770,
+      "words": [
+        {
+          "word": "Oh",
+          "startMs": 0,
+          "endMs": 330
+        },
+        {
+          "word": "no!",
+          "startMs": 330,
+          "endMs": 699
+        },
+        {
+          "word": "The",
+          "startMs": 699,
+          "endMs": 898
+        },
+        {
+          "word": "sty",
+          "startMs": 898,
+          "endMs": 1151
+        },
+        {
+          "word": "got",
+          "startMs": 1151,
+          "endMs": 1515
+        },
+        {
+          "word": "wet.",
+          "startMs": 1515,
+          "endMs": 1770
+        }
+      ]
+    },
+    "sam-and-the-mud/page-4": {
+      "audioPath": "audio/stories/sam-and-the-mud/page-4.mp3",
+      "durationMs": 1953,
+      "words": [
+        {
+          "word": "Pip",
+          "startMs": 0,
+          "endMs": 247
+        },
+        {
+          "word": "is",
+          "startMs": 247,
+          "endMs": 491
+        },
+        {
+          "word": "sad.",
+          "startMs": 491,
+          "endMs": 1044
+        },
+        {
+          "word": "He",
+          "startMs": 1044,
+          "endMs": 1099
+        },
+        {
+          "word": "can",
+          "startMs": 1099,
+          "endMs": 1455
+        },
+        {
+          "word": "not",
+          "startMs": 1455,
+          "endMs": 1712
+        },
+        {
+          "word": "nap.",
+          "startMs": 1712,
+          "endMs": 1953
+        }
+      ]
+    },
+    "sam-and-the-mud/page-5": {
+      "audioPath": "audio/stories/sam-and-the-mud/page-5.mp3",
+      "durationMs": 1751,
+      "words": [
+        {
+          "word": "Sam",
+          "startMs": 0,
+          "endMs": 190
+        },
+        {
+          "word": "and",
+          "startMs": 190,
+          "endMs": 595
+        },
+        {
+          "word": "Pip",
+          "startMs": 595,
+          "endMs": 805
+        },
+        {
+          "word": "hop",
+          "startMs": 805,
+          "endMs": 919
+        },
+        {
+          "word": "in",
+          "startMs": 919,
+          "endMs": 1131
+        },
+        {
+          "word": "the",
+          "startMs": 1131,
+          "endMs": 1516
+        },
+        {
+          "word": "mud.",
+          "startMs": 1516,
+          "endMs": 1751
+        }
+      ]
+    },
+    "sam-and-the-mud/page-6": {
+      "audioPath": "audio/stories/sam-and-the-mud/page-6.mp3",
+      "durationMs": 2144,
+      "words": [
+        {
+          "word": "Pip",
+          "startMs": 0,
+          "endMs": 217
+        },
+        {
+          "word": "has",
+          "startMs": 217,
+          "endMs": 470
+        },
+        {
+          "word": "fun!",
+          "startMs": 470,
+          "endMs": 988
+        },
+        {
+          "word": "Mud",
+          "startMs": 988,
+          "endMs": 1231
+        },
+        {
+          "word": "is",
+          "startMs": 1231,
+          "endMs": 1431
+        },
+        {
+          "word": "on",
+          "startMs": 1431,
+          "endMs": 1690
+        },
+        {
+          "word": "his",
+          "startMs": 1690,
+          "endMs": 1895
+        },
+        {
+          "word": "hat.",
+          "startMs": 1895,
+          "endMs": 2144
+        }
+      ]
+    },
+    "sam-and-the-mud/page-7": {
+      "audioPath": "audio/stories/sam-and-the-mud/page-7.mp3",
+      "durationMs": 2614,
+      "words": [
+        {
+          "word": "Rob",
+          "startMs": 0,
+          "endMs": 392
+        },
+        {
+          "word": "is",
+          "startMs": 392,
+          "endMs": 571
+        },
+        {
+          "word": "an",
+          "startMs": 571,
+          "endMs": 901
+        },
+        {
+          "word": "owl.",
+          "startMs": 901,
+          "endMs": 1380
+        },
+        {
+          "word": "Rob",
+          "startMs": 1380,
+          "endMs": 1737
+        },
+        {
+          "word": "can",
+          "startMs": 1737,
+          "endMs": 2013
+        },
+        {
+          "word": "fly",
+          "startMs": 2013,
+          "endMs": 2345
+        },
+        {
+          "word": "up.",
+          "startMs": 2345,
+          "endMs": 2614
+        }
+      ]
+    },
+    "sam-and-the-mud/page-8": {
+      "audioPath": "audio/stories/sam-and-the-mud/page-8.mp3",
+      "durationMs": 2157,
+      "words": [
+        {
+          "word": "The",
+          "startMs": 0,
+          "endMs": 292
+        },
+        {
+          "word": "sun",
+          "startMs": 292,
+          "endMs": 544
+        },
+        {
+          "word": "is",
+          "startMs": 544,
+          "endMs": 788
+        },
+        {
+          "word": "out!",
+          "startMs": 788,
+          "endMs": 1091
+        },
+        {
+          "word": "Pip",
+          "startMs": 1091,
+          "endMs": 1298
+        },
+        {
+          "word": "and",
+          "startMs": 1298,
+          "endMs": 1705
+        },
+        {
+          "word": "Sam",
+          "startMs": 1705,
+          "endMs": 1780
+        },
+        {
+          "word": "hug.",
+          "startMs": 1780,
+          "endMs": 2157
+        }
+      ]
+    },
+    "kit-and-the-bug/page-1": {
+      "audioPath": "audio/stories/kit-and-the-bug/page-1.mp3",
+      "durationMs": 1353,
+      "words": [
+        {
+          "word": "Kit",
+          "startMs": 0,
+          "endMs": 247
+        },
+        {
+          "word": "is",
+          "startMs": 247,
+          "endMs": 548
+        },
+        {
+          "word": "a",
+          "startMs": 548,
+          "endMs": 816
+        },
+        {
+          "word": "fat",
+          "startMs": 816,
+          "endMs": 912
+        },
+        {
+          "word": "cat.",
+          "startMs": 912,
+          "endMs": 1353
+        }
+      ]
+    },
+    "kit-and-the-bug/page-2": {
+      "audioPath": "audio/stories/kit-and-the-bug/page-2.mp3",
+      "durationMs": 1457,
+      "words": [
+        {
+          "word": "Kit",
+          "startMs": 0,
+          "endMs": 241
+        },
+        {
+          "word": "sat",
+          "startMs": 241,
+          "endMs": 557
+        },
+        {
+          "word": "on",
+          "startMs": 557,
+          "endMs": 770
+        },
+        {
+          "word": "a",
+          "startMs": 770,
+          "endMs": 955
+        },
+        {
+          "word": "red",
+          "startMs": 955,
+          "endMs": 1182
+        },
+        {
+          "word": "mat.",
+          "startMs": 1182,
+          "endMs": 1457
+        }
+      ]
+    },
+    "kit-and-the-bug/page-3": {
+      "audioPath": "audio/stories/kit-and-the-bug/page-3.mp3",
+      "durationMs": 1683,
+      "words": [
+        {
+          "word": "A",
+          "startMs": 0,
+          "endMs": 234
+        },
+        {
+          "word": "red",
+          "startMs": 234,
+          "endMs": 495
+        },
+        {
+          "word": "bug",
+          "startMs": 495,
+          "endMs": 795
+        },
+        {
+          "word": "hid",
+          "startMs": 795,
+          "endMs": 1031
+        },
+        {
+          "word": "by",
+          "startMs": 1031,
+          "endMs": 1246
+        },
+        {
+          "word": "a",
+          "startMs": 1246,
+          "endMs": 1301
+        },
+        {
+          "word": "cup.",
+          "startMs": 1301,
+          "endMs": 1683
+        }
+      ]
+    },
+    "kit-and-the-bug/page-4": {
+      "audioPath": "audio/stories/kit-and-the-bug/page-4.mp3",
+      "durationMs": 1741,
+      "words": [
+        {
+          "word": "Kit",
+          "startMs": 0,
+          "endMs": 245
+        },
+        {
+          "word": "ran!",
+          "startMs": 245,
+          "endMs": 763
+        },
+        {
+          "word": "The",
+          "startMs": 763,
+          "endMs": 908
+        },
+        {
+          "word": "bug",
+          "startMs": 908,
+          "endMs": 1127
+        },
+        {
+          "word": "can",
+          "startMs": 1127,
+          "endMs": 1387
+        },
+        {
+          "word": "zip.",
+          "startMs": 1387,
+          "endMs": 1741
+        }
+      ]
+    },
+    "kit-and-the-bug/page-5": {
+      "audioPath": "audio/stories/kit-and-the-bug/page-5.mp3",
+      "durationMs": 1749,
+      "words": [
+        {
+          "word": "The",
+          "startMs": 0,
+          "endMs": 200
+        },
+        {
+          "word": "bug",
+          "startMs": 200,
+          "endMs": 574
+        },
+        {
+          "word": "sat",
+          "startMs": 574,
+          "endMs": 754
+        },
+        {
+          "word": "on",
+          "startMs": 754,
+          "endMs": 981
+        },
+        {
+          "word": "a",
+          "startMs": 981,
+          "endMs": 1193
+        },
+        {
+          "word": "big",
+          "startMs": 1193,
+          "endMs": 1498
+        },
+        {
+          "word": "box.",
+          "startMs": 1498,
+          "endMs": 1749
+        }
+      ]
+    },
+    "kit-and-the-bug/page-6": {
+      "audioPath": "audio/stories/kit-and-the-bug/page-6.mp3",
+      "durationMs": 1554,
+      "words": [
+        {
+          "word": "Kit",
+          "startMs": 0,
+          "endMs": 362
+        },
+        {
+          "word": "did",
+          "startMs": 362,
+          "endMs": 440
+        },
+        {
+          "word": "a",
+          "startMs": 440,
+          "endMs": 659
+        },
+        {
+          "word": "big",
+          "startMs": 659,
+          "endMs": 926
+        },
+        {
+          "word": "hop",
+          "startMs": 926,
+          "endMs": 1148
+        },
+        {
+          "word": "up.",
+          "startMs": 1148,
+          "endMs": 1554
+        }
+      ]
+    },
+    "kit-and-the-bug/page-7": {
+      "audioPath": "audio/stories/kit-and-the-bug/page-7.mp3",
+      "durationMs": 1519,
+      "words": [
+        {
+          "word": "Kit",
+          "startMs": 0,
+          "endMs": 357
+        },
+        {
+          "word": "did",
+          "startMs": 357,
+          "endMs": 472
+        },
+        {
+          "word": "not",
+          "startMs": 472,
+          "endMs": 707
+        },
+        {
+          "word": "nip",
+          "startMs": 707,
+          "endMs": 895
+        },
+        {
+          "word": "the",
+          "startMs": 895,
+          "endMs": 1287
+        },
+        {
+          "word": "bug.",
+          "startMs": 1287,
+          "endMs": 1519
+        }
+      ]
+    },
+    "kit-and-the-bug/page-8": {
+      "audioPath": "audio/stories/kit-and-the-bug/page-8.mp3",
+      "durationMs": 1620,
+      "words": [
+        {
+          "word": "Now",
+          "startMs": 0,
+          "endMs": 369
+        },
+        {
+          "word": "Kit",
+          "startMs": 369,
+          "endMs": 622
+        },
+        {
+          "word": "and",
+          "startMs": 622,
+          "endMs": 721
+        },
+        {
+          "word": "the",
+          "startMs": 721,
+          "endMs": 955
+        },
+        {
+          "word": "bug",
+          "startMs": 955,
+          "endMs": 1353
+        },
+        {
+          "word": "nap.",
+          "startMs": 1353,
+          "endMs": 1620
+        }
+      ]
+    },
+    "max-on-the-bus/page-1": {
+      "audioPath": "audio/stories/max-on-the-bus/page-1.mp3",
+      "durationMs": 1385,
+      "words": [
+        {
+          "word": "Max",
+          "startMs": 0,
+          "endMs": 368
+        },
+        {
+          "word": "is",
+          "startMs": 368,
+          "endMs": 461
+        },
+        {
+          "word": "a",
+          "startMs": 461,
+          "endMs": 738
+        },
+        {
+          "word": "fun",
+          "startMs": 738,
+          "endMs": 961
+        },
+        {
+          "word": "pup.",
+          "startMs": 961,
+          "endMs": 1385
+        }
+      ]
+    },
+    "max-on-the-bus/page-2": {
+      "audioPath": "audio/stories/max-on-the-bus/page-2.mp3",
+      "durationMs": 1433,
+      "words": [
+        {
+          "word": "Max",
+          "startMs": 0,
+          "endMs": 339
+        },
+        {
+          "word": "has",
+          "startMs": 339,
+          "endMs": 482
+        },
+        {
+          "word": "a",
+          "startMs": 482,
+          "endMs": 889
+        },
+        {
+          "word": "red",
+          "startMs": 889,
+          "endMs": 978
+        },
+        {
+          "word": "cap.",
+          "startMs": 978,
+          "endMs": 1433
+        }
+      ]
+    },
+    "max-on-the-bus/page-3": {
+      "audioPath": "audio/stories/max-on-the-bus/page-3.mp3",
+      "durationMs": 1709,
+      "words": [
+        {
+          "word": "A",
+          "startMs": 0,
+          "endMs": 230
+        },
+        {
+          "word": "big",
+          "startMs": 230,
+          "endMs": 497
+        },
+        {
+          "word": "bus",
+          "startMs": 497,
+          "endMs": 728
+        },
+        {
+          "word": "is",
+          "startMs": 728,
+          "endMs": 872
+        },
+        {
+          "word": "at",
+          "startMs": 872,
+          "endMs": 1110
+        },
+        {
+          "word": "the",
+          "startMs": 1110,
+          "endMs": 1472
+        },
+        {
+          "word": "lot.",
+          "startMs": 1472,
+          "endMs": 1709
+        }
+      ]
+    },
+    "max-on-the-bus/page-4": {
+      "audioPath": "audio/stories/max-on-the-bus/page-4.mp3",
+      "durationMs": 2534,
+      "words": [
+        {
+          "word": "Ben",
+          "startMs": 0,
+          "endMs": 364
+        },
+        {
+          "word": "is",
+          "startMs": 364,
+          "endMs": 489
+        },
+        {
+          "word": "in",
+          "startMs": 489,
+          "endMs": 713
+        },
+        {
+          "word": "the",
+          "startMs": 713,
+          "endMs": 958
+        },
+        {
+          "word": "bus.",
+          "startMs": 958,
+          "endMs": 1441
+        },
+        {
+          "word": "Hop",
+          "startMs": 1441,
+          "endMs": 1695
+        },
+        {
+          "word": "on,",
+          "startMs": 1695,
+          "endMs": 2276
+        },
+        {
+          "word": "Max!",
+          "startMs": 2276,
+          "endMs": 2534
+        }
+      ]
+    },
+    "max-on-the-bus/page-5": {
+      "audioPath": "audio/stories/max-on-the-bus/page-5.mp3",
+      "durationMs": 1678,
+      "words": [
+        {
+          "word": "The",
+          "startMs": 0,
+          "endMs": 230
+        },
+        {
+          "word": "bus",
+          "startMs": 230,
+          "endMs": 614
+        },
+        {
+          "word": "can",
+          "startMs": 614,
+          "endMs": 794
+        },
+        {
+          "word": "go",
+          "startMs": 794,
+          "endMs": 1048
+        },
+        {
+          "word": "so",
+          "startMs": 1048,
+          "endMs": 1302
+        },
+        {
+          "word": "far.",
+          "startMs": 1302,
+          "endMs": 1678
+        }
+      ]
+    },
+    "max-on-the-bus/page-6": {
+      "audioPath": "audio/stories/max-on-the-bus/page-6.mp3",
+      "durationMs": 1735,
+      "words": [
+        {
+          "word": "Max",
+          "startMs": 0,
+          "endMs": 340
+        },
+        {
+          "word": "saw",
+          "startMs": 340,
+          "endMs": 606
+        },
+        {
+          "word": "a",
+          "startMs": 606,
+          "endMs": 671
+        },
+        {
+          "word": "cow",
+          "startMs": 671,
+          "endMs": 1050
+        },
+        {
+          "word": "and",
+          "startMs": 1050,
+          "endMs": 1285
+        },
+        {
+          "word": "a",
+          "startMs": 1285,
+          "endMs": 1490
+        },
+        {
+          "word": "yak.",
+          "startMs": 1490,
+          "endMs": 1735
+        }
+      ]
+    },
+    "max-on-the-bus/page-7": {
+      "audioPath": "audio/stories/max-on-the-bus/page-7.mp3",
+      "durationMs": 1751,
+      "words": [
+        {
+          "word": "Oh!",
+          "startMs": 0,
+          "endMs": 534
+        },
+        {
+          "word": "A",
+          "startMs": 534,
+          "endMs": 669
+        },
+        {
+          "word": "hen",
+          "startMs": 669,
+          "endMs": 888
+        },
+        {
+          "word": "sat",
+          "startMs": 888,
+          "endMs": 1004
+        },
+        {
+          "word": "in",
+          "startMs": 1004,
+          "endMs": 1169
+        },
+        {
+          "word": "the",
+          "startMs": 1169,
+          "endMs": 1385
+        },
+        {
+          "word": "way.",
+          "startMs": 1385,
+          "endMs": 1751
+        }
+      ]
+    },
+    "max-on-the-bus/page-8": {
+      "audioPath": "audio/stories/max-on-the-bus/page-8.mp3",
+      "durationMs": 2277,
+      "words": [
+        {
+          "word": "Ben",
+          "startMs": 0,
+          "endMs": 364
+        },
+        {
+          "word": "let",
+          "startMs": 364,
+          "endMs": 489
+        },
+        {
+          "word": "the",
+          "startMs": 489,
+          "endMs": 818
+        },
+        {
+          "word": "hen",
+          "startMs": 818,
+          "endMs": 1068
+        },
+        {
+          "word": "go.",
+          "startMs": 1068,
+          "endMs": 1437
+        },
+        {
+          "word": "Yay,",
+          "startMs": 1437,
+          "endMs": 2025
+        },
+        {
+          "word": "Ben!",
+          "startMs": 2025,
+          "endMs": 2277
+        }
+      ]
+    },
+    "gus-and-the-jam/page-1": {
+      "audioPath": "audio/stories/gus-and-the-jam/page-1.mp3",
+      "durationMs": 2062,
+      "words": [
+        {
+          "word": "Gus",
+          "startMs": 0,
+          "endMs": 355
+        },
+        {
+          "word": "is",
+          "startMs": 355,
+          "endMs": 561
+        },
+        {
+          "word": "a",
+          "startMs": 561,
+          "endMs": 818
+        },
+        {
+          "word": "cub.",
+          "startMs": 818,
+          "endMs": 1183
+        },
+        {
+          "word": "Gus",
+          "startMs": 1183,
+          "endMs": 1578
+        },
+        {
+          "word": "is",
+          "startMs": 1578,
+          "endMs": 1633
+        },
+        {
+          "word": "big.",
+          "startMs": 1633,
+          "endMs": 2062
+        }
+      ]
+    },
+    "gus-and-the-jam/page-2": {
+      "audioPath": "audio/stories/gus-and-the-jam/page-2.mp3",
+      "durationMs": 1964,
+      "words": [
+        {
+          "word": "Gus",
+          "startMs": 0,
+          "endMs": 304
+        },
+        {
+          "word": "has",
+          "startMs": 304,
+          "endMs": 428
+        },
+        {
+          "word": "a",
+          "startMs": 428,
+          "endMs": 700
+        },
+        {
+          "word": "red",
+          "startMs": 700,
+          "endMs": 924
+        },
+        {
+          "word": "pot",
+          "startMs": 924,
+          "endMs": 1283
+        },
+        {
+          "word": "and",
+          "startMs": 1283,
+          "endMs": 1487
+        },
+        {
+          "word": "a",
+          "startMs": 1487,
+          "endMs": 1554
+        },
+        {
+          "word": "pan.",
+          "startMs": 1554,
+          "endMs": 1964
+        }
+      ]
+    },
+    "gus-and-the-jam/page-3": {
+      "audioPath": "audio/stories/gus-and-the-jam/page-3.mp3",
+      "durationMs": 2297,
+      "words": [
+        {
+          "word": "Pam",
+          "startMs": 0,
+          "endMs": 376
+        },
+        {
+          "word": "is",
+          "startMs": 376,
+          "endMs": 586
+        },
+        {
+          "word": "a",
+          "startMs": 586,
+          "endMs": 791
+        },
+        {
+          "word": "hen.",
+          "startMs": 791,
+          "endMs": 1195
+        },
+        {
+          "word": "Pam",
+          "startMs": 1195,
+          "endMs": 1556
+        },
+        {
+          "word": "has",
+          "startMs": 1556,
+          "endMs": 1781
+        },
+        {
+          "word": "a",
+          "startMs": 1781,
+          "endMs": 1913
+        },
+        {
+          "word": "fig.",
+          "startMs": 1913,
+          "endMs": 2297
+        }
+      ]
+    },
+    "gus-and-the-jam/page-4": {
+      "audioPath": "audio/stories/gus-and-the-jam/page-4.mp3",
+      "durationMs": 1676,
+      "words": [
+        {
+          "word": "Gus",
+          "startMs": 0,
+          "endMs": 289
+        },
+        {
+          "word": "put",
+          "startMs": 289,
+          "endMs": 419
+        },
+        {
+          "word": "the",
+          "startMs": 419,
+          "endMs": 738
+        },
+        {
+          "word": "fig",
+          "startMs": 738,
+          "endMs": 942
+        },
+        {
+          "word": "in",
+          "startMs": 942,
+          "endMs": 1169
+        },
+        {
+          "word": "the",
+          "startMs": 1169,
+          "endMs": 1454
+        },
+        {
+          "word": "pot.",
+          "startMs": 1454,
+          "endMs": 1676
+        }
+      ]
+    },
+    "gus-and-the-jam/page-5": {
+      "audioPath": "audio/stories/gus-and-the-jam/page-5.mp3",
+      "durationMs": 2330,
+      "words": [
+        {
+          "word": "Mix,",
+          "startMs": 0,
+          "endMs": 433
+        },
+        {
+          "word": "mix,",
+          "startMs": 433,
+          "endMs": 912
+        },
+        {
+          "word": "mix!",
+          "startMs": 912,
+          "endMs": 1271
+        },
+        {
+          "word": "The",
+          "startMs": 1271,
+          "endMs": 1454
+        },
+        {
+          "word": "pot",
+          "startMs": 1454,
+          "endMs": 1812
+        },
+        {
+          "word": "is",
+          "startMs": 1812,
+          "endMs": 2081
+        },
+        {
+          "word": "hot.",
+          "startMs": 2081,
+          "endMs": 2330
+        }
+      ]
+    },
+    "gus-and-the-jam/page-6": {
+      "audioPath": "audio/stories/gus-and-the-jam/page-6.mp3",
+      "durationMs": 2008,
+      "words": [
+        {
+          "word": "Yum!",
+          "startMs": 0,
+          "endMs": 655
+        },
+        {
+          "word": "It",
+          "startMs": 655,
+          "endMs": 817
+        },
+        {
+          "word": "is",
+          "startMs": 817,
+          "endMs": 1013
+        },
+        {
+          "word": "red",
+          "startMs": 1013,
+          "endMs": 1321
+        },
+        {
+          "word": "fig",
+          "startMs": 1321,
+          "endMs": 1573
+        },
+        {
+          "word": "jam.",
+          "startMs": 1573,
+          "endMs": 2008
+        }
+      ]
+    },
+    "gus-and-the-jam/page-7": {
+      "audioPath": "audio/stories/gus-and-the-jam/page-7.mp3",
+      "durationMs": 1490,
+      "words": [
+        {
+          "word": "Gus",
+          "startMs": 0,
+          "endMs": 272
+        },
+        {
+          "word": "put",
+          "startMs": 272,
+          "endMs": 418
+        },
+        {
+          "word": "jam",
+          "startMs": 418,
+          "endMs": 665
+        },
+        {
+          "word": "on",
+          "startMs": 665,
+          "endMs": 1053
+        },
+        {
+          "word": "a",
+          "startMs": 1053,
+          "endMs": 1248
+        },
+        {
+          "word": "bun.",
+          "startMs": 1248,
+          "endMs": 1490
+        }
+      ]
+    },
+    "gus-and-the-jam/page-8": {
+      "audioPath": "audio/stories/gus-and-the-jam/page-8.mp3",
+      "durationMs": 2350,
+      "words": [
+        {
+          "word": "Gus",
+          "startMs": 0,
+          "endMs": 351
+        },
+        {
+          "word": "and",
+          "startMs": 351,
+          "endMs": 497
+        },
+        {
+          "word": "Pam",
+          "startMs": 497,
+          "endMs": 952
+        },
+        {
+          "word": "eat",
+          "startMs": 952,
+          "endMs": 1068
+        },
+        {
+          "word": "the",
+          "startMs": 1068,
+          "endMs": 1499
+        },
+        {
+          "word": "bun.",
+          "startMs": 1499,
+          "endMs": 1896
+        },
+        {
+          "word": "Yum!",
+          "startMs": 1896,
+          "endMs": 2350
+        }
+      ]
+    },
+    "zoe-and-the-bee/page-1": {
+      "audioPath": "audio/stories/zoe-and-the-bee/page-1.mp3",
+      "durationMs": 1541,
+      "words": [
+        {
+          "word": "Zoe",
+          "startMs": 0,
+          "endMs": 309
+        },
+        {
+          "word": "is",
+          "startMs": 309,
+          "endMs": 516
+        },
+        {
+          "word": "a",
+          "startMs": 516,
+          "endMs": 940
+        },
+        {
+          "word": "red",
+          "startMs": 940,
+          "endMs": 1220
+        },
+        {
+          "word": "fox.",
+          "startMs": 1220,
+          "endMs": 1541
+        }
+      ]
+    },
+    "zoe-and-the-bee/page-2": {
+      "audioPath": "audio/stories/zoe-and-the-bee/page-2.mp3",
+      "durationMs": 1683,
+      "words": [
+        {
+          "word": "Zoe",
+          "startMs": 0,
+          "endMs": 314
+        },
+        {
+          "word": "sat",
+          "startMs": 314,
+          "endMs": 578
+        },
+        {
+          "word": "by",
+          "startMs": 578,
+          "endMs": 816
+        },
+        {
+          "word": "a",
+          "startMs": 816,
+          "endMs": 1054
+        },
+        {
+          "word": "big",
+          "startMs": 1054,
+          "endMs": 1267
+        },
+        {
+          "word": "bud.",
+          "startMs": 1267,
+          "endMs": 1683
+        }
+      ]
+    },
+    "zoe-and-the-bee/page-3": {
+      "audioPath": "audio/stories/zoe-and-the-bee/page-3.mp3",
+      "durationMs": 1502,
+      "words": [
+        {
+          "word": "A",
+          "startMs": 0,
+          "endMs": 174
+        },
+        {
+          "word": "bee",
+          "startMs": 174,
+          "endMs": 380
+        },
+        {
+          "word": "can",
+          "startMs": 380,
+          "endMs": 660
+        },
+        {
+          "word": "hum",
+          "startMs": 660,
+          "endMs": 971
+        },
+        {
+          "word": "and",
+          "startMs": 971,
+          "endMs": 1266
+        },
+        {
+          "word": "fly.",
+          "startMs": 1266,
+          "endMs": 1502
+        }
+      ]
+    },
+    "zoe-and-the-bee/page-4": {
+      "audioPath": "audio/stories/zoe-and-the-bee/page-4.mp3",
+      "durationMs": 1399,
+      "words": [
+        {
+          "word": "The",
+          "startMs": 0,
+          "endMs": 206
+        },
+        {
+          "word": "bee",
+          "startMs": 206,
+          "endMs": 531
+        },
+        {
+          "word": "sat",
+          "startMs": 531,
+          "endMs": 742
+        },
+        {
+          "word": "on",
+          "startMs": 742,
+          "endMs": 967
+        },
+        {
+          "word": "the",
+          "startMs": 967,
+          "endMs": 1177
+        },
+        {
+          "word": "bud.",
+          "startMs": 1177,
+          "endMs": 1399
+        }
+      ]
+    },
+    "zoe-and-the-bee/page-5": {
+      "audioPath": "audio/stories/zoe-and-the-bee/page-5.mp3",
+      "durationMs": 1626,
+      "words": [
+        {
+          "word": "Zoe",
+          "startMs": 0,
+          "endMs": 318
+        },
+        {
+          "word": "ran",
+          "startMs": 318,
+          "endMs": 521
+        },
+        {
+          "word": "to",
+          "startMs": 521,
+          "endMs": 814
+        },
+        {
+          "word": "see",
+          "startMs": 814,
+          "endMs": 1022
+        },
+        {
+          "word": "the",
+          "startMs": 1022,
+          "endMs": 1250
+        },
+        {
+          "word": "bee.",
+          "startMs": 1250,
+          "endMs": 1626
+        }
+      ]
+    },
+    "zoe-and-the-bee/page-6": {
+      "audioPath": "audio/stories/zoe-and-the-bee/page-6.mp3",
+      "durationMs": 1734,
+      "words": [
+        {
+          "word": "The",
+          "startMs": 0,
+          "endMs": 185
+        },
+        {
+          "word": "bee",
+          "startMs": 185,
+          "endMs": 380
+        },
+        {
+          "word": "did",
+          "startMs": 380,
+          "endMs": 684
+        },
+        {
+          "word": "a",
+          "startMs": 684,
+          "endMs": 922
+        },
+        {
+          "word": "zig",
+          "startMs": 922,
+          "endMs": 1027
+        },
+        {
+          "word": "and",
+          "startMs": 1027,
+          "endMs": 1281
+        },
+        {
+          "word": "a",
+          "startMs": 1281,
+          "endMs": 1514
+        },
+        {
+          "word": "zag!",
+          "startMs": 1514,
+          "endMs": 1734
+        }
+      ]
+    },
+    "zoe-and-the-bee/page-7": {
+      "audioPath": "audio/stories/zoe-and-the-bee/page-7.mp3",
+      "durationMs": 1710,
+      "words": [
+        {
+          "word": "Zoe",
+          "startMs": 0,
+          "endMs": 302
+        },
+        {
+          "word": "sat",
+          "startMs": 302,
+          "endMs": 594
+        },
+        {
+          "word": "on",
+          "startMs": 594,
+          "endMs": 724
+        },
+        {
+          "word": "a",
+          "startMs": 724,
+          "endMs": 927
+        },
+        {
+          "word": "log",
+          "startMs": 927,
+          "endMs": 1199
+        },
+        {
+          "word": "to",
+          "startMs": 1199,
+          "endMs": 1428
+        },
+        {
+          "word": "see.",
+          "startMs": 1428,
+          "endMs": 1710
+        }
+      ]
+    },
+    "zoe-and-the-bee/page-8": {
+      "audioPath": "audio/stories/zoe-and-the-bee/page-8.mp3",
+      "durationMs": 1384,
+      "words": [
+        {
+          "word": "The",
+          "startMs": 0,
+          "endMs": 209
+        },
+        {
+          "word": "bee",
+          "startMs": 209,
+          "endMs": 432
+        },
+        {
+          "word": "is",
+          "startMs": 432,
+          "endMs": 724
+        },
+        {
+          "word": "a",
+          "startMs": 724,
+          "endMs": 939
+        },
+        {
+          "word": "fun",
+          "startMs": 939,
+          "endMs": 1009
+        },
+        {
+          "word": "pal.",
+          "startMs": 1009,
+          "endMs": 1384
+        }
+      ]
+    },
+    "bob-in-the-tub/page-1": {
+      "audioPath": "audio/stories/bob-in-the-tub/page-1.mp3",
+      "durationMs": 2382,
+      "words": [
+        {
+          "word": "Bob",
+          "startMs": 0,
+          "endMs": 383
+        },
+        {
+          "word": "is",
+          "startMs": 383,
+          "endMs": 621
+        },
+        {
+          "word": "a",
+          "startMs": 621,
+          "endMs": 821
+        },
+        {
+          "word": "dog.",
+          "startMs": 821,
+          "endMs": 1270
+        },
+        {
+          "word": "Mia",
+          "startMs": 1270,
+          "endMs": 1623
+        },
+        {
+          "word": "is",
+          "startMs": 1623,
+          "endMs": 1766
+        },
+        {
+          "word": "his",
+          "startMs": 1766,
+          "endMs": 1994
+        },
+        {
+          "word": "pal.",
+          "startMs": 1994,
+          "endMs": 2382
+        }
+      ]
+    },
+    "bob-in-the-tub/page-2": {
+      "audioPath": "audio/stories/bob-in-the-tub/page-2.mp3",
+      "durationMs": 1644,
+      "words": [
+        {
+          "word": "Bob",
+          "startMs": 0,
+          "endMs": 387
+        },
+        {
+          "word": "dug",
+          "startMs": 387,
+          "endMs": 650
+        },
+        {
+          "word": "in",
+          "startMs": 650,
+          "endMs": 712
+        },
+        {
+          "word": "a",
+          "startMs": 712,
+          "endMs": 1114
+        },
+        {
+          "word": "mud",
+          "startMs": 1114,
+          "endMs": 1196
+        },
+        {
+          "word": "pit.",
+          "startMs": 1196,
+          "endMs": 1644
+        }
+      ]
+    },
+    "bob-in-the-tub/page-3": {
+      "audioPath": "audio/stories/bob-in-the-tub/page-3.mp3",
+      "durationMs": 2280,
+      "words": [
+        {
+          "word": "Oh",
+          "startMs": 0,
+          "endMs": 320
+        },
+        {
+          "word": "no!",
+          "startMs": 320,
+          "endMs": 710
+        },
+        {
+          "word": "Mud",
+          "startMs": 710,
+          "endMs": 961
+        },
+        {
+          "word": "is",
+          "startMs": 961,
+          "endMs": 1091
+        },
+        {
+          "word": "on",
+          "startMs": 1091,
+          "endMs": 1396
+        },
+        {
+          "word": "his",
+          "startMs": 1396,
+          "endMs": 1606
+        },
+        {
+          "word": "ear",
+          "startMs": 1606,
+          "endMs": 1801
+        },
+        {
+          "word": "and",
+          "startMs": 1801,
+          "endMs": 1906
+        },
+        {
+          "word": "paw.",
+          "startMs": 1906,
+          "endMs": 2280
+        }
+      ]
+    },
+    "bob-in-the-tub/page-4": {
+      "audioPath": "audio/stories/bob-in-the-tub/page-4.mp3",
+      "durationMs": 1891,
+      "words": [
+        {
+          "word": "Mia",
+          "startMs": 0,
+          "endMs": 355
+        },
+        {
+          "word": "got",
+          "startMs": 355,
+          "endMs": 580
+        },
+        {
+          "word": "a",
+          "startMs": 580,
+          "endMs": 775
+        },
+        {
+          "word": "big",
+          "startMs": 775,
+          "endMs": 860
+        },
+        {
+          "word": "tub",
+          "startMs": 860,
+          "endMs": 1228
+        },
+        {
+          "word": "and",
+          "startMs": 1228,
+          "endMs": 1433
+        },
+        {
+          "word": "a",
+          "startMs": 1433,
+          "endMs": 1648
+        },
+        {
+          "word": "mop.",
+          "startMs": 1648,
+          "endMs": 1891
+        }
+      ]
+    },
+    "bob-in-the-tub/page-5": {
+      "audioPath": "audio/stories/bob-in-the-tub/page-5.mp3",
+      "durationMs": 1596,
+      "words": [
+        {
+          "word": "Bob",
+          "startMs": 0,
+          "endMs": 213
+        },
+        {
+          "word": "did",
+          "startMs": 213,
+          "endMs": 431
+        },
+        {
+          "word": "a",
+          "startMs": 431,
+          "endMs": 705
+        },
+        {
+          "word": "hop",
+          "startMs": 705,
+          "endMs": 933
+        },
+        {
+          "word": "in",
+          "startMs": 933,
+          "endMs": 1158
+        },
+        {
+          "word": "the",
+          "startMs": 1158,
+          "endMs": 1213
+        },
+        {
+          "word": "tub.",
+          "startMs": 1213,
+          "endMs": 1596
+        }
+      ]
+    },
+    "bob-in-the-tub/page-6": {
+      "audioPath": "audio/stories/bob-in-the-tub/page-6.mp3",
+      "durationMs": 2160,
+      "words": [
+        {
+          "word": "Rub,",
+          "startMs": 0,
+          "endMs": 379
+        },
+        {
+          "word": "rub,",
+          "startMs": 379,
+          "endMs": 687
+        },
+        {
+          "word": "rub!",
+          "startMs": 687,
+          "endMs": 1280
+        },
+        {
+          "word": "The",
+          "startMs": 1280,
+          "endMs": 1460
+        },
+        {
+          "word": "mud",
+          "startMs": 1460,
+          "endMs": 1695
+        },
+        {
+          "word": "is",
+          "startMs": 1695,
+          "endMs": 1863
+        },
+        {
+          "word": "off.",
+          "startMs": 1863,
+          "endMs": 2160
+        }
+      ]
+    },
+    "bob-in-the-tub/page-7": {
+      "audioPath": "audio/stories/bob-in-the-tub/page-7.mp3",
+      "durationMs": 2384,
+      "words": [
+        {
+          "word": "Bob",
+          "startMs": 0,
+          "endMs": 329
+        },
+        {
+          "word": "is",
+          "startMs": 329,
+          "endMs": 478
+        },
+        {
+          "word": "out!",
+          "startMs": 478,
+          "endMs": 1036
+        },
+        {
+          "word": "He",
+          "startMs": 1036,
+          "endMs": 1215
+        },
+        {
+          "word": "can",
+          "startMs": 1215,
+          "endMs": 1554
+        },
+        {
+          "word": "wag",
+          "startMs": 1554,
+          "endMs": 1693
+        },
+        {
+          "word": "and",
+          "startMs": 1693,
+          "endMs": 2121
+        },
+        {
+          "word": "dry.",
+          "startMs": 2121,
+          "endMs": 2384
+        }
+      ]
+    },
+    "bob-in-the-tub/page-8": {
+      "audioPath": "audio/stories/bob-in-the-tub/page-8.mp3",
+      "durationMs": 2103,
+      "words": [
+        {
+          "word": "Mia",
+          "startMs": 0,
+          "endMs": 370
+        },
+        {
+          "word": "and",
+          "startMs": 370,
+          "endMs": 525
+        },
+        {
+          "word": "Bob",
+          "startMs": 525,
+          "endMs": 799
+        },
+        {
+          "word": "hug.",
+          "startMs": 799,
+          "endMs": 1355
+        },
+        {
+          "word": "Fun",
+          "startMs": 1355,
+          "endMs": 1704
+        },
+        {
+          "word": "day!",
+          "startMs": 1704,
+          "endMs": 2103
+        }
+      ]
+    }
+  },
+  "wordSlugs": [
+    "a",
+    "an",
+    "and",
+    "ant",
+    "at",
+    "bee",
+    "ben",
+    "big",
+    "bob",
+    "box",
+    "bud",
+    "bug",
+    "bun",
+    "bus",
+    "by",
+    "can",
+    "cap",
+    "cat",
+    "cow",
+    "cub",
+    "cup",
+    "day",
+    "did",
+    "dog",
+    "dry",
+    "dug",
+    "ear",
+    "eat",
+    "far",
+    "fat",
+    "fig",
+    "fly",
+    "fox",
+    "fun",
+    "go",
+    "got",
+    "gus",
+    "has",
+    "hat",
+    "he",
+    "hen",
+    "hid",
+    "his",
+    "hop",
+    "hot",
+    "hug",
+    "hum",
+    "in",
+    "is",
+    "it",
+    "jam",
+    "kit",
+    "let",
+    "log",
+    "lot",
+    "mat",
+    "max",
+    "met",
+    "mia",
+    "mix",
+    "mop",
+    "mud",
+    "nap",
+    "nip",
+    "no",
+    "not",
+    "now",
+    "off",
+    "oh",
+    "on",
+    "out",
+    "owl",
+    "pal",
+    "pam",
+    "pan",
+    "paw",
+    "pig",
+    "pip",
+    "pit",
+    "pot",
+    "pup",
+    "put",
+    "ran",
+    "red",
+    "rob",
+    "rub",
+    "sad",
+    "sam",
+    "sat",
+    "saw",
+    "see",
+    "so",
+    "sty",
+    "sun",
+    "the",
+    "to",
+    "tub",
+    "up",
+    "wag",
+    "way",
+    "wet",
+    "yak",
+    "yay",
+    "yum",
+    "zag",
+    "zig",
+    "zip",
+    "zoe"
+  ]
+}

@@ -24,7 +24,8 @@ export type GameId =
   | 'pipe-countdown'
   | 'rocket-sums'
   | 'splash-tank'
-  | 'word-hunt';
+  | 'word-hunt'
+  | 'story-time';
 
 export type HubShelfId =
   | 'letters-words'
@@ -546,6 +547,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['numeracy', 'literacy', 'self-regulation'],
       targetSkills: ['quantity_counting', 'sequence_order', 'letter_formation', 'picture_recognition'],
       conceptUnitLabel: 'Dot Sequence & Countdown',
+    },
+  },
+  {
+    id: 'story-time',
+    title: 'Story Time',
+    description:
+      'Read cozy illustrated picture stories made with simple 3-letter words — follow each glowing word as it narrates aloud, or tap any word to hear it again!',
+    badgeText: 'Fun Break',
+    ageHint: 'K1 / LKG • 3-Letter Stories',
+    artPath: 'hub/story-time.png',
+    shelf: 'fun-rewards',
+    status: 'available',
+    featured: true,
+    activityRole: 'reward',
+    learningIntent: {
+      summary:
+        'Calm Fun Break storybook reading built strictly with 1–3 letter K1 words, synchronized word-by-word highlighting, and tap-to-hear vocabulary support.',
+      domains: ['literacy', 'self-regulation'],
+      targetSkills: ['phrase_reading', 'sight_word_reading'],
+      conceptUnitLabel: 'K1 3-Letter Picture Stories',
     },
   },
 ];

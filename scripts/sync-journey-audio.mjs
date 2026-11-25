@@ -143,6 +143,10 @@ const JOURNEY_PROMPTS = [
     id: 'word-hunt',
     text: 'Scan the letter grid to find each hidden word! Swipe across the letters or tap the first and last letter!',
   },
+  {
+    id: 'story-time',
+    text: 'Listen to the story and follow each glowing word! Tap any word to hear it again, then turn the page!',
+  },
 ];
 
 const UI_PROMPTS = [

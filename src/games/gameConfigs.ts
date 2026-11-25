@@ -103,6 +103,11 @@ import {
   isValidWordHuntConfig,
   type WordHuntConfig,
 } from './word-hunt/wordHuntData';
+import {
+  getDefaultStoryTimeConfig,
+  isValidStoryTimeConfig,
+  type StoryTimeConfig,
+} from './story-time/storyTypes';
 
 // TODO(security): Pebble runs 100% locally in the browser as a static client-only PWA with no
 // backend server, authentication, or database. All saved game configuration objects restored from
@@ -134,6 +139,7 @@ export interface GameConfigMap {
   'rocket-sums': RocketSumsConfig;
   'splash-tank': SplashTankConfig;
   'word-hunt': WordHuntConfig;
+  'story-time': StoryTimeConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -255,6 +261,7 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'rocket-sums': isValidRocketSumsConfig,
   'splash-tank': isValidSplashTankConfig,
   'word-hunt': isValidWordHuntConfig,
+  'story-time': isValidStoryTimeConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -341,5 +348,7 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultSplashTankConfig() as GameConfigMap[K];
     case 'word-hunt':
       return getDefaultWordHuntConfig() as GameConfigMap[K];
+    case 'story-time':
+      return getDefaultStoryTimeConfig() as GameConfigMap[K];
   }
 }
