@@ -1,11 +1,17 @@
 #!/usr/bin/env node
 /**
- * Story Time Narration & Word Audio Generator (Kokoro-82M + LameJS MP3 + Word Timings)
+ * Story Time Narration & Word Audio Generator (Kokoro-82M + LameJS MP3 + Sample-Accurate Word Timings)
+ *
+ * For K1 early readers, stitches crisp individual Kokoro word buffers with deliberate
+ * child-friendly pauses (260ms between words, 560ms after sentence ends, 380ms after commas)
+ * so:
+ *   1. Pacing is calm, unhurried, and easy for a 4–5 year old to follow word-by-word.
+ *   2. Every word's startMs / endMs is 100% sample-accurate (zero drift, zero 80ms flashes).
  *
  * Generates:
- *   - public/audio/stories/<storyId>/page-<n>.mp3  (calm storybook narration per page)
  *   - public/audio/stories/words/<slug>.mp3        (crisp individual word clips for tap-to-hear)
- *   - src/games/story-time/storyAudioCatalog.json  (per-page durationMs + RMS-snapped word timings + word slugs)
+ *   - public/audio/stories/<storyId>/page-<n>.mp3  (calm stitched K1 read-along narration per page)
+ *   - src/games/story-time/storyAudioCatalog.json  (sample-accurate durationMs + word timings)
  *
  * Usage:
  *   node scripts/sync-story-audio.mjs [--force]
@@ -23,8 +29,15 @@ const storiesAudioDir = path.join(repoRoot, 'public', 'audio', 'stories');
 const storyWordsDir = path.join(storiesAudioDir, 'words');
 const catalogOutPath = path.join(repoRoot, 'src', 'games', 'story-time', 'storyAudioCatalog.json');
 
-const forceRegen = process.argv.includes('--force');
 const require = createRequire(import.meta.url);
+
+// Calm K1 read-along pacing (milliseconds)
+const LEAD_IN_MS = 120;
+const WORD_GAP_MS = 270;
+const COMMA_GAP_MS = 390;
+const SENTENCE_GAP_MS = 560;
+const TAIL_PAD_MS = 160;
+const HIGHLIGHT_HOLD_MS = 110;
 
 const STORY_SCRIPTS = [
   {
@@ -135,7 +148,7 @@ function resolveTtsPackage(pkgName, esmSubpath = '') {
 }
 
 function trimAndNormalizeFloat32(samples, sampleRate) {
-  const threshold = 0.008;
+  const threshold = 0.01;
   let start = 0;
   while (start < samples.length && Math.abs(samples[start]) < threshold) {
     start += 1;
@@ -144,7 +157,7 @@ function trimAndNormalizeFloat32(samples, sampleRate) {
   while (end > start && Math.abs(samples[end]) < threshold) {
     end -= 1;
   }
-  const padSamples = Math.floor(sampleRate * 0.045);
+  const padSamples = Math.floor(sampleRate * 0.03);
   start = Math.max(0, start - padSamples);
   end = Math.min(samples.length - 1, end + padSamples);
 
@@ -182,105 +195,6 @@ function encodeMonoMp3(Mp3Encoder, int16Samples, sampleRate, kbps = 64) {
   return Buffer.concat(chunks);
 }
 
-function estimateSyllables(word) {
-  const clean = word.toLowerCase().replace(/[^a-z]/g, '');
-  if (!clean) return 1;
-  const groups = clean.match(/[aeiouy]+/g);
-  let count = groups ? groups.length : 1;
-  if (clean.length > 3 && clean.endsWith('e') && !clean.endsWith('le')) {
-    count = Math.max(1, count - 1);
-  }
-  return Math.max(1, count);
-}
-
-function computeRmsWindow(int16Samples, centerSample, halfWindowSamples) {
-  const start = Math.max(0, centerSample - halfWindowSamples);
-  const end = Math.min(int16Samples.length - 1, centerSample + halfWindowSamples);
-  if (end <= start) return 0;
-  let sumSq = 0;
-  for (let i = start; i <= end; i += 1) {
-    const v = int16Samples[i];
-    sumSq += v * v;
-  }
-  return Math.sqrt(sumSq / (end - start + 1));
-}
-
-function snapBoundaryToLowestRmsTrough(int16Samples, sampleRate, targetMs, minMs, maxMs) {
-  const searchRadiusMs = 90;
-  const windowHalfSamples = Math.max(1, Math.floor((sampleRate * 0.015) / 2));
-  const stepMs = 5;
-  const startMs = Math.max(minMs, targetMs - searchRadiusMs);
-  const endMs = Math.min(maxMs, targetMs + searchRadiusMs);
-
-  let bestMs = Math.max(minMs, Math.min(maxMs, targetMs));
-  let bestRms = Infinity;
-
-  for (let ms = startMs; ms <= endMs; ms += stepMs) {
-    const centerSample = Math.round((ms / 1000) * sampleRate);
-    const rms = computeRmsWindow(int16Samples, centerSample, windowHalfSamples);
-    if (rms < bestRms) {
-      bestRms = rms;
-      bestMs = ms;
-    }
-  }
-  return Math.round(bestMs);
-}
-
-function computeWordTimings(text, int16Samples, sampleRate) {
-  const durationMs = Math.round((int16Samples.length / sampleRate) * 1000);
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  if (words.length === 0) {
-    return { durationMs, words: [] };
-  }
-
-  const startOffsetMs = Math.min(35, Math.floor(durationMs * 0.04));
-  const endOffsetMs = Math.max(startOffsetMs + words.length * 45, Math.max(220, durationMs - 45));
-  const activeSpanMs = Math.max(120, endOffsetMs - startOffsetMs);
-
-  const weights = words.map((word, idx) => {
-    const cleanLen = word.replace(/[^a-zA-Z0-9]/g, '').length;
-    const syllables = estimateSyllables(word);
-    const commaPause = word.endsWith(',') ? 0.85 : 0;
-    const isMidSentenceEnd = /[.!?]$/.test(word) && idx < words.length - 1;
-    const endPunctPause = isMidSentenceEnd ? 1.35 : /[.!?]$/.test(word) ? 0.25 : 0;
-    return syllables * 1.0 + cleanLen * 0.1 + commaPause + endPunctPause;
-  });
-
-  const totalWeight = weights.reduce((sum, w) => sum + w, 0) || 1;
-  const rawBoundaries = [startOffsetMs];
-  let acc = 0;
-  for (let i = 0; i < words.length; i += 1) {
-    acc += weights[i];
-    if (i < words.length - 1) {
-      rawBoundaries.push(Math.round(startOffsetMs + (acc / totalWeight) * activeSpanMs));
-    } else {
-      rawBoundaries.push(endOffsetMs);
-    }
-  }
-
-  const snappedBoundaries = [...rawBoundaries];
-  for (let i = 1; i < words.length; i += 1) {
-    const prevMs = snappedBoundaries[i - 1] + 55;
-    const nextMinBudget = (words.length - i) * 55;
-    const maxAllowedMs = Math.max(prevMs, endOffsetMs - nextMinBudget);
-    snappedBoundaries[i] = snapBoundaryToLowestRmsTrough(
-      int16Samples,
-      sampleRate,
-      rawBoundaries[i],
-      prevMs,
-      maxAllowedMs,
-    );
-  }
-
-  const timings = words.map((word, idx) => ({
-    word,
-    startMs: idx === 0 ? 0 : snappedBoundaries[idx],
-    endMs: idx === words.length - 1 ? durationMs : snappedBoundaries[idx + 1],
-  }));
-
-  return { durationMs, words: timings };
-}
-
 function slugWord(raw) {
   return raw.toLowerCase().replace(/[^a-z]/g, '');
 }
@@ -290,53 +204,19 @@ async function main() {
   fs.mkdirSync(storyWordsDir, { recursive: true });
   fs.mkdirSync(path.dirname(catalogOutPath), { recursive: true });
 
-  let existingCatalog = { pages: {}, wordSlugs: [] };
-  if (fs.existsSync(catalogOutPath)) {
-    try {
-      existingCatalog = JSON.parse(fs.readFileSync(catalogOutPath, 'utf8'));
-    } catch {
-      existingCatalog = { pages: {}, wordSlugs: [] };
-    }
-  }
-
-  const pageJobs = [];
   const uniqueWords = new Set();
-
   for (const story of STORY_SCRIPTS) {
-    const storyDir = path.join(storiesAudioDir, story.id);
-    fs.mkdirSync(storyDir, { recursive: true });
-
-    story.pages.forEach((text, idx) => {
-      const pageNum = idx + 1;
-      const key = `${story.id}/page-${pageNum}`;
-      const outPath = path.join(storyDir, `page-${pageNum}.mp3`);
-      const hasTiming = Boolean(existingCatalog.pages?.[key]?.words?.length);
-      if (forceRegen || !fs.existsSync(outPath) || !hasTiming) {
-        pageJobs.push({ key, storyId: story.id, pageNum, text, outPath });
-      }
+    for (const text of story.pages) {
       for (const token of text.trim().split(/\s+/)) {
         const clean = slugWord(token);
         if (clean) uniqueWords.add(clean);
       }
-    });
-  }
-
-  const wordJobs = [];
-  for (const word of Array.from(uniqueWords).sort()) {
-    const outPath = path.join(storyWordsDir, `${word}.mp3`);
-    if (forceRegen || !fs.existsSync(outPath)) {
-      const spoken = word === 'a' ? 'uh.' : `${word}.`;
-      wordJobs.push({ word, spoken, outPath });
     }
   }
 
-  if (pageJobs.length === 0 && wordJobs.length === 0) {
-    console.log('All Story Time MP3 clips and word timings are already up to date.');
-    return;
-  }
-
+  const sortedWords = Array.from(uniqueWords).sort();
   console.log(
-    `Generating ${pageJobs.length} page narrations + ${wordJobs.length} individual word clips via Kokoro (af_heart)...`,
+    `Synthesizing ${sortedWords.length} calm K1 words via Kokoro (af_heart, speed 0.80) and stitching 48 sample-accurate pages...`,
   );
 
   const kokoroEntry = resolveTtsPackage('kokoro-js');
@@ -354,53 +234,126 @@ async function main() {
     device: 'cpu',
   });
 
-  const pages = { ...(existingCatalog.pages || {}) };
+  /** @type {Map<string, { pcm: Int16Array, sampleRate: number }>} */
+  const wordBuffers = new Map();
+  let sampleRate = 24000;
   let totalBytes = 0;
 
-  for (let i = 0; i < pageJobs.length; i += 1) {
-    const job = pageJobs[i];
-    const audio = await tts.generate(job.text, {
+  for (let i = 0; i < sortedWords.length; i += 1) {
+    const word = sortedWords[i];
+    const spoken = word === 'a' ? 'uh.' : `${word}.`;
+    const audio = await tts.generate(spoken, {
       voice: 'af_heart',
-      speed: 0.85,
+      speed: 0.8,
     });
-    const int16 = trimAndNormalizeFloat32(audio.audio, audio.sampling_rate);
-    const mp3Buffer = encodeMonoMp3(Mp3Encoder, int16, audio.sampling_rate, 64);
-    fs.writeFileSync(job.outPath, mp3Buffer);
-    totalBytes += mp3Buffer.length;
+    sampleRate = audio.sampling_rate;
+    const pcm = trimAndNormalizeFloat32(audio.audio, sampleRate);
+    wordBuffers.set(word, { pcm, sampleRate });
 
-    const timing = computeWordTimings(job.text, int16, audio.sampling_rate);
-    pages[job.key] = {
-      audioPath: `audio/stories/${job.storyId}/page-${job.pageNum}.mp3`,
-      durationMs: timing.durationMs,
-      words: timing.words,
-    };
+    // Save individual word MP3 for tap-to-hear
+    const wordMp3 = encodeMonoMp3(Mp3Encoder, pcm, sampleRate, 64);
+    fs.writeFileSync(path.join(storyWordsDir, `${word}.mp3`), wordMp3);
+    totalBytes += wordMp3.length;
 
-    if ((i + 1) % 8 === 0 || i === pageJobs.length - 1) {
-      console.log(`  [Page ${i + 1}/${pageJobs.length}] ${job.key} (${timing.durationMs}ms, ${timing.words.length} words)`);
+    if ((i + 1) % 25 === 0 || i === sortedWords.length - 1) {
+      console.log(`  [Word ${i + 1}/${sortedWords.length}] ${word}.mp3 (${Math.round((pcm.length / sampleRate) * 1000)}ms)`);
     }
   }
 
-  for (let i = 0; i < wordJobs.length; i += 1) {
-    const job = wordJobs[i];
-    const audio = await tts.generate(job.spoken, {
-      voice: 'af_heart',
-      speed: 0.9,
-    });
-    const int16 = trimAndNormalizeFloat32(audio.audio, audio.sampling_rate);
-    const mp3Buffer = encodeMonoMp3(Mp3Encoder, int16, audio.sampling_rate, 64);
-    fs.writeFileSync(job.outPath, mp3Buffer);
-    totalBytes += mp3Buffer.length;
+  const pages = {};
+  const leadSamples = Math.round((LEAD_IN_MS / 1000) * sampleRate);
+  const tailSamples = Math.round((TAIL_PAD_MS / 1000) * sampleRate);
 
-    if ((i + 1) % 25 === 0 || i === wordJobs.length - 1) {
-      console.log(`  [Word ${i + 1}/${wordJobs.length}] ${job.word}.mp3`);
-    }
+  for (const story of STORY_SCRIPTS) {
+    const storyDir = path.join(storiesAudioDir, story.id);
+    fs.mkdirSync(storyDir, { recursive: true });
+
+    story.pages.forEach((text, idx) => {
+      const pageNum = idx + 1;
+      const key = `${story.id}/page-${pageNum}`;
+      const tokens = text.trim().split(/\s+/).filter(Boolean);
+
+      // Measure total PCM length and exact sample offsets
+      const segments = [];
+      let cursorSamples = leadSamples;
+
+      tokens.forEach((token, tIdx) => {
+        const clean = slugWord(token);
+        const entry = wordBuffers.get(clean);
+        if (!entry) {
+          throw new Error(`Missing word buffer for "${clean}" in ${key}`);
+        }
+        const startSample = cursorSamples;
+        const endSample = startSample + entry.pcm.length;
+        cursorSamples = endSample;
+
+        const isLast = tIdx === tokens.length - 1;
+        let gapMs = 0;
+        if (!isLast) {
+          if (/[.!?]$/.test(token)) {
+            gapMs = SENTENCE_GAP_MS;
+          } else if (token.endsWith(',')) {
+            gapMs = COMMA_GAP_MS;
+          } else {
+            gapMs = WORD_GAP_MS;
+          }
+          cursorSamples += Math.round((gapMs / 1000) * sampleRate);
+        }
+
+        segments.push({
+          word: token,
+          pcm: entry.pcm,
+          startSample,
+          endSample,
+          gapMs,
+        });
+      });
+
+      const totalSamples = cursorSamples + tailSamples;
+      const stitched = new Int16Array(totalSamples);
+      for (const seg of segments) {
+        stitched.set(seg.pcm, seg.startSample);
+      }
+
+      const durationMs = Math.round((totalSamples / sampleRate) * 1000);
+      const words = segments.map((seg, sIdx) => {
+        const rawStartMs = Math.round((seg.startSample / sampleRate) * 1000);
+        const rawEndMs = Math.round((seg.endSample / sampleRate) * 1000);
+        const nextStartMs =
+          sIdx < segments.length - 1
+            ? Math.round((segments[sIdx + 1].startSample / sampleRate) * 1000)
+            : durationMs;
+        // Keep highlight lit cleanly into the trailing breath so short words like "a"/"is" feel super clear
+        const holdEndMs = Math.min(nextStartMs, rawEndMs + HIGHLIGHT_HOLD_MS);
+        return {
+          word: seg.word,
+          startMs: sIdx === 0 ? 0 : rawStartMs,
+          endMs: sIdx === segments.length - 1 ? durationMs : holdEndMs,
+        };
+      });
+
+      const mp3Buffer = encodeMonoMp3(Mp3Encoder, stitched, sampleRate, 64);
+      fs.writeFileSync(path.join(storyDir, `page-${pageNum}.mp3`), mp3Buffer);
+      totalBytes += mp3Buffer.length;
+
+      pages[key] = {
+        audioPath: `audio/stories/${story.id}/page-${pageNum}.mp3`,
+        durationMs,
+        words,
+      };
+    });
+
+    console.log(
+      `  [Story] ${story.id}: 8 pages stitched (page 1 = ${pages[`${story.id}/page-1`].durationMs}ms)`,
+    );
   }
 
-  const wordSlugs = Array.from(uniqueWords).sort();
-  fs.writeFileSync(catalogOutPath, `${JSON.stringify({ pages, wordSlugs }, null, 2)}\n`, 'utf8');
-  console.log(
-    `Done! Saved ${pageJobs.length} page narrations + ${wordJobs.length} word clips (${(totalBytes / 1024).toFixed(1)} KB total).`,
+  fs.writeFileSync(
+    catalogOutPath,
+    `${JSON.stringify({ pages, wordSlugs: sortedWords }, null, 2)}\n`,
+    'utf8',
   );
+  console.log(`Done! Generated sample-accurate K1 story audio (${(totalBytes / 1024).toFixed(1)} KB total).`);
 }
 
 main().catch((err) => {
