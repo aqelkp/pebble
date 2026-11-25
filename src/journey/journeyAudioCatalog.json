@@ -1988,6 +1988,114 @@
           "endMs": 5483
         }
       ]
+    },
+    "word-hunt": {
+      "id": "word-hunt",
+      "text": "Scan the letter grid to find each hidden word! Swipe across the letters or tap the first and last letter!",
+      "audioPath": "audio/journey/word-hunt.mp3",
+      "durationMs": 6397,
+      "words": [
+        {
+          "word": "Scan",
+          "startMs": 0,
+          "endMs": 214
+        },
+        {
+          "word": "the",
+          "startMs": 214,
+          "endMs": 612
+        },
+        {
+          "word": "letter",
+          "startMs": 612,
+          "endMs": 1003
+        },
+        {
+          "word": "grid",
+          "startMs": 1003,
+          "endMs": 1282
+        },
+        {
+          "word": "to",
+          "startMs": 1282,
+          "endMs": 1589
+        },
+        {
+          "word": "find",
+          "startMs": 1589,
+          "endMs": 1763
+        },
+        {
+          "word": "each",
+          "startMs": 1763,
+          "endMs": 1987
+        },
+        {
+          "word": "hidden",
+          "startMs": 1987,
+          "endMs": 2568
+        },
+        {
+          "word": "word!",
+          "startMs": 2568,
+          "endMs": 2896
+        },
+        {
+          "word": "Swipe",
+          "startMs": 2896,
+          "endMs": 3020
+        },
+        {
+          "word": "across",
+          "startMs": 3020,
+          "endMs": 3567
+        },
+        {
+          "word": "the",
+          "startMs": 3567,
+          "endMs": 3865
+        },
+        {
+          "word": "letters",
+          "startMs": 3865,
+          "endMs": 4407
+        },
+        {
+          "word": "or",
+          "startMs": 4407,
+          "endMs": 4619
+        },
+        {
+          "word": "tap",
+          "startMs": 4619,
+          "endMs": 4842
+        },
+        {
+          "word": "the",
+          "startMs": 4842,
+          "endMs": 5095
+        },
+        {
+          "word": "first",
+          "startMs": 5095,
+          "endMs": 5330
+        },
+        {
+          "word": "and",
+          "startMs": 5330,
+          "endMs": 5588
+        },
+        {
+          "word": "last",
+          "startMs": 5588,
+          "endMs": 5767
+        },
+        {
+          "word": "letter!",
+          "startMs": 5767,
+          "endMs": 6397
+        }
+      ]
     }
   }
 }

@@ -828,6 +828,74 @@ function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
     );
   }
 
+  if (activity.gameId === 'word-hunt') {
+    const miniRows = [
+      ['C', 'A', 'T', 'P'],
+      ['B', 'L', 'S', 'D'],
+      ['M', 'K', 'U', 'R'],
+      ['G', 'W', 'N', 'E'],
+    ];
+    return (
+      <div
+        className="intro-demo-stage"
+        aria-hidden="true"
+        style={{ flexDirection: 'column', gap: 10 }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 38px)',
+            gap: 5,
+            background: '#FFFFFF',
+            padding: 8,
+            borderRadius: 16,
+            border: '2px solid #E6E1D6',
+            boxShadow: '0 6px 16px rgba(30,36,51,0.08)',
+          }}
+        >
+          {miniRows.flatMap((row, r) =>
+            row.map((ch, c) => {
+              const isCat = r === 0 && c <= 2;
+              const isSun = c === 2 && r >= 1;
+              return (
+                <span
+                  key={`${r}-${c}`}
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 10,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 700,
+                    fontSize: '1.05rem',
+                    background: isCat
+                      ? 'rgba(59, 169, 156, 0.25)'
+                      : isSun
+                        ? 'rgba(242, 122, 94, 0.25)'
+                        : '#FAF9F5',
+                    border: isCat
+                      ? '1.5px solid #3BA99C'
+                      : isSun
+                        ? '1.5px solid #F27A5E'
+                        : '1.5px solid #E7E3D9',
+                    color: '#1E2433',
+                  }}
+                >
+                  {ch}
+                </span>
+              );
+            }),
+          )}
+        </div>
+        <span className="intro-demo-twin-caption">
+          Swipe across hidden words or tap the first and last letter!
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="intro-demo-stage intro-demo-stage--safari" aria-hidden="true">
       <div className="intro-demo-safari-animals">
