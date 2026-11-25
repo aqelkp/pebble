@@ -192,6 +192,17 @@ const SplashTankBoard = lazy(() =>
   })),
 );
 
+const WordHuntSetup = lazy(() =>
+  import('./word-hunt/WordHuntSetup').then((m) => ({
+    default: m.WordHuntSetup,
+  })),
+);
+const WordHuntBoard = lazy(() =>
+  import('./word-hunt/WordHuntBoard').then((m) => ({
+    default: m.WordHuntBoard,
+  })),
+);
+
 export interface LeaveGameCopy {
   headline: string;
   subtitle: string;
@@ -1278,6 +1289,56 @@ const GAME_PLUGINS: GamePluginRegistry = {
       journeyContext,
     }) => (
       <SplashTankBoard
+        key={gameKey}
+        gameKey={gameKey}
+        config={config}
+        childProfile={profiles[0]}
+        soundEnabled={soundEnabled}
+        onToggleSound={onToggleSound}
+        onChangeSetup={onChangeSetup}
+        onBackToHub={onBackToHub}
+        onRequestHelp={onRequestHelp}
+        onGameActiveChange={onGameActiveChange}
+        journeyContext={journeyContext}
+      />
+    ),
+  },
+  'word-hunt': {
+    id: 'word-hunt',
+    activeSessionStorageKey: 'pebble.word-hunt.session.v1',
+    leaveCopy: {
+      headline: 'Leave Word Hunt?',
+      subtitle: 'Your current letter grid progress will reset.',
+      keepPlayingLabel: 'Keep Hunting',
+    },
+    ...makeConfigAccessors('word-hunt'),
+    preloadChunks: () =>
+      Promise.all([
+        import('./word-hunt/WordHuntSetup'),
+        import('./word-hunt/WordHuntBoard'),
+      ]),
+    renderSetup: ({ profiles, initialConfig, onBackToHub, onEditProfiles, onStartGame }) => (
+      <WordHuntSetup
+        childProfile={profiles[0]}
+        initialConfig={initialConfig ?? getDefaultGameConfig('word-hunt', profiles)}
+        onBackToHub={onBackToHub}
+        onEditProfiles={onEditProfiles}
+        onStartGame={onStartGame}
+      />
+    ),
+    renderBoard: ({
+      gameKey,
+      config,
+      profiles,
+      soundEnabled,
+      onToggleSound,
+      onChangeSetup,
+      onBackToHub,
+      onRequestHelp,
+      onGameActiveChange,
+      journeyContext,
+    }) => (
+      <WordHuntBoard
         key={gameKey}
         gameKey={gameKey}
         config={config}

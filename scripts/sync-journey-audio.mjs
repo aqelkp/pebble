@@ -139,6 +139,10 @@ const JOURNEY_PROMPTS = [
     id: 'splash-tank',
     text: 'Look at the water level and the target flag! Pour the right bucket to fill the tank without spilling!',
   },
+  {
+    id: 'word-hunt',
+    text: 'Scan the letter grid to find each hidden word! Swipe across the letters or tap the first and last letter!',
+  },
 ];
 
 const UI_PROMPTS = [

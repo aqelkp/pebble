@@ -15,6 +15,7 @@ import { getQuestPackSpec } from '../curriculum/questEngine/questTypes';
 import { getCountdownModeSpec } from '../games/pipe-countdown/countdownData';
 import { getRocketModeSpec } from '../games/rocket-sums/rocketData';
 import { getSplashModeSpec } from '../games/splash-tank/tankData';
+import { getWordHuntGridSpec, getWordHuntPackSpec } from '../games/word-hunt/wordHuntData';
 import type { JourneyActivity } from './journeyTypes';
 
 function resolveConfig<K extends GameId>(
@@ -386,6 +387,22 @@ export function buildStandaloneHelpActivity(
           'Tap or drag the right capacity bucket to fill the water tank to the target flag without spilling!',
         artPath: 'hub/splash-tank.png',
         voiceClipId: 'splash-tank',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'word-hunt': {
+      const cfg = resolveConfig('word-hunt', rawConfig, profiles);
+      const gridSpec = getWordHuntGridSpec(cfg.gridSize);
+      const packSpec = getWordHuntPackSpec(cfg.packId);
+      return {
+        ...base,
+        gameId,
+        title: 'Word Hunt',
+        subtitle: `${gridSpec.label} • ${packSpec.title}`,
+        detailLine: `Swipe across each hidden word (${gridSpec.directionHint}) or tap its first and last letter!`,
+        artPath: 'hub/word-hunt.png',
+        voiceClipId: 'word-hunt',
         payload: { gameId, config: cfg },
       };
     }

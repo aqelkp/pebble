@@ -98,6 +98,11 @@ import {
   isValidSplashTankConfig,
   type SplashTankConfig,
 } from './splash-tank/tankData';
+import {
+  getDefaultWordHuntConfig,
+  isValidWordHuntConfig,
+  type WordHuntConfig,
+} from './word-hunt/wordHuntData';
 
 // TODO(security): Pebble runs 100% locally in the browser as a static client-only PWA with no
 // backend server, authentication, or database. All saved game configuration objects restored from
@@ -128,6 +133,7 @@ export interface GameConfigMap {
   'pipe-countdown': PipeCountdownConfig;
   'rocket-sums': RocketSumsConfig;
   'splash-tank': SplashTankConfig;
+  'word-hunt': WordHuntConfig;
 }
 
 export type SavedGameConfigs = Partial<{ [K in GameId]: GameConfigMap[K] }>;
@@ -248,6 +254,7 @@ const CONFIG_VALIDATORS: ConfigValidatorMap = {
   'pipe-countdown': isValidPipeCountdownConfig,
   'rocket-sums': isValidRocketSumsConfig,
   'splash-tank': isValidSplashTankConfig,
+  'word-hunt': isValidWordHuntConfig,
 };
 
 export function isValidGameConfig<K extends GameId>(
@@ -332,5 +339,7 @@ export function getDefaultGameConfig<K extends GameId>(
       return getDefaultRocketSumsConfig() as GameConfigMap[K];
     case 'splash-tank':
       return getDefaultSplashTankConfig() as GameConfigMap[K];
+    case 'word-hunt':
+      return getDefaultWordHuntConfig() as GameConfigMap[K];
   }
 }

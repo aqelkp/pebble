@@ -23,7 +23,8 @@ export type GameId =
   | 'circle-sort'
   | 'pipe-countdown'
   | 'rocket-sums'
-  | 'splash-tank';
+  | 'splash-tank'
+  | 'word-hunt';
 
 export type HubShelfId =
   | 'letters-words'
@@ -87,6 +88,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
       domains: ['cognition', 'self-regulation'],
       targetSkills: ['visual_recall'],
       conceptUnitLabel: 'Board & Theme Memory',
+    },
+  },
+  {
+    id: 'word-hunt',
+    title: 'Word Hunt',
+    description:
+      'Scan a 5×5, 6×6, or 7×7 crossword-style letter grid and swipe or tap to highlight hidden CVC, sight, and everyday words!',
+    badgeText: 'New Game',
+    ageHint: 'Ages 4.5–7 • Letter Grid Words',
+    artPath: 'hub/word-hunt.png',
+    shelf: 'letters-words',
+    status: 'available',
+    featured: true,
+    activityRole: 'learning',
+    learningIntent: {
+      summary:
+        'Builds visual word recognition, left-to-right and top-to-bottom orthographic scanning, and letter-by-letter spelling verification across randomized N×N letter grids.',
+      domains: ['literacy', 'cognition', 'self-regulation'],
+      targetSkills: ['sight_word_reading', 'word_spelling'],
+      conceptUnitLabel: 'Crossword-Style Word Grids',
     },
   },
   {

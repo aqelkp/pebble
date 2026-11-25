@@ -43,6 +43,12 @@ import {
   type CountdownRoundLength,
 } from '../games/pipe-countdown/countdownData';
 import {
+  getWordHuntGridSpec,
+  getWordHuntPackSpec,
+  type WordHuntGridSize,
+  type WordHuntPackId,
+} from '../games/word-hunt/wordHuntData';
+import {
   getRocketModeSpec,
   type RocketModeId,
   type RocketRoundLength,
@@ -1019,6 +1025,50 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
             classLevel: spec.classLevel,
             modeId,
             roundLength,
+          },
+        },
+      };
+    },
+  },
+
+  'word-hunt': {
+    gameId: 'word-hunt',
+    title: 'Word Hunt',
+    artPath: 'hub/word-hunt.png',
+    pillar: 'phonics-reading',
+    category: 'words',
+    buildActivity: (ctx) => {
+      const packRotation: readonly WordHuntPackId[] = ['cvc', 'sight', 'animals', 'everyday', 'all'];
+      const packId: WordHuntPackId =
+        ctx.gameOrdinal === 0 ? 'cvc' : packRotation[ctx.gameOrdinal % packRotation.length];
+
+      // Universal Starter Scaffolding: gameOrdinal === 0 is always 5x5 horizontal-only CVC
+      const gridSize: WordHuntGridSize =
+        ctx.gameOrdinal === 0
+          ? '5x5'
+          : ctx.settings.durationMode === 'short'
+            ? ctx.chapterNumber <= 5
+              ? '5x5'
+              : '6x6'
+            : ctx.chapterNumber >= 12 && ctx.gameOrdinal % 3 === 2
+              ? '7x7'
+              : '6x6';
+
+      const gridSpec = getWordHuntGridSpec(gridSize);
+      const packSpec = getWordHuntPackSpec(packId);
+
+      return {
+        title: 'Word Hunt',
+        subtitle: `${gridSpec.label} • ${packSpec.title}`,
+        detailLine: `Spot ${gridSpec.wordCount} hidden words (${gridSpec.directionHint}) in the letter grid!`,
+        artPath: 'hub/word-hunt.png',
+        voiceClipId: 'word-hunt',
+        payload: {
+          gameId: 'word-hunt',
+          config: {
+            gridSize,
+            packId,
+            caseMode: 'upper',
           },
         },
       };

@@ -21,6 +21,7 @@ import type { QuestGameConfig } from '../curriculum/questEngine/questTypes';
 import type { PipeCountdownConfig } from '../games/pipe-countdown/countdownData';
 import type { RocketSumsConfig } from '../games/rocket-sums/rocketData';
 import type { SplashTankConfig } from '../games/splash-tank/tankData';
+import type { WordHuntConfig } from '../games/word-hunt/wordHuntData';
 
 export const TOTAL_CHAPTERS = 20;
 export const ACTIVITIES_PER_CHAPTER = 20;
@@ -74,7 +75,8 @@ export type JourneyVoiceClipId =
   | 'circle-sort'
   | 'pipe-countdown'
   | 'rocket-sums'
-  | 'splash-tank';
+  | 'splash-tank'
+  | 'word-hunt';
 
 export interface JourneyBoardContext {
   chapterNumber: number;
@@ -143,7 +145,8 @@ export type JourneyActivityPayload =
   | { gameId: 'circle-sort'; config: CircleSortConfig }
   | { gameId: 'pipe-countdown'; config: PipeCountdownConfig }
   | { gameId: 'rocket-sums'; config: RocketSumsConfig }
-  | { gameId: 'splash-tank'; config: SplashTankConfig };
+  | { gameId: 'splash-tank'; config: SplashTankConfig }
+  | { gameId: 'word-hunt'; config: WordHuntConfig };
 
 export interface JourneyActivity {
   index: number;
