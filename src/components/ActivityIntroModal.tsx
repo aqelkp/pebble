@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getStationSpec } from '../games/letter-train/letterData';
 import { WordIllustration } from '../games/letter-train/WordIllustration';
 import { getThemeSpec } from '../games/memory-match/themes';
+import { getStoryBook } from '../games/story-time/storyBooks';
 import { WordFunArt } from '../games/word-fun/WordFunArt';
 import { ACTIVITIES_PER_CHAPTER, type JourneyActivity } from '../journey/journeyTypes';
 import { getJourneyVoiceSpec } from '../journey/voiceInstructions';
@@ -46,6 +47,50 @@ function ReplayVoiceIcon({ size = 18 }: { size?: number }) {
 }
 
 function ActivityPreviewStage({ activity }: { activity: JourneyActivity }) {
+  if (activity.gameId === 'story-time') {
+    const storyId =
+      activity.payload.gameId === 'story-time'
+        ? activity.payload.config.storyId
+        : 'sam-and-the-mud';
+    const book = getStoryBook(storyId);
+    return (
+      <div className="intro-demo-stage" aria-hidden="true" style={{ gap: 16 }}>
+        <img
+          src={assetUrl(book.coverImagePath)}
+          alt=""
+          style={{
+            width: 148,
+            height: 111,
+            objectFit: 'cover',
+            borderRadius: 16,
+            border: '3px solid #FFFFFF',
+            boxShadow: '0 8px 20px rgba(30, 36, 51, 0.14)',
+          }}
+        />
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: 6,
+          }}
+        >
+          <span className="badge-pill badge-pill--mint">{book.badgeText}</span>
+          <span
+            style={{
+              fontFamily: 'var(--font-display, Fredoka, sans-serif)',
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              color: '#1E2433',
+            }}
+          >
+            {book.title}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   if (activity.gameId === 'memory-match') {
     const theme = getThemeSpec(activity.previewThemeId ?? 'paw-patrol');
     const sampleChar = theme.characters[0];

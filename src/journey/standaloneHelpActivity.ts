@@ -16,6 +16,7 @@ import { getCountdownModeSpec } from '../games/pipe-countdown/countdownData';
 import { getRocketModeSpec } from '../games/rocket-sums/rocketData';
 import { getSplashModeSpec } from '../games/splash-tank/tankData';
 import { getWordHuntGridSpec, getWordHuntPackSpec } from '../games/word-hunt/wordHuntData';
+import { getStoryBook } from '../games/story-time/storyBooks';
 import type { JourneyActivity } from './journeyTypes';
 
 function resolveConfig<K extends GameId>(
@@ -403,6 +404,21 @@ export function buildStandaloneHelpActivity(
         detailLine: `Swipe across each hidden word (${gridSpec.directionHint}) or tap its first and last letter!`,
         artPath: 'hub/word-hunt.png',
         voiceClipId: 'word-hunt',
+        payload: { gameId, config: cfg },
+      };
+    }
+
+    case 'story-time': {
+      const cfg = resolveConfig('story-time', rawConfig, profiles);
+      const book = getStoryBook(cfg.storyId);
+      return {
+        ...base,
+        gameId,
+        title: 'Story Time',
+        subtitle: `${book.title} • ${book.pages.length} pages`,
+        detailLine: 'Follow each glowing word as it reads aloud, or tap any word to hear it again!',
+        artPath: 'hub/story-time.png',
+        voiceClipId: 'story-time',
         payload: { gameId, config: cfg },
       };
     }

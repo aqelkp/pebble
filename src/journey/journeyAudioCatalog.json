@@ -2096,6 +2096,114 @@
           "endMs": 6397
         }
       ]
+    },
+    "story-time": {
+      "id": "story-time",
+      "text": "Listen to the story and follow each glowing word! Tap any word to hear it again, then turn the page!",
+      "audioPath": "audio/journey/story-time.mp3",
+      "durationMs": 5832,
+      "words": [
+        {
+          "word": "Listen",
+          "startMs": 0,
+          "endMs": 426
+        },
+        {
+          "word": "to",
+          "startMs": 426,
+          "endMs": 640
+        },
+        {
+          "word": "the",
+          "startMs": 640,
+          "endMs": 803
+        },
+        {
+          "word": "story",
+          "startMs": 803,
+          "endMs": 1210
+        },
+        {
+          "word": "and",
+          "startMs": 1210,
+          "endMs": 1578
+        },
+        {
+          "word": "follow",
+          "startMs": 1578,
+          "endMs": 1854
+        },
+        {
+          "word": "each",
+          "startMs": 1854,
+          "endMs": 2196
+        },
+        {
+          "word": "glowing",
+          "startMs": 2196,
+          "endMs": 2666
+        },
+        {
+          "word": "word!",
+          "startMs": 2666,
+          "endMs": 2940
+        },
+        {
+          "word": "Tap",
+          "startMs": 2940,
+          "endMs": 3043
+        },
+        {
+          "word": "any",
+          "startMs": 3043,
+          "endMs": 3378
+        },
+        {
+          "word": "word",
+          "startMs": 3378,
+          "endMs": 3765
+        },
+        {
+          "word": "to",
+          "startMs": 3765,
+          "endMs": 3950
+        },
+        {
+          "word": "hear",
+          "startMs": 3950,
+          "endMs": 4191
+        },
+        {
+          "word": "it",
+          "startMs": 4191,
+          "endMs": 4246
+        },
+        {
+          "word": "again,",
+          "startMs": 4246,
+          "endMs": 4771
+        },
+        {
+          "word": "then",
+          "startMs": 4771,
+          "endMs": 5023
+        },
+        {
+          "word": "turn",
+          "startMs": 5023,
+          "endMs": 5274
+        },
+        {
+          "word": "the",
+          "startMs": 5274,
+          "endMs": 5592
+        },
+        {
+          "word": "page!",
+          "startMs": 5592,
+          "endMs": 5832
+        }
+      ]
     }
   }
 }

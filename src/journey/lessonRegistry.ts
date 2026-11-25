@@ -60,6 +60,7 @@ import {
   type SplashTankRoundLength,
 } from '../games/splash-tank/tankData';
 import type { JourneyActivityAdapter, JourneyLearningPillar } from './journeyTypes';
+import { STORY_BOOKS } from '../games/story-time/storyBooks';
 
 const COMPARE_MODE_ROTATION: readonly CompareModeId[] = [
   'quantity',
@@ -1069,6 +1070,34 @@ export const JOURNEY_LESSON_ADAPTERS: Record<
             gridSize,
             packId,
             caseMode: 'upper',
+          },
+        },
+      };
+    },
+  },
+
+  'story-time': {
+    gameId: 'story-time',
+    title: 'Story Time',
+    artPath: 'hub/story-time.png',
+    pillar: 'fun-break',
+    category: 'fun',
+    buildActivity: (ctx) => {
+      const book =
+        ctx.gameOrdinal === 0
+          ? STORY_BOOKS[0]
+          : STORY_BOOKS[ctx.gameOrdinal % STORY_BOOKS.length];
+      return {
+        title: 'Story Time',
+        subtitle: `${book.title} • ${book.pages.length} pages`,
+        detailLine: `Fun Break Story · ${book.subtitle}`,
+        artPath: 'hub/story-time.png',
+        voiceClipId: 'story-time',
+        payload: {
+          gameId: 'story-time',
+          config: {
+            storyId: book.id,
+            autoPlayNarration: true,
           },
         },
       };
